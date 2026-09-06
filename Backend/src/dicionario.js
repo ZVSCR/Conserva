@@ -91,3 +91,29 @@ function resolverNomeItem(rawItem, quant, novoItemNome) {
 }
 
 module.exports = { adicionarItem, resolverNomeItem, instancia };
+
+/*  EXEMPLO DE CHAMADA
+
+const readline = require('readline');
+const { adicionarItem, resolverNomeItem, instancia } = require('./dicionario');
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => new Promise((res) => rl.question(q, res));
+
+async function main() {
+    for (let i = 0; i < 5; i++) {
+        const raw = await ask('Adicione um item:\n');
+        const result = adicionarItem(raw);
+
+        if (result.needsName) {
+            const novoNome = await ask('Item não encontrado, qual o nome do item?\n');
+            resolverNomeItem(result.rawItem, result.quant, novoNome);
+        }
+    }
+    console.log(instancia);
+    rl.close();
+}
+
+main();
+
+*/
