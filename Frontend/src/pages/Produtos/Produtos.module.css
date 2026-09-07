@@ -255,3 +255,31 @@
     height: 25px;
     object-fit: contain;
 }
+
+/* ----------------- BTN ADICIONAR -------*/
+.cabecalhoLista {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.botaoAdicionar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+
+    cursor: pointer;
+}
+
+.botaoAdicionar img {
+    width: 26px;
+    height: 26px;
+}

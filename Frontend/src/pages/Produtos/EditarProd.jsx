@@ -3,12 +3,12 @@ import styles from './Produtos.module.css';
 
 function EditarProduto({ produto, onSalvar, onCancelar }) {
 
-    const [nome, setNome] = useState(produto.nome);
-    const [quantidade, setQuantidade] = useState(produto.quantidade);
+     const [nome, setNome] = useState(produto?.nome ?? '');
+    const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1);
 
     function salvar() {
         onSalvar({
-            ...produto,
+            ...produto, //se o prod for null, não adiciona
             nome: nome,
             quantidade: quantidade
         });
@@ -19,7 +19,8 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
             <div className={styles.modal}>
 
-                <h2>Editar produto</h2>
+                {/* Título muda conforme o modo: editar ou adicionar */}
+                <h2>{produto ? 'Editar produto' : 'Adicionar produto'}</h2>
 
                 <label>
                     Nome
