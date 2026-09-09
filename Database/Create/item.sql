@@ -6,5 +6,5 @@ create table item (
     unidade_de_medida varchar(20) not null,
     valor_unitario numeric(9, 2) not null,
     validade_estimada date,
-    primary(id, compra_id)
+    primary key(id, compra_id)
 );  
