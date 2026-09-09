@@ -2,6 +2,6 @@ create table compra (
     id serial primary key,
     usuario_id integer references user(id),
     data_compra timestamp default current_timestamp,
-    valor_total numeric(9, 2),
+    valor_total numeric(9, 2) not null,
     estabelecimento varchar(50)
 );  
