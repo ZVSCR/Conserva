@@ -1,10 +1,14 @@
-function listarItens(req, res) {
-    res.send(`Itens buscados para os ids: ...`);
+const { buscarItens, buscarPorId } = require('../repositories/itemRepository');
+
+async function listarItens(req, res) {
+    const items = await buscarItens();
+    res.json(items);
 }
 
-function listarPorId(req, res) {
-    const parametros = req.params;
-    res.send(`Item buscado para o id ${parametros.id}: ...`);
+async function listarPorId(req, res) {
+    const { id } = req.params;
+    const item = await buscarPorId(id);
+    res.json(item);
 }
 
 module.exports = { listarItens, listarPorId }
