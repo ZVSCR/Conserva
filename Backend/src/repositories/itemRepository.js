@@ -12,7 +12,7 @@ async function buscarItens() {
         const query = await sql`
             SELECT * FROM item
             JOIN compra ON item.compra_id = compra.id
-            JOIN users ON compra.usuario.id = users.id;
+            JOIN users ON compra.usuario_id = users.id;
         `;
         const resultado = query[0];
 
