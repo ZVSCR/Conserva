@@ -9,7 +9,7 @@ function PanelLogin() {
                 <input type="text" id="username" name="username" placeholder="Usuário/email" />
                 <label htmlFor="password">Senha:</label>
                 <input type="password" id="password" name="password" placeholder="Senha" />
-                <button>Entrar</button>
+                <button className="btn btn-primary-login">Entrar</button>
                 <a href="/registrar">Registrar</a>
             </form>
         </div>

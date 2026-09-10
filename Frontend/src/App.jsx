@@ -13,8 +13,8 @@ function App() {
         {/* Rota da sua página principal */}
         <Route path="/home" element={<Home />} />
 
-        <Route path="/Login" element={<Login />} />
-        <Route path="/Registrar" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registrar" element={<Register />} />
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
         <Route path="*" element={<h1>Página não encontrada (404)</h1>} />
