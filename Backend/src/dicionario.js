@@ -1,24 +1,107 @@
 const instancia = [];                                                   // Armazena itens adicionados
 
 const aliasesToNome = {                                                 // Dicionario de nomes conhecidos
-    "req.": "requeijao",
+    "req": "requeijao",
     "requeijao": "requeijao",
     "leite": "leite",
     "pao": "pao",
+    "sal": "sal",
+    "banana": "banana",
+    "mamao": "mamao",
+    "manteiga": "manteiga",
+    "mant": "manteiga",
+    "margarina": "margarina",
+    "marg": "margarina",
+    "queijo": "queijo",
+    "qjo": "queijo",
+    "qj": "queijo",
+    "iogurte": "iogurte",
+    "iog": "iogurte",
+    "creme de leite": "creme de leite",
+    "cr leite": "creme de leite",
+    "leite condensado": "leite condensado",
+    "lt cond": "leite condensado",
+    "leite integral": "leite",
+    "leite desnatado": "leite",
+    "pao frances": "pao",
+    "pao de forma": "pao de forma",
+    "pao forma": "pao de forma",
+    "farinha": "farinha de trigo",
+    "far trigo": "farinha de trigo",
+    "acucar": "acucar",
+    "acuc": "acucar",
+    "arroz": "arroz",
+    "feijao": "feijao",
+    "fj": "feijao",
+    "macarrao": "macarrao",
+    "macar.": "macarrao",
+    "aveia": "aveia",
+    "oleo": "oleo de soja",
+    "azeite": "azeite de oliva",
+    "az": "azeite de oliva",
+    "vinagre": "vinagre",
+    "pimenta do reino": "pimenta do reino",
+    "pim reino": "pimenta do reino",
+    "frango": "frango",
+    "fgo": "frango",
+    "carne bovina": "carne bovina",
+    "carne": "carne bovina",
+    "carne moida": "carne moida",
+    "carne moída": "carne moida",
+    "linguica": "linguica",
+    "ling": "linguica",
+    "bacon": "bacon",
+    "peixe": "peixe",
+    "maca": "maca",
+    "maçã": "maca",
+    "laranja": "laranja",
+    "lar": "laranja",
+    "uva": "uva",
+    "abacaxi": "abacaxi",
+    "abacax.": "abacaxi",
+    "limao": "limao",
+    "mel": "melancia",
+    "melancia": "melancia",
+    "morango": "morango",
+    "tomate": "tomate",
+    "tom": "tomate",
+    "cebola": "cebola",
+    "ceb": "cebola",
+    "alho": "alho",
+    "batata": "batata",
+    "bat": "batata",
+    "cenoura": "cenoura",
+    "cen": "cenoura",
+    "alface": "alface",
+    "pimentao": "pimentao",
+    "cafe": "cafe",
+    "café": "cafe",
+    "suco": "suco",
+    "refrigerante": "refrigerante",
+    "refri": "refrigerante",
+    "agua": "agua",
+    "água": "agua",
+    "cerveja": "cerveja",
+    "cerv": "cerveja",
 };
 
-const map = new Map(Object.entries(aliasesToNome));                     // Faz o mapeamento de nomes definidos no dicionario
+const aliasesOrdenados = Object.keys(aliasesToNome)
+    .sort((a, b) => b.length - a.length);
+
+const map = new Map(Object.entries(aliasesOrdenados));                     // Faz o mapeamento de nomes definidos no dicionario
 
 function parseItem(inputStr) {
     let item = inputStr.toLowerCase();
     let quant;
 
-    if (/\d+/.test(item)) {                                            // Verifica se foi definida uma quantidade
-        quant = parseInt(item.match(/\d+/g)[0]);
-        item = item.replace(/\d+/g, '').trim();                        // Retira números do nome
+    const quantidadeEncontrada = item.match(/(\d+(?:\.\d{1,3})?)(\s*(kg|un|g|ml|l))?\b/);
+
+    if (quantidadeEncontrada) {
+        quant = parseFloat(quantidadeEncontrada[1]);
+        item = item.replace(quantidadeEncontrada[0], '').replace(/\s+/g, ' ').replace(/[.,;:!?]/g, "").trim();          //Normaliza os nomes
     } else {
         item = item.trim();
-        quant = 1;                                                     // Sem quantidade -> assume 1
+        quant = 1;
     }
 
     return { item, quant };
