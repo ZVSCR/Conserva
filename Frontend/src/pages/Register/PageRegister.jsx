@@ -1,10 +1,16 @@
 import PanelRegister from "../../componentes/PanelRegister/PanelRegister";
+import Footer from '../../componentes/Footer/Footer';
+import Header from '../../componentes/Header/Header';
 
+import './Register.css';
 function Register() {
     return (
         <div>
-            <h1>Página de Registro - ConservIA</h1>
+            <Header />
+
             <PanelRegister />
+
+            <Footer />
         </div>
     );
 }
