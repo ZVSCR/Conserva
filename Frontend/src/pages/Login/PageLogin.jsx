@@ -1,5 +1,5 @@
 import PanelLogin from '../../componentes/PanelLogin/PanelLogin.jsx';
-import Footer from '../../componentes/Footer/Footer.jsx';
+import Footer from '../../componentes/footer/Footer.jsx';
 import Header from '../../componentes/Header/Header.jsx';
 
 import './Login.css';

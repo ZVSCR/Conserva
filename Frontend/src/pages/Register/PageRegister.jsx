@@ -1,5 +1,5 @@
 import PanelRegister from "../../componentes/PanelRegister/PanelRegister";
-import Footer from '../../componentes/Footer/Footer';
+import Footer from '../../componentes/footer/Footer';
 import Header from '../../componentes/Header/Header';
 
 import './Register.css';
