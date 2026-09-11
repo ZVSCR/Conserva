@@ -1,0 +1,24 @@
+.panel-data{
+    display: flex;
+    flex-direction: column;
+    margin: 7.5%;
+}
+
+.data-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.data-radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.data-confirm {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
