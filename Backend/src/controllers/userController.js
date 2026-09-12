@@ -56,6 +56,10 @@ const updateUserPreferences = async (req, res, next) => {
       dark_theme
     });
 
+    if (!updatedPreferences) {
+    return res.status(404).json({ message: 'Usuário não encontrado para atualização.' });
+    }
+
     return res.status(200).json({
       status: 'success',
       message: 'Preferências atualizadas com sucesso.',
