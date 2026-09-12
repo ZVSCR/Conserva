@@ -1,5 +1,7 @@
 const sql = require('../config/database')
 
+// =============================================================================
+// LISTAGEM
 async function buscarItens() {
     // será implementado quando houver uma forma de autenticação
     //const query = await sql`
@@ -25,5 +27,19 @@ async function buscarPorId(id) {
 
     return query[0];
 }
+// =============================================================================
 
-module.exports = { buscarItens, buscarPorId };
+// =============================================================================
+// REMOÇÃO
+async function apagarPorId(id) {
+    const query = await sql`
+    DELETE FROM item
+    WHERE id = ${id}
+    RETURNING *;
+    `
+
+    return query[0];
+}
+// =============================================================================
+
+module.exports = { buscarItens, buscarPorId, apagarPorId };
