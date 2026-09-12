@@ -1,11 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const sql = require('./config/database'); // Importa conexão com o banco de dados
+const userRoutes = require('./routes/userRoutes'); // Importa rotas de usuário
 
 const app = express();
 
 app.use(cors()); // Libera o acesso para o frontend
 app.use(express.json());
+app.use('/api/users', userRoutes); // Rota para operações de usuário
 
 // Rota de teste
 app.get('/api/teste-banco', async (req, res) => {
