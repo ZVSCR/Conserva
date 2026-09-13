@@ -10,3 +10,39 @@
     align-items: flex-start;
     gap: 10px;
 }
+
+input[type="text"], input[type="password"], input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 5vh;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.register-form .btn-primary-register {
+    background-color: #6EDC75;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    min-height: 4vh;
+}
+
+@media (max-width: 768px) {
+    .panel-register {
+        margin: 5%;
+    }
+
+    .register-form .btn-primary-register {
+        width: 100%;
+        min-height: 4vh;
+    }
+}
