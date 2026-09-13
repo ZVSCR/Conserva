@@ -1,4 +1,4 @@
-// Função: mapear URLs para as funções
+// Mapeia rotas finais para cada função importante na autenticação
 
 const express = require('express');
 
