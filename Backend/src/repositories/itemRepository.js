@@ -28,7 +28,33 @@ async function buscarPorId(id) {
     return query[0];
 }
 // =============================================================================
+// ATUALIZAÇÃO
+async function atualizarPorId(itemId, fieldsToUpdate) {
+    const updates = {};
 
+    if(fieldsToUpdate.quantidade !== undefined){
+        updates.quantidade = fieldsToUpdate.quantidade;
+    }
+    if(fieldsToUpdate.valor_unitario !== undefined){
+        updates.valor_unitario = fieldsToUpdate.valor_unitario;
+    }
+    if(fieldsToUpdate.nome !== undefined){
+        updates.nome = fieldsToUpdate.nome;
+    }
+    if(fieldsToUpdate.unidade_de_medida !== undefined){
+        updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
+    }
+    if(fieldsToUpdate.validade_estimada !== undefined){
+        updates.validade_estimada = fieldsToUpdate.validade_estimada;
+    }
+
+    const result = await sql`
+        UPDATE item
+        SET ${sql(updates)}
+        WHERE id = ${itemId}
+        RETURNING quantidade, valor_unitario, nome, unidade_de_medida, validade_estimada
+    `;
+}
 // =============================================================================
 // REMOÇÃO
 async function apagarPorId(id) {
