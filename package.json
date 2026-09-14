@@ -4,7 +4,7 @@
   "description": "**Conserva** é uma ferramenta web de gerenciamento de estoque alimentício e sugestão de receitas, com foco em **consumo consciente** — reduzindo desperdício de alimentos e ajudando o usuário a entender melhor seus gastos com comida.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "jest": "^30.5.1",
-    "superjest": "^0.4.0"
+    "superjest": "^0.4.0",
+    "supertest": "^7.2.2"
   }
 }
