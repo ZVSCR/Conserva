@@ -32,19 +32,19 @@ async function buscarPorId(id) {
 async function atualizarPorId(itemId, fieldsToUpdate) {
     const updates = {};
 
-    if(fieldsToUpdate.quantidade !== undefined){
+    if (fieldsToUpdate.quantidade !== undefined) {
         updates.quantidade = fieldsToUpdate.quantidade;
     }
-    if(fieldsToUpdate.valor_unitario !== undefined){
+    if (fieldsToUpdate.valor_unitario !== undefined) {
         updates.valor_unitario = fieldsToUpdate.valor_unitario;
     }
-    if(fieldsToUpdate.nome !== undefined){
-        updates.nome = fieldsToUpdate.nome;
+    if (fieldsToUpdate.nome_item !== undefined) {
+        updates.nome_item = fieldsToUpdate.nome_item;
     }
-    if(fieldsToUpdate.unidade_de_medida !== undefined){
+    if (fieldsToUpdate.unidade_de_medida !== undefined) {
         updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
     }
-    if(fieldsToUpdate.validade_estimada !== undefined){
+    if (fieldsToUpdate.validade_estimada !== undefined) {
         updates.validade_estimada = fieldsToUpdate.validade_estimada;
     }
 
@@ -52,8 +52,10 @@ async function atualizarPorId(itemId, fieldsToUpdate) {
         UPDATE item
         SET ${sql(updates)}
         WHERE id = ${itemId}
-        RETURNING quantidade, valor_unitario, nome, unidade_de_medida, validade_estimada
+        RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
     `;
+
+    return result[0];
 }
 // =============================================================================
 // REMOÇÃO
@@ -68,4 +70,4 @@ async function apagarPorId(id) {
 }
 // =============================================================================
 
-module.exports = { buscarItens, buscarPorId, apagarPorId };
+module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId };
