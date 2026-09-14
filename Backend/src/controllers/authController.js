@@ -1,16 +1,16 @@
-// Requerimentos para criptografia e acesso ao BD
 const bcrypt = require('bcrypt');
 const db = require('../config/database')
 
-// Configura o salt que randomiza o hashing
+// Configura o custo computacional do bcrypt
 const SALT_ROUNDS = 12;
 
 // HTTP codes
-// 200: user logged in
-// 201: user signed in
+// 200: user signed in
+// 201: user registered
 // 400: bad request
 // 401: unauthorized
-// 500: bad server error
+// 409: conflict
+// 500: internal server error
 
 // Registro de usuário
 async function register(req, res) {
@@ -20,14 +20,31 @@ async function register(req, res) {
     // 1. Valida existência de variáveis
     if (!username || !email || !tipo || !password) {
         return res.status(400).json({
-            error: 'Username, tipo e senha são obrigatórios para registro.'
+            error: 'Username, e-mail, tipo e senha são obrigatórios para registro.'
+        });
+    }
+
+    if (
+        typeof username !== 'string' ||
+        typeof email !== 'string' ||
+        typeof tipo !== 'string' ||
+        typeof password !== 'string'
+    ) {
+        return res.status(400).json({
+            error: 'Os campos enviados possuem formato inválido.'
         });
     }
 
     // Normaliza registros para enviar ao DB
     const normalizedUsername = username.trim().toLowerCase(); // Unicidade depende de caixa alta/baixa
-    const normalizedEmail = emai.trim().toLowerCase();        // ^^
+    const normalizedEmail = email.trim().toLowerCase();        // ^^
     const normalizedTipo = tipo.trim();
+
+    if (!normalizedUsername || !normalizedEmail || !normalizedTipo) {
+        return res.status(400).json({
+            error: 'Username, e-mail e tipo não podem conter apenas espaços.'
+        });
+    }
 
     // 2. Valida segundo os limites de caractere definidos
     // Username
@@ -43,7 +60,7 @@ async function register(req, res) {
         });
     }
     // Tipo
-    if (normalizedEmail.tipo > 11) {
+    if (normalizedTipo.length > 11) {
         return res.status(400).json({
             error: 'Tipo deve possuir no máximo 11 caracteres.'
         });
@@ -88,7 +105,7 @@ async function register(req, res) {
     } catch (error) {
 
         // PostgreSQL: unique_violation -  garante unicidade de identificadores
-        if (error.code == '23505') {
+        if (error.code === '23505') {
             return res.status(409).json({
                 error: 'Username ou email já cadastrado.'
             });
@@ -105,12 +122,21 @@ async function register(req, res) {
 // Login de usuário
 async function login(req, res) {
     // Variáveis de login
-    const { identifier, password } = req.body();
+    const { identifier, password } = req.body;
 
     // 1. Valida existência de variáveis
     if (!identifier || !password) {
         return res.status(400).json({
             error: 'Identificador e senha são obrigatórios para login.'
+        });
+    }
+
+    if (
+        typeof identifier !== 'string' ||
+        typeof password !== 'string'
+    ) {
+        return res.status(400).json({
+            error: 'Identificador e senha possuem formato inválido.'
         });
     }
 
@@ -122,6 +148,12 @@ async function login(req, res) {
         return res.status(400).json({
             error: 'Identificador deve possuir no máximo 100 caracteres.'
         })
+    }
+
+    if (!normalizedIdentifier) {
+        return res.status(400).json({
+            error: 'Identificador não pode conter apenas espaços.'
+        });
     }
 
     try {
@@ -146,7 +178,7 @@ async function login(req, res) {
         // Triplo = significa estritamente igual (tipo de dado e valor)
         if (result.rows.length === 0) {
             return res.status(401).json({
-                error: 'Identificador inválido.'
+                error: 'Identificador ou senha inválidos.'
             });
         }
 
@@ -160,7 +192,7 @@ async function login(req, res) {
 
         if (!senhaValida) {
             return res.status(401).json({
-                error: 'Senha inválida.'
+                error: 'Identificador ou senha inválidos.'
             });
         }
 
