@@ -1,9 +1,16 @@
 // Requerimentos para criptografia e acesso ao BD
-const bycrypt = require('bycrypt');
+const bcrypt = require('bcrypt');
 const db = require('../config/database')
 
 // Configura o salt que randomiza o hashing
 const SALT_ROUNDS = 12;
+
+// HTTP codes
+// 200: user logged in
+// 201: user signed in
+// 400: bad request
+// 401: unauthorized
+// 500: bad server error
 
 // Registro de usuário
 async function register(req, res) {
@@ -44,7 +51,7 @@ async function register(req, res) {
 
     try {
         // 3. Gera hash de senha para o usuário
-        const passwordHash = await bycrypt.hash(
+        const passwordHash = await bcrypt.hash(
             password,
             SALT_ROUNDS
         );
@@ -108,7 +115,7 @@ async function login(req, res) {
     }
 
     // Normaliza identificador
-    normalizedIdentifier = identifier.trim().toLowerCase();
+    const normalizedIdentifier = identifier.trim().toLowerCase();
 
     // Verifica viabilidade de tamanho (máx. é email, <100)
     if (normalizedIdentifier.length > 100) {
@@ -146,7 +153,7 @@ async function login(req, res) {
         const user = result.rows[0];
 
         // 4. Valida senha
-        const senhaValida = await bycrypt.compare(
+        const senhaValida = await bcrypt.compare(
             password,
             user.password_hash
         );
@@ -158,7 +165,7 @@ async function login(req, res) {
         }
 
         // 5. Login válido
-        return res.status(400).json({
+        return res.status(200).json({
             message: 'Login efetuado. Seja bem-vindo!',
             user: {
                 id: user.id,
