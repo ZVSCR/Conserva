@@ -8,9 +8,9 @@ const mockAuth = (req, res, next) => {
     username: 'dev',
     email: 'dev@exemplo.com',
     tipo: 'dev',
-    push_notifications: true,
-    email_notifications: true,
-    dark_theme: false
+    notify_push: true,
+    notify_email: true,
+    is_dark_theme: false
   };
 
   next();
