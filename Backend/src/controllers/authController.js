@@ -196,7 +196,7 @@ async function login(req, res) {
             });
         }
 
-        // 5. Login válido
+        // 5. Login válido e retorno de usuário
         return res.status(200).json({
             message: 'Login efetuado. Seja bem-vindo!',
             user: {
@@ -215,16 +215,7 @@ async function login(req, res) {
     }
 }
 
-async function logout(req, res) {
-}
-
-async function getCurrentUser(req, res) {
-
-}
-
 module.exports = {
     register,
-    login,
-    logout,
-    getCurrentUser
+    login
 };
