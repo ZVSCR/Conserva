@@ -1,7 +1,7 @@
 const sql = require('../config/database');
 
 //Listar os itens do estoque
-async function buscarEstoque() {
+async function buscarEstoque(usuarioId) {
     const query = await sql`
         SELECT estoque.id,
                estoque.item_id,
