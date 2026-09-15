@@ -27,7 +27,7 @@ app.get('/api/teste-banco', async (req, res) => {
     res.status(500).json({ sucesso: false, erro: erro.message });
   }
 });
-/* Funções de debug que podem ser úteis, vou deixar cometadas
+/*
 app.get('/api/debug-usuarios', async (req, res) => {
   const usuarios = await sql`SELECT id, username, email FROM users`;
   res.json(usuarios);

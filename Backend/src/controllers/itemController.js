@@ -1,4 +1,4 @@
-const { buscarItens, buscarPorId, atualizarPorId, apagarPorId } = require('../repositories/itemRepository');
+const { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem } = require('../repositories/itemRepository');
 
 const validateItemPayload = (body) => {
   const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
@@ -115,6 +115,7 @@ async function criarItemHandler(req, res) {
         const resultado = await criarItem(usuario_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada);
         res.status(201).json(resultado);
     } catch (erro) {
+        console.error(erro)
         res.status(500).json({
             erro: 'Erro ao criar item no estoque'
         });
