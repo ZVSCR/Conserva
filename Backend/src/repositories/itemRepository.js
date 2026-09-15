@@ -75,4 +75,36 @@ async function apagarPorId(id) {
 }
 // =============================================================================
 
-module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId };
+// =============================================================================
+// CRIAÇÃO
+async function criarItem(usuarioId, nomeItem, quantidade, unidadeDeMedida, valorUnitario, validadeEstimada) {
+    const valorTotal = quantidade * valorUnitario;
+
+    // Como item depende de compra, gera uma compra pra cada item adicionado.
+    // Quando a feature de compra estiver organizada, isso deve ser revisado.
+    const resultadoCompra = await sql`
+        INSERT INTO compra (usuario_id, valor_total, estabelecimento)
+        VALUES (${usuarioId}, ${valorTotal}, 'Adição manual')
+        RETURNING id
+    `;
+    const idCompra = resultadoCompra[0].id;
+
+    const resultadoItem = await sql`
+        INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
+        VALUES (${idCompra}, ${nomeItem}, ${quantidade}, ${unidadeDeMedida}, ${valorUnitario}, ${validadeEstimada})
+        RETURNING id
+    `;
+    const idItem = resultadoItem[0].id;
+
+    const resultadoEstoque = await sql`
+        INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
+        VALUES (${usuarioId}, ${idItem}, ${quantidade})
+        RETURNING id
+    `;
+    const idEstoque = resultadoEstoque[0].id;
+
+    return { idCompra, idItem, idEstoque };
+}
+// =============================================================================
+
+module.exports = { buscarItens, buscarPorId, apagarPorId, criarItem};

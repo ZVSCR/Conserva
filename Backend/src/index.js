@@ -27,5 +27,25 @@ app.get('/api/teste-banco', async (req, res) => {
     res.status(500).json({ sucesso: false, erro: erro.message });
   }
 });
+/* Funções de debug que podem ser úteis, vou deixar cometadas
+app.get('/api/debug-usuarios', async (req, res) => {
+  const usuarios = await sql`SELECT id, username, email FROM users`;
+  res.json(usuarios);
+});
 
+app.get('/api/debug-compras', async (req, res) => {
+  const compras = await sql`SELECT * FROM compra`;
+  res.json(compras);
+});
+
+app.get('/api/debug-itens', async (req, res) => {
+  const itens = await sql`SELECT * FROM item`;
+  res.json(itens);
+});
+
+app.get('/api/debug-estoque', async (req, res) => {
+  const estoque = await sql`SELECT * FROM estoque`;
+  res.json(estoque);
+});
+*/
 app.listen(3000, () => console.log('Backend rodando na porta 3000'));
