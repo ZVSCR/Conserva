@@ -1,4 +1,4 @@
-const { buscarItens, buscarPorId, apagarPorId } = require('../repositories/itemRepository');
+const { buscarItens, buscarPorId, apagarPorId, criarItem} = require('../repositories/itemRepository');
 
 // =============================================================================
 // LISTAGEM
@@ -50,4 +50,19 @@ async function apagarId(req, res) {
 }
 // =============================================================================
 
-module.exports = { listarItens, listarPorId, apagarId }
+// =============================================================================
+// CRIAÇÃO
+async function criarItemHandler(req, res) {
+    try {
+        const { usuario_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada } = req.body;
+        const resultado = await criarItem(usuario_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada);
+        res.status(201).json(resultado);
+    } catch (erro) {
+        res.status(500).json({
+            erro: 'Erro ao criar item no estoque'
+        });
+    }
+}
+// =============================================================================
+
+module.exports = { listarItens, listarPorId, apagarId, criarItemHandler}
