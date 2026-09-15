@@ -50,7 +50,12 @@ async function atualizarPorId(itemId, fieldsToUpdate) {
 
     const result = await sql`
         UPDATE item
-        SET ${sql(updates)}
+        SET 
+        quantidade = COALESCE(${updates.quantidade}, quantidade),
+        valor_unitario = COALESCE(${updates.valor_unitario}, valor_unitario),
+        nome_item = COALESCE(${updates.nome_item}, nome_item),
+        unidade_de_medida = COALESCE(${updates.unidade_de_medida}, unidade_de_medida),
+        validade_estimada = COALESCE(${updates.validade_estimada}, validade_estimada)
         WHERE id = ${itemId}
         RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
     `;

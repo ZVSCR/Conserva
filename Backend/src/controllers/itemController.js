@@ -1,5 +1,23 @@
 const { buscarItens, buscarPorId, apagarPorId } = require('../repositories/itemRepository');
 
+const validateItemPayload = (body) => {
+  const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
+
+  // Garante que ao menos um campo permitido foi enviado
+  const hasAtLeastOneField = Object.keys(body).some((key) =>
+    allowedFields.includes(key) && body[key] !== undefined
+  );
+
+  if (!hasAtLeastOneField) {
+    return {
+      isValid: false,
+      message: 'Forneça ao menos um campo válido para atualização.'
+    };
+  }
+
+  return { isValid: true };
+};
+
 // =============================================================================
 // LISTAGEM
 async function listarItens(req, res) {
