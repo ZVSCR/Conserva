@@ -1,3 +1,31 @@
+<<<<<<< HEAD
+// // Lidar com variáveis de ambiente
+// require('dotenv').config();
+
+// // Uso do Express
+// const express = require('express');
+// const app = express();
+
+// // localhost:PORT
+// const PORT = process.env.PORT || 3000;
+
+// app.use(express.json())
+
+// // Testa API
+// app.get('/', (req, res) => {
+//   res.json({
+//     message: 'API funcionando'
+//   });
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`Servidor rodando na porta ${PORT}`);
+// });
+
+// // endpoints de autenticação
+// const authRoutes = require('./routes/authRoutes');
+// app.use('/api/auth', authRoutes);
+=======
 const express = require('express');
 const cors = require('cors');
 const sql = require('./config/database'); // Importa conexão com o banco de dados
@@ -49,3 +77,4 @@ app.get('/api/debug-estoque', async (req, res) => {
 });
 */
 app.listen(3000, () => console.log('Backend rodando na porta 3000'));
+>>>>>>> main
