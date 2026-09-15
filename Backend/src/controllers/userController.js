@@ -1,7 +1,7 @@
 const userRepository = require('../repositories/userRepository');
 
 const validatePreferencesPayload = (body) => {
-  const allowedFields = ['push_notifications', 'email_notifications', 'dark_theme'];
+  const allowedFields = ['notify_push', 'notify_email', 'is_dark_theme'];
 
   // Garante que ao menos um campo permitido foi enviado
   const hasAtLeastOneField = Object.keys(body).some((key) =>
@@ -48,12 +48,12 @@ const updateUserPreferences = async (req, res, next) => {
       return res.status(400).json({ message: validation.message });
     }
 
-    const { push_notifications, email_notifications, dark_theme } = req.body;
+    const { notify_push, notify_email, is_dark_theme } = req.body;
 
     const updatedPreferences = await userRepository.updatePreferences(userId, {
-      push_notifications,
-      email_notifications,
-      dark_theme
+      notify_push,
+      notify_email,
+      is_dark_theme
     });
 
     if (!updatedPreferences) {

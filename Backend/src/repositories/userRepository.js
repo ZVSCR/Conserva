@@ -2,7 +2,7 @@ const sql = require('../config/database');
 
 async function findPreferencesByUserId(userId) {
     const result = await sql`
-        SELECT push_notifications, email_notifications, dark_theme
+        SELECT notify_push, notify_email, is_dark_theme
         FROM users
         WHERE id = ${userId};
     `;
@@ -14,16 +14,16 @@ async function updatePreferences(userId, fieldsToUpdate) {
     // Isola apenas as colunas que foram enviadas na requisição
     const updates = {};
 
-    if (fieldsToUpdate.push_notifications !== undefined) {
-        updates.push_notifications = fieldsToUpdate.push_notifications;
+    if (fieldsToUpdate.notify_push !== undefined) {
+        updates.notify_push = fieldsToUpdate.notify_push;
     }
 
-    if (fieldsToUpdate.email_notifications !== undefined) {
-        updates.email_notifications = fieldsToUpdate.email_notifications;
+    if (fieldsToUpdate.notify_email !== undefined) {
+        updates.notify_email = fieldsToUpdate.notify_email;
     }
 
-    if (fieldsToUpdate.dark_theme !== undefined) {
-        updates.dark_theme = fieldsToUpdate.dark_theme;
+    if (fieldsToUpdate.is_dark_theme !== undefined) {
+        updates.is_dark_theme = fieldsToUpdate.is_dark_theme;
     }
 
     // Atualiza a coluna de timestamp
@@ -33,7 +33,7 @@ async function updatePreferences(userId, fieldsToUpdate) {
         UPDATE users
         SET ${sql(updates)}
         WHERE id = ${userId}
-        RETURNING push_notifications, email_notifications, dark_theme;
+        RETURNING notify_push, notify_email, is_dark_theme;
     `;
 
     return result[0];
