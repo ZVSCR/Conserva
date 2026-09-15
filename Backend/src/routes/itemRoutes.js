@@ -1,6 +1,6 @@
 const express = require('express');
 const itemRouter = express.Router();
-const { listarItens, listarPorId, apagarId, criarItemHandler} = require('../controllers/itemController');
+const { listarItens, listarPorId, atualizarItem, apagarId, criarItemHandler } = require('../controllers/itemController');
 
 itemRouter.route('/')
     .get(listarItens)
@@ -8,6 +8,7 @@ itemRouter.route('/')
 
 itemRouter.route('/:id')
     .get(listarPorId)
+    .patch(atualizarItem)
     .delete(apagarId);
 
 module.exports = itemRouter;
