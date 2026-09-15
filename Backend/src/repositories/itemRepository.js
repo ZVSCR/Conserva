@@ -107,4 +107,4 @@ async function criarItem(usuarioId, nomeItem, quantidade, unidadeDeMedida, valor
 }
 // =============================================================================
 
-module.exports = { buscarItens, buscarPorId, apagarPorId, criarItem};
+module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem};
