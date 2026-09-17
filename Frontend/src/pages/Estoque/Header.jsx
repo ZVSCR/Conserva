@@ -12,12 +12,6 @@ function Header() {
                 <ul className={styles.headerNav}>
                     <li>
                         <a href="#">
-                            <img src={sino} alt="Notificações" />
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#">
                             <img src={perfil} alt="Perfil" />
                         </a>
                     </li>
