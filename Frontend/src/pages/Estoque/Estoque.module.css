@@ -23,9 +23,6 @@
     font-size: 48px;
     font-weight: 800;
     line-height: 1;
-
-    /* sombra deslocada p/ baixo e esquerda */
-    text-shadow: -2px 2px 0 #054415;
 }
 
 .logo a {
