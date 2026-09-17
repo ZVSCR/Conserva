@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import styles from './Produtos.module.css';
+import styles from './Estoque.module.css';
 
 function EditarProduto({ produto, onSalvar, onCancelar }) {
 

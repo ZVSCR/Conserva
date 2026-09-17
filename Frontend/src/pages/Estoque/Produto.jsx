@@ -1,6 +1,6 @@
-import styles from './Produtos.module.css';
-import IconEditar from '../../assets/IconsProd/editar.png';
-import IconDeletar from '../../assets/IconsProd/delete.png';
+import styles from './Estoque.module.css';
+import IconEditar from '../../assets/IconsEstoque/editar.png';
+import IconDeletar from '../../assets/IconsEstoque/delete.png';
 
 function Produto({ produto, onEditar, onExcluir }) {
     return (

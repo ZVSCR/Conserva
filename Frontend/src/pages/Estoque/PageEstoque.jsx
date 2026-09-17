@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
-import styles from './Produtos.module.css';
+import styles from './Estoque.module.css';
 import Header from './Header';
 import Produto from './Produto';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
-import IconAdcionar from '../../assets/IconsProd/maisV.png';
+import IconAdcionar from '../../assets/IconsEstoque/maisV.png';
 
-function PageProd(){
+function PageEstoque(){
     
     //Para integração ao BD usar essa parte com [id, nome, qtd]
     const [produtos, setProdutos] = useState([]);
@@ -126,4 +126,4 @@ function PageProd(){
     );
 }
 
-export default PageProd;
+export default PageEstoque;

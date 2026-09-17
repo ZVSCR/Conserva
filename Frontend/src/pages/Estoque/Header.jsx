@@ -1,6 +1,6 @@
-import styles from './Produtos.module.css';
-import sino from '../../assets/IconsProd/sinoLimpo.png';
-import perfil from '../../assets/IconsProd/perfil.png';
+import styles from './Estoque.module.css';
+import sino from '../../assets/IconsEstoque/sinoLimpo.png';
+import perfil from '../../assets/IconsEstoque/perfil.png';
 function Header() {
     return (
         <header className={styles.header}>
