@@ -75,7 +75,7 @@ function PageEstoque(){
                 
                 <h1 className={styles.tituloLista}>Lista de produtos</h1>
         
-                <div>
+                <div className={styles.listaProdutosContainer}>
                     {produtos.map((produto) => (
                         <Produto
                             key={produto.id}
@@ -84,14 +84,16 @@ function PageEstoque(){
                             onExcluir={excluirProduto}
                         />
                     ))}
-
                 </div>
-                <button
-                    className={styles.botaoAdicionar}
-                    onClick={() => setAdicionandoProduto(true)}
-                >
-                    <img src={IconAdcionar} alt="Adicionar produto" />
-                </button>
+
+                <div className={styles.rodapeLista}>
+                    <button
+                        className={styles.botaoAdicionar}
+                        onClick={() => setAdicionandoProduto(true)}
+                    >
+                        <img src={IconAdcionar} alt="Adicionar produto" />
+                    </button>
+                </div>
             </main>
 
                 {/*Modal de Adicionar ou Editar*/}
