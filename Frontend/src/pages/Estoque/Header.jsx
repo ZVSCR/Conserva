@@ -12,7 +12,7 @@ function Header() {
                 <ul className={styles.headerNav}>
                     <li>
                         <a href="#">
-                            <img src={perfil} alt="Perfil" />
+                            <img src={perfil} alt="Perfil" className={styles.perfilImg} />
                         </a>
                     </li>
                 </ul>

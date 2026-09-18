@@ -3,24 +3,26 @@
 
 .header {
     width: 100%;
-    min-height: 80px;
+    min-height: 155px;
     background-color: #F5F5F5;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    padding: 0 40px;
+    padding: 0 35px;
     box-sizing: border-box;
+
+    filter: drop-shadow(1 8px 5px rgba(0, 0, 0, 0.25));
 }
 
 
 /* ---------- LOGO Conserva -------------- */
 
 .logo {
-    margin: 0;
+    margin-top: 60px;
     font-family: Arial, sans-serif;
-    font-size: 48px;
+    font-size: 55px;
     font-weight: 800;
     line-height: 1;
 }
@@ -36,9 +38,8 @@
 .headerNav {
     display: flex;
     align-items: center;
-    gap: 24px;
 
-    margin: 0;
+    margin-top: 50px;
     padding: 0;
 
     list-style: none;
@@ -56,58 +57,14 @@
 }
 
 .headerNav img {
-    width: 32px;
-    height: 32px;
-
+    width: 70px;
+    height: 70px;
     display: block;
 }
 
-
-/* ------------- RESPONSIVIDADE ---------- */
-
-@media (max-width: 768px) {
-    .header {
-        min-height: 70px;
-        padding: 0 24px;
-    }
-
-    .logo {
-        font-size: 38px;
-        text-shadow: -1.2px 1.5px 0px #054415;
-    }
-
-    .headerNav {
-        gap: 16px;
-    }
-
-    .headerNav img {
-        width: 28px;
-        height: 28px;
-    }
+.perfilImg {
+    filter: drop-shadow(1 8px 5px rgba(0, 0, 0, 0.25));
 }
-
-
-@media (max-width: 480px) {
-    .header {
-        min-height: 60px;
-        padding: 0 16px;
-    }
-
-    .logo {
-        font-size: 30px;
-        text-shadow: -2px 2px 0 #054415;
-    }
-
-    .headerNav {
-        gap: 12px;
-    }
-
-    .headerNav img {
-        width: 24px;
-        height: 24px;
-    }
-}
-
 
 
 
