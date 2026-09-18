@@ -8,7 +8,8 @@
     font-family: 'Poppins', sans-serif;
     color: #000000;
     text-align: center;
-    width: 100%;   
+    width: 100%;
+    padding-top: 25px;   
 }
 
 
@@ -231,8 +232,8 @@
     align-items: center;
     justify-content: center;
 
-    width: 42px;
-    height: 42px;
+    width: 43px;
+    height: 43px;
 
     padding: 0;
     border: none;
@@ -243,6 +244,6 @@
 }
 
 .botaoAdicionar img {
-    width: 26px;
-    height: 26px;
+    width: 70px;
+    height: 70px;
 }
