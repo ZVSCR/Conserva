@@ -32,12 +32,15 @@ const sql = require('./config/database'); // Importa conexão com o banco de dad
 const userRoutes = require('./routes/userRoutes'); // Importa rotas de usuário
 const items = require('./routes/itemRoutes');
 
+const estoqueRoutes = require('./routes/estoqueRoutes'); //Importa rotas do Estoque
+
 const app = express();
 
 app.use(cors()); // Libera o acesso para o frontend
 app.use(express.json());
 app.use('/api/users', userRoutes); // Rota para operações de usuário
 app.use('/api/items', items); // Rota para itens do estoque
+app.use('/api/estoque', estoqueRoutes); //Rota para o estoque
 
 // Rota de teste
 app.get('/api/teste-banco', async (req, res) => {
