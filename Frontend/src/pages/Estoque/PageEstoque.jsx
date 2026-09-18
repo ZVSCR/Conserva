@@ -73,7 +73,7 @@ function PageEstoque(){
             <Header />
             <main>
                 <div className={styles.cabecalhoLista}>
-                <h1>Lista de Produtos</h1>
+                <h1 className={styles.tituloLista}>Lista de Produtos</h1>
                 
 
                     <button

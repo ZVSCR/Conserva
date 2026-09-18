@@ -1,8 +1,14 @@
 /* --------------- PAGINA DE ESTOQUE --------------- */
 .paginaEstoque {
     background-color: #ffffff;
-    min-height: 100vh; /* garante que cubra a tela toda, mesmo com poucos produtos */
+    min-height: 100vh; /* garante que cubra a tela toda */
 }
+
+.tituloLista {
+    font-family: 'Poppins', sans-serif;
+    color: #000000;
+}
+
 
 
 /* ------------  HEADER -------- */
