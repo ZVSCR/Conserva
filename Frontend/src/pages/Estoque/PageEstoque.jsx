@@ -72,18 +72,8 @@ function PageEstoque(){
         <div className={styles.paginaEstoque}>
             <Header />
             <main>
-                <div className={styles.cabecalhoLista}>
-                <h1 className={styles.tituloLista}>Lista de Produtos</h1>
                 
-
-                    <button
-                    className={styles.botaoAdicionar}
-                    onClick={() => setAdicionandoProduto(true)}
-                >
-                    <img src={IconAdcionar} alt="Adicionar produto" />
-                </button>
-                </div>
-
+                <h1 className={styles.tituloLista}>Lista de Produtos</h1>
         
                 <div>
                     {produtos.map((produto) => (
@@ -96,6 +86,12 @@ function PageEstoque(){
                     ))}
 
                 </div>
+                <button
+                    className={styles.botaoAdicionar}
+                    onClick={() => setAdicionandoProduto(true)}
+                >
+                    <img src={IconAdcionar} alt="Adicionar produto" />
+                </button>
             </main>
 
                 {/*Modal de Adicionar ou Editar*/}

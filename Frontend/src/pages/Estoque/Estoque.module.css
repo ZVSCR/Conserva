@@ -7,6 +7,8 @@
 .tituloLista {
     font-family: 'Poppins', sans-serif;
     color: #000000;
+    text-align: center;
+    width: 100%;   
 }
 
 
@@ -223,11 +225,6 @@
 }
 
 /* ----------------- BTN ADICIONAR -------*/
-.cabecalhoLista {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
 
 .botaoAdicionar {
     display: flex;
