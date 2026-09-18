@@ -12,14 +12,14 @@ async function listarEstoque(req, res) {
 
 async function atualizarQuantidadeItem(req, res) {
     try {
-        const { id } = req.params;               
+        const { itemId } = req.params;               
         const { quantidade } = req.body;
 
         if (typeof quantidade !== 'number' || quantidade < 0) {
             return res.status(400).json({ erro: 'Informe uma quantidade numérica válida (>= 0).' });
         }
 
-        const resultado = await atualizarQuantidade(id, quantidade);
+        const resultado = await atualizarQuantidade(itemId, quantidade);
 
         if (!resultado) {
             return res.status(404).json({ erro: 'Item não encontrado no estoque' });
