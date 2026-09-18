@@ -38,5 +38,4 @@ dist-ssr
 venv/
 
 # Testes
-Backend/src/app.js
 Backend/src/server.js
