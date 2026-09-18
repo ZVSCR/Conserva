@@ -3,6 +3,7 @@ const cors = require('cors');
 const sql = require('./config/database'); // Importa conexão com o banco de dados
 const userRoutes = require('./routes/userRoutes'); // Importa rotas de usuário
 const items = require('./routes/itemRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -10,6 +11,13 @@ app.use(cors()); // Libera o acesso para o frontend
 app.use(express.json());
 app.use('/api/users', userRoutes); // Rota para operações de usuário
 app.use('/api/items', items); // Rota para itens do estoque
+app.use('/api/auth', authRoutes);
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'API funcionando.'
+  });
+});
 
 // Rota de teste
 app.get('/api/teste-banco', async (req, res) => {
