@@ -46,18 +46,10 @@ O usuário fotografa a nota fiscal de uma compra; o sistema reconhece os itens, 
 - **HTML + CSS + Bootstrap** para estilização e responsividade
 
 ### 4.2 Backend
-- A definir (não especificado ainda — sugestão: Node.js/Express, já que o stack já usa JS, mantendo a stack unificada)
+- **Node.js/Express**
 
 ### 4.3 Banco de Dados
-Em aberto entre relacional (MySQL) e não-relacional (MongoDB). Pontos a considerar:
-
-| Critério | MySQL | MongoDB |
-|---|---|---|
-| Estrutura dos dados | Boa p/ dados tabulares (transações, itens, estoque) | Boa p/ dados variáveis (receitas com ingredientes heterogêneos) |
-| Hospedagem gratuita | PlanetScale (free tier limitado), Railway, Aiven | MongoDB Atlas (free tier 512MB) |
-| Relacionamentos (usuário → compras → itens → receitas) | Nativo, com JOINs | Requer modelagem por referência ou embedding |
-
-**Sugestão inicial**: como o domínio tem relações claras (usuário, compra, item, receita, estoque), um banco relacional tende a facilitar consultas como "gasto médio por refeição". MongoDB Atlas free tier é mais generoso, mas exige mais cuidado na modelagem. Vale prototipar com **MongoDB Atlas (free)** ou **Supabase (Postgres, free tier)** — este último também resolve autenticação de usuários de forma nativa.
+- **PostgreSQL**
 
 ### 4.4 Reconhecimento de Imagem (OCR)
 Não mencionado explicitamente — funcionalidade crítica que precisa de definição técnica:
@@ -74,27 +66,31 @@ Abordagens possíveis, do mais simples ao mais complexo:
 
 **Recomendação para MVP**: começar com a abordagem 1 ou 2, usando uma API de receitas existente (evita ter que curar um banco de receitas do zero), e considerar geração via LLM como evolução futura.
 
-## 6. Modelo de Dados (rascunho inicial)
+## 6. Modelo de Dados (estado atual)
 
 ```
 Usuário
- ├── id, nome, email, tipo (doméstico/restaurante)
+ ├── id, username, email, tipo (doméstico/restaurante), password_hash, created_at, updated_at
 
 Compra
- ├── id, usuário_id, data, valor_total, estabelecimento
+ ├── id, usuario_id, data_compra, valor_total, estabelecimento
 
-ItemComprado
- ├── id, compra_id, nome_item, quantidade, unidade, valor_unitário, validade_estimada
+Item
+ ├── id, compra_id, nome_item, quantidade, unidade_de_medida, valor_unitário, validade_estimada
 
-EstoqueItem
+Estoque
  ├── id, usuário_id, item_id, quantidade_disponível
 
 Receita
- ├── id, nome, ingredientes[], modo_preparo, tempo_preparo
+ ├── id, nome, descricao, modo_preparo, tempo_preparo, created_at
 
 ReceitaPreparada
- ├── id, usuário_id, receita_id, data, itens_usados[], custo_total
+ ├── id, usuário_id, receita_id, data_preparo
+
+ReceitaPreparadaEstoque
+├── receita_preparada_id, estoque_id, quantidade_gasta
 ```
+> Nota: a entidade Receita não possui um atributo que aponta os ingredientes da receita, uma vez que foi modelada uma entidade específica para a associação entre os itens do estoque e a receita preparada.
 
 ## 7. Fluxo do Usuário (alto nível)
 
@@ -107,8 +103,6 @@ ReceitaPreparada
 
 ## 8. Questões em Aberto
 
-- [ ] Backend: qual framework/linguagem?
-- [ ] Banco de dados: MySQL vs MongoDB (ou alternativa como Postgres/Supabase)?
 - [ ] Serviço de OCR: qual usar, considerando custo e precisão?
 - [ ] Modelo de sugestão de receitas: regras simples, API externa ou LLM?
 - [ ] Autenticação de usuários: solução própria ou serviço (ex: Firebase Auth, Supabase Auth)?
@@ -118,7 +112,5 @@ ReceitaPreparada
 ## 9. Próximos Passos
 
 1. Definir escopo do MVP (funcionalidades mínimas viáveis).
-2. Escolher stack de backend e banco de dados.
-3. Prototipar o fluxo de OCR com poucas notas de teste.
-4. Modelar o banco de dados com base no rascunho acima.
-5. Escolher fonte de receitas (API externa) para o modelo de sugestão inicial.
+2. Prototipar o fluxo de OCR com poucas notas de teste.
+3. Escolher fonte de receitas (API externa) para o modelo de sugestão inicial.
