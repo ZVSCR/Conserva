@@ -1,3 +1,9 @@
+/* --------------- PAGINA DE ESTOQUE --------------- */
+.paginaEstoque {
+    background-color: #ffffff;
+    min-height: 100vh; /* garante que cubra a tela toda, mesmo com poucos produtos */
+}
+
 
 /* ------------  HEADER -------- */
 
@@ -13,7 +19,7 @@
     padding: 0 35px;
     box-sizing: border-box;
 
-    filter: drop-shadow(1 8px 5px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(0 10px 5px rgba(0, 0, 0, 0.25));
 }
 
 

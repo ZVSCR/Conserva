@@ -69,7 +69,7 @@ function PageEstoque(){
     }
 
     return(
-        <>
+        <div className={styles.paginaEstoque}>
             <Header />
             <main>
                 <div className={styles.cabecalhoLista}>
@@ -122,7 +122,7 @@ function PageEstoque(){
 
 
 
-        </>
+        </div>
     );
 }
 
