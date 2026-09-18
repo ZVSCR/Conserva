@@ -5,7 +5,7 @@ import Header from './Header';
 import Produto from './Produto';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
-import IconAdcionar from '../../assets/IconsEstoque/maisV.png';
+import IconAdcionar from '../../assets/IconsEstoque/adicionar.png';
 
 function PageEstoque(){
     
@@ -73,7 +73,7 @@ function PageEstoque(){
             <Header />
             <main>
                 
-                <h1 className={styles.tituloLista}>Lista de Produtos</h1>
+                <h1 className={styles.tituloLista}>Lista de produtos</h1>
         
                 <div>
                     {produtos.map((produto) => (
