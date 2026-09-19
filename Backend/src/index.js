@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // // Lidar com variáveis de ambiente
 // require('dotenv').config();
 
@@ -25,7 +24,6 @@
 // // endpoints de autenticação
 // const authRoutes = require('./routes/authRoutes');
 // app.use('/api/auth', authRoutes);
-=======
 const express = require('express');
 const cors = require('cors');
 const sql = require('./config/database'); // Importa conexão com o banco de dados
@@ -77,4 +75,3 @@ app.get('/api/debug-estoque', async (req, res) => {
 });
 */
 app.listen(3000, () => console.log('Backend rodando na porta 3000'));
->>>>>>> main

@@ -1,9 +1,8 @@
 const express = require('express');
 const compraRouter = express.Router();
-const { listarItens, listarPorId, atualizarItem, apagarId, criarItemHandler } = require('../controllers/itemController');
+const { atualizarItensPorCompra } = require('../controllers/itemController');
 
-compraRouter.route('/')
-
-compraRouter.route('/:id')
-
+itemRouter.route('/compra/:compraId/item/:id')
+    .patch(atualizarItem);
+    
 module.exports = compraRouter;
