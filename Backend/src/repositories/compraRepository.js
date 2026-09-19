@@ -1,5 +1,5 @@
 
-async function atualizarPorCompraId(compraId, fieldsToUpdate) {
+async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const updates = {};
 
     if (fieldsToUpdate.quantidade !== undefined) {
@@ -18,8 +18,7 @@ async function atualizarPorCompraId(compraId, fieldsToUpdate) {
         updates.validade_estimada = fieldsToUpdate.validade_estimada;
     }
 
-    async function atualizarPorId(itemId, compraId, fieldsToUpdate) {
-        const result = await sql`
+    const result = await sql`
         UPDATE item
         SET 
         quantidade = COALESCE(${updates.quantidade}, quantidade),
@@ -29,8 +28,9 @@ async function atualizarPorCompraId(compraId, fieldsToUpdate) {
         validade_estimada = COALESCE(${updates.validade_estimada}, validade_estimada)
         WHERE id = ${itemId} AND compra_id = ${compraId}
         RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-        `;
-        return result[0];
-    }
+    `;
+    return result[0];
 
 }
+
+module.exports = { atualizarPorCompraId };
