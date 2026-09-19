@@ -28,7 +28,7 @@
 
 .header {
     width: 100%;
-    min-height: 155px;
+    min-height: 65px;
     background-color: #F5F5F5;
 
     display: flex;
@@ -47,7 +47,7 @@
 .logo {
     margin-top: 60px;
     font-family: Arial, sans-serif;
-    font-size: 55px;
+    font-size: 35px;
     font-weight: 800;
     line-height: 1;
 }
@@ -82,13 +82,13 @@
 }
 
 .headerNav img {
-    width: 70px;
-    height: 70px;
+    width: 55px;
+    height: 55px;
     display: block;
 }
 
 .perfilImg {
-    filter: drop-shadow(1 8px 5px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(1px 8px 5px rgba(0, 0, 0, 0.25));
 }
 
 
@@ -96,7 +96,7 @@
 /* ----------- BLOCO DE PRODUTOS ------------- */
 .produto {
     width: 100%;
-    max-width: 700px;
+    max-width: 500px;
     min-height: 80px;
 
     display: flex;
@@ -236,19 +236,54 @@
     height: 25px;
     object-fit: contain;
 }
-/* ------------- RODAPE DO BTN DE ADICIONAR ----- */
-.rodapeLista {
+/* ------------- RODAPE DO BTN DE ADICIONAR -----*/
+
+
+
+
+/* ------------------ NAVBAR INFERIOR __-----------*/
+.navBar {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
 
     display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    height: 70px;
+    background-color: #ffffff;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.navItem {
+    flex: 1; /* cada item ocupa espaço igual */
+
+    display: flex;
+    align-items: center;
     justify-content: center;
 
-    padding: 20px 0;
-    background-color: #ffffff; /* evita que os produtos "passem por baixo" visualmente ao rolar */
-    box-shadow: 0 -8px 10px rgba(0, 0, 0, 0.08); /* sombra  */
+    height: 100%;
+
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.navItem img {
+    width: 28px;
+    height: 28px;
+}
+
+/* O botão de adicionar continua se destacando visualmente */
+.navItemAdicionar img {
+    width: 45px;
+    height: 45px;
 }
 
 /* ----------------- BTN ADICIONAR -------*/
@@ -263,6 +298,6 @@
 }
 
 .botaoAdicionar img {
-    width: 70px;
-    height: 70px;
+    width: 50px;
+    height: 50px;
 }

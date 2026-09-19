@@ -12,7 +12,7 @@ function Produto({ produto, onEditar, onExcluir }) {
                 </span>
 
                 <span className={styles.nomeProduto}>
-                    Quantidade: {produto.quantidade}
+                    {produto.quantidade}
                 </span>
             </div>
 

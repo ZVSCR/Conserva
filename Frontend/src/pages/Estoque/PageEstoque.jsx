@@ -3,9 +3,11 @@ import { useState } from 'react';
 import styles from './Estoque.module.css';
 import Header from './Header';
 import Produto from './Produto';
+import NavBar from './NavBar';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
 import IconAdcionar from '../../assets/IconsEstoque/adicionar.png';
+
 
 function PageEstoque(){
     
@@ -85,7 +87,7 @@ function PageEstoque(){
                         />
                     ))}
                 </div>
-
+                    {/*}
                 <div className={styles.rodapeLista}>
                     <button
                         className={styles.botaoAdicionar}
@@ -93,9 +95,11 @@ function PageEstoque(){
                     >
                         <img src={IconAdcionar} alt="Adicionar produto" />
                     </button>
-                </div>
-            </main>
+                </div> 
+                */}
 
+            </main>
+            <NavBar onAdicionar={() => setAdicionandoProduto(true)} />            
                 {/*Modal de Adicionar ou Editar*/}
              {(produtoEditando || adicionandoProduto) && (
                 <EditarProduto

@@ -1,5 +1,4 @@
 import styles from './Estoque.module.css';
-import sino from '../../assets/IconsEstoque/sinoLimpo.png';
 import perfil from '../../assets/IconsEstoque/perfil.png';
 function Header() {
     return (
