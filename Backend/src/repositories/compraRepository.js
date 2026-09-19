@@ -19,18 +19,38 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         updates.validade_estimada = fieldsToUpdate.validade_estimada;
     }
 
-    const result = await sql`
-        UPDATE item
-        SET 
-        quantidade = COALESCE(${updates.quantidade}, quantidade),
-        valor_unitario = COALESCE(${updates.valor_unitario}, valor_unitario),
-        nome_item = COALESCE(${updates.nome_item}, nome_item),
-        unidade_de_medida = COALESCE(${updates.unidade_de_medida}, unidade_de_medida),
-        validade_estimada = COALESCE(${updates.validade_estimada}, validade_estimada)
-        WHERE id = ${itemId} AND compra_id = ${compraId}
-        RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-    `;
-    return result[0];
+    const result = await sql.begin(async (sql) => {
+        const [itemAtualizado] = await sql`
+            UPDATE item
+            SET 
+                quantidade = COALESCE(${updates.quantidade ?? null}, quantidade),
+                valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
+                nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
+                unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
+                validade_estimada = COALESCE(${updates.validade_estimada ?? null}, validade_estimada)
+            WHERE id = ${itemId} AND compra_id = ${compraId}
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
+        `;
+
+        if (!itemAtualizado) {
+            throw new Error('Item não encontrado para essa compra.');
+        }
+        
+        const [compraAtualizada] = await sql`
+            UPDATE compra
+            SET valor_total = (
+                SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
+                FROM item
+                WHERE compra_id = ${compraId}
+            )
+            WHERE id = ${compraId}
+            RETURNING id, valor_total;
+        `;
+
+        return { item: itemAtualizado, compra: compraAtualizada };
+    });
+
+    return result;
 
 }
 

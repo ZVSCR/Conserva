@@ -20,7 +20,7 @@ const validateCompraPayload = (body) => {
 
 async function atualizarItensPorCompra(req, res) {
     try {
-        const { compraId } = req.params;
+        const { itemId, compraId } = req.params;
 
         const validation = validateCompraPayload(req.body);
         if (!validation.isValid) {
@@ -31,7 +31,7 @@ async function atualizarItensPorCompra(req, res) {
 
         const { quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada } = req.body;
 
-        const itemAtualizado = await atualizarPorCompraId(compraId, {
+        const itemAtualizado = await atualizarPorCompraId(itemId, compraId, {
             quantidade,
             valor_unitario,
             nome_item,
