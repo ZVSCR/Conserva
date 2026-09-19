@@ -1,3 +1,4 @@
+const sql = require('../config/database')
 
 async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const updates = {};
