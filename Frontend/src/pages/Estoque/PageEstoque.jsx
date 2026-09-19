@@ -6,7 +6,6 @@ import Produto from './Produto';
 import NavBar from './NavBar';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
-import IconAdcionar from '../../assets/IconsEstoque/adicionar.png';
 
 
 function PageEstoque(){
@@ -87,16 +86,6 @@ function PageEstoque(){
                         />
                     ))}
                 </div>
-                    {/*}
-                <div className={styles.rodapeLista}>
-                    <button
-                        className={styles.botaoAdicionar}
-                        onClick={() => setAdicionandoProduto(true)}
-                    >
-                        <img src={IconAdcionar} alt="Adicionar produto" />
-                    </button>
-                </div> 
-                */}
 
             </main>
             <NavBar onAdicionar={() => setAdicionandoProduto(true)} />            
