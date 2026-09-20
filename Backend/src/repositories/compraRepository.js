@@ -19,6 +19,11 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         updates.validade_estimada = fieldsToUpdate.validade_estimada;
     }
 
+    const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(
+        updates,
+        'validade_estimada'
+    );
+
     const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
         transactionSql`
             UPDATE item
@@ -27,7 +32,10 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
                 valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
                 nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
                 unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
-                validade_estimada = COALESCE(${updates.validade_estimada ?? null}, validade_estimada)
+                validade_estimada = CASE
+                    WHEN ${deveAtualizarValidade} THEN ${updates.validade_estimada ?? null}
+                    ELSE validade_estimada
+                END
             WHERE id = ${itemId} AND compra_id = ${compraId}
             RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
         `,
