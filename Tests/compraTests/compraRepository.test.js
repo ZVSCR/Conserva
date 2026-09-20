@@ -6,11 +6,45 @@ jest.mock('../../Backend/src/config/database.js', () => {
 
 const sql = require('../../Backend/src/config/database');
 const {
+    atualizarCompraPorId,
     atualizarPorCompraId,
+    CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError
 } = require('../../Backend/src/repositories/compraRepository');
 
 const transactionSql = (strings, ...values) => ({ strings, values });
+
+describe('compraRepository.atualizarCompraPorId', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('lança CompraNaoEncontradaError quando a compra não existe', async () => {
+        sql.mockResolvedValue([]);
+
+        await expect(
+            atualizarCompraPorId(99, {
+                estabelecimento: 'Mercado Central'
+            })
+        ).rejects.toBeInstanceOf(CompraNaoEncontradaError);
+    });
+
+    test('retorna a compra atualizada', async () => {
+        const compra = {
+            id: 2,
+            data_compra: '2026-09-19T14:30:00.000Z',
+            estabelecimento: 'Mercado Central'
+        };
+        sql.mockResolvedValue([compra]);
+
+        await expect(
+            atualizarCompraPorId(2, {
+                data_compra: '2026-09-19T14:30:00.000Z',
+                estabelecimento: 'Mercado Central'
+            })
+        ).resolves.toEqual(compra);
+    });
+});
 
 describe('compraRepository.atualizarPorCompraId', () => {
     beforeEach(() => {

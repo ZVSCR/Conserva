@@ -1,5 +1,7 @@
 const {
+    atualizarCompraPorId,
     atualizarPorCompraId,
+    CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError
 } = require('../repositories/compraRepository');
 
@@ -9,6 +11,11 @@ const allowedFields = [
     'nome_item',
     'unidade_de_medida',
     'validade_estimada'
+];
+
+const allowedCompraFields = [
+    'data_compra',
+    'estabelecimento'
 ];
 
 const invalidResult = (message) => ({
@@ -29,6 +36,20 @@ const isValidIsoDate = (value) => {
 
     return !Number.isNaN(date.getTime()) &&
         date.toISOString().slice(0, 10) === value;
+};
+
+const isValidIsoDateTime = (value) => {
+    if (isValidIsoDate(value)) {
+        return true;
+    }
+
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    const match = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)?$/.exec(value);
+
+    return match !== null && isValidIsoDate(match[1]);
 };
 
 const parsePositiveIntegerParam = (value) => {
@@ -139,6 +160,102 @@ const validateCompraPayload = (body) => {
     return { isValid: true };
 };
 
+const validateAtualizacaoCompraPayload = (body) => {
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        return invalidResult('O corpo da requisição deve ser um objeto JSON.');
+    }
+
+    const receivedFields = Object.keys(body);
+    const unknownFields = receivedFields.filter((field) =>
+        !allowedCompraFields.includes(field)
+    );
+
+    if (unknownFields.length > 0) {
+        return invalidResult(
+            `Campos não permitidos: ${unknownFields.join(', ')}.`
+        );
+    }
+
+    const hasAtLeastOneField = allowedCompraFields.some((field) =>
+        hasField(body, field)
+    );
+
+    if (!hasAtLeastOneField) {
+        return invalidResult(
+            'Forneça ao menos um campo válido para atualização da compra.'
+        );
+    }
+
+    if (
+        hasField(body, 'data_compra') &&
+        !isValidIsoDateTime(body.data_compra)
+    ) {
+        return invalidResult(
+            'data_compra deve ser uma data ISO válida no formato YYYY-MM-DD ou uma data/hora ISO.'
+        );
+    }
+
+    if (hasField(body, 'estabelecimento')) {
+        const { estabelecimento } = body;
+
+        if (
+            estabelecimento !== null &&
+            (
+                typeof estabelecimento !== 'string' ||
+                estabelecimento.trim().length === 0 ||
+                estabelecimento.length > 50
+            )
+        ) {
+            return invalidResult(
+                'estabelecimento deve ser um texto não vazio de até 50 caracteres ou null.'
+            );
+        }
+    }
+
+    return { isValid: true };
+};
+
+async function atualizarCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const validation = validateAtualizacaoCompraPayload(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                erro: validation.message
+            });
+        }
+
+        const { data_compra, estabelecimento } = req.body;
+        const compraAtualizada = await atualizarCompraPorId(compraId, {
+            data_compra,
+            estabelecimento
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Compra atualizada com sucesso.',
+            data: compraAtualizada
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({
+                erro: erro.message
+            });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao atualizar compra no banco'
+        });
+    }
+}
+
 async function atualizarItensPorCompra(req, res) {
     try {
         const compraId = parsePositiveIntegerParam(req.params.compraId);
@@ -191,4 +308,7 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
-module.exports = { atualizarItensPorCompra };
+module.exports = {
+    atualizarCompra,
+    atualizarItensPorCompra
+};

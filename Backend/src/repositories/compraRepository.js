@@ -7,6 +7,40 @@ class ItemCompraNaoEncontradoError extends Error {
     }
 }
 
+class CompraNaoEncontradaError extends Error {
+    constructor() {
+        super('Compra não encontrada.');
+        this.name = 'CompraNaoEncontradaError';
+    }
+}
+
+async function atualizarCompraPorId(compraId, fieldsToUpdate) {
+    const deveAtualizarData = fieldsToUpdate.data_compra !== undefined;
+    const deveAtualizarEstabelecimento =
+        fieldsToUpdate.estabelecimento !== undefined;
+
+    const [compraAtualizada] = await sql`
+        UPDATE compra
+        SET
+            data_compra = CASE
+                WHEN ${deveAtualizarData} THEN ${fieldsToUpdate.data_compra ?? null}
+                ELSE data_compra
+            END,
+            estabelecimento = CASE
+                WHEN ${deveAtualizarEstabelecimento} THEN ${fieldsToUpdate.estabelecimento ?? null}
+                ELSE estabelecimento
+            END
+        WHERE id = ${compraId}
+        RETURNING id, usuario_id, data_compra, valor_total, estabelecimento;
+    `;
+
+    if (!compraAtualizada) {
+        throw new CompraNaoEncontradaError();
+    }
+
+    return compraAtualizada;
+}
+
 async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const updates = {};
 
@@ -76,6 +110,8 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 }
 
 module.exports = {
+    atualizarCompraPorId,
     atualizarPorCompraId,
+    CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError
 };

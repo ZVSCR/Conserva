@@ -8,6 +8,13 @@ jest.mock('../../Backend/src/config/database.js', () => {
 });
 
 jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
+    class CompraNaoEncontradaError extends Error {
+        constructor() {
+            super('Compra não encontrada.');
+            this.name = 'CompraNaoEncontradaError';
+        }
+    }
+
     class ItemCompraNaoEncontradoError extends Error {
         constructor() {
             super('Item não encontrado para essa compra.');
@@ -16,18 +23,153 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
     }
 
     return {
+        atualizarCompraPorId: jest.fn(),
         atualizarPorCompraId: jest.fn(),
+        CompraNaoEncontradaError,
         ItemCompraNaoEncontradoError
     };
 });
 
 const {
+    atualizarCompraPorId,
     atualizarPorCompraId,
+    CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError
 } = require('../../Backend/src/repositories/compraRepository');
 const app = require('../../Backend/src/app');
 
 const endpoint = '/api/compras/2/items/1';
+const compraEndpoint = '/api/compras/2';
+
+describe('PATCH /api/compras/:compraId', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('retorna 400 para compraId inválido antes de consultar o repositório', async () => {
+        const response = await request(app)
+            .patch('/api/compras/abc')
+            .send({ estabelecimento: 'Mercado Central' });
+
+        expect(response.status).toBe(400);
+        expect(response.body.erro).toBe(
+            'compraId deve ser um inteiro positivo.'
+        );
+        expect(atualizarCompraPorId).not.toHaveBeenCalled();
+    });
+
+    test('retorna 400 quando nenhum campo é enviado', async () => {
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({});
+
+        expect(response.status).toBe(400);
+        expect(atualizarCompraPorId).not.toHaveBeenCalled();
+    });
+
+    test('retorna 400 para campos desconhecidos', async () => {
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({ valor_total: 100 });
+
+        expect(response.status).toBe(400);
+        expect(response.body.erro).toBe(
+            'Campos não permitidos: valor_total.'
+        );
+        expect(atualizarCompraPorId).not.toHaveBeenCalled();
+    });
+
+    test.each([
+        ['data não textual', { data_compra: 20260919 }],
+        ['data inexistente', { data_compra: '2026-02-29' }],
+        ['data fora do padrão ISO', { data_compra: '19/09/2026' }],
+        ['horário inexistente', { data_compra: '2026-09-19T25:00:00' }],
+        ['estabelecimento não textual', { estabelecimento: 10 }],
+        ['estabelecimento vazio', { estabelecimento: '   ' }],
+        ['estabelecimento acima do limite', { estabelecimento: 'a'.repeat(51) }]
+    ])('rejeita %s antes de consultar o repositório', async (_caseName, body) => {
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send(body);
+
+        expect(response.status).toBe(400);
+        expect(atualizarCompraPorId).not.toHaveBeenCalled();
+    });
+
+    test('atualiza parcialmente data e estabelecimento', async () => {
+        const compra = {
+            id: 2,
+            data_compra: '2026-09-19T14:30:00.000Z',
+            estabelecimento: 'Mercado Central'
+        };
+        atualizarCompraPorId.mockResolvedValue(compra);
+
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({
+                data_compra: '2026-09-19T14:30:00.000Z',
+                estabelecimento: 'Mercado Central'
+            });
+
+        expect(response.status).toBe(200);
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+            data_compra: '2026-09-19T14:30:00.000Z',
+            estabelecimento: 'Mercado Central'
+        });
+        expect(response.body.data).toEqual(compra);
+    });
+
+    test('aceita uma data sem horário e null para remover o estabelecimento', async () => {
+        atualizarCompraPorId.mockResolvedValue({
+            id: 2,
+            data_compra: '2026-09-19',
+            estabelecimento: null
+        });
+
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({
+                data_compra: '2026-09-19',
+                estabelecimento: null
+            });
+
+        expect(response.status).toBe(200);
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+            data_compra: '2026-09-19',
+            estabelecimento: null
+        });
+    });
+
+    test('retorna 404 quando a compra não existe', async () => {
+        atualizarCompraPorId.mockRejectedValue(
+            new CompraNaoEncontradaError()
+        );
+
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({ estabelecimento: 'Mercado Central' });
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({
+            erro: 'Compra não encontrada.'
+        });
+    });
+
+    test('mantém 500 para outras falhas do repositório', async () => {
+        atualizarCompraPorId.mockRejectedValue(
+            new Error('Falha de conexão')
+        );
+
+        const response = await request(app)
+            .patch(compraEndpoint)
+            .send({ estabelecimento: 'Mercado Central' });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({
+            erro: 'Erro ao atualizar compra no banco'
+        });
+    });
+});
 
 describe('PATCH /api/compras/:compraId/items/:itemId', () => {
     beforeEach(() => {
