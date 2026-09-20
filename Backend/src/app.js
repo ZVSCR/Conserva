@@ -4,6 +4,7 @@ const sql = require('./config/database'); // Importa conexão com o banco de dad
 const userRoutes = require('./routes/userRoutes'); // Importa rotas de usuário
 const items = require('./routes/itemRoutes');
 const authRoutes = require('./routes/authRoutes');
+const compraRoutes = require('./routes/compraRoutes');
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes); // Rota para operações de usuário
 app.use('/api/items', items); // Rota para itens do estoque
 app.use('/api/auth', authRoutes);
+app.use('/api/compras', compraRoutes);
 
 app.get('/', (req, res) => {
   res.json({

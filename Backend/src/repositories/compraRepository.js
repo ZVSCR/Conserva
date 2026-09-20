@@ -19,8 +19,8 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         updates.validade_estimada = fieldsToUpdate.validade_estimada;
     }
 
-    const result = await sql.begin(async (sql) => {
-        const [itemAtualizado] = await sql`
+    const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
+        transactionSql`
             UPDATE item
             SET 
                 quantidade = COALESCE(${updates.quantidade ?? null}, quantidade),
@@ -30,13 +30,8 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
                 validade_estimada = COALESCE(${updates.validade_estimada ?? null}, validade_estimada)
             WHERE id = ${itemId} AND compra_id = ${compraId}
             RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-        `;
-
-        if (!itemAtualizado) {
-            throw new Error('Item não encontrado para essa compra.');
-        }
-        
-        const [compraAtualizada] = await sql`
+        `,
+        transactionSql`
             UPDATE compra
             SET valor_total = (
                 SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
@@ -44,13 +39,24 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
                 WHERE compra_id = ${compraId}
             )
             WHERE id = ${compraId}
+              AND EXISTS (
+                  SELECT 1
+                  FROM item
+                  WHERE id = ${itemId} AND compra_id = ${compraId}
+              )
             RETURNING id, valor_total;
-        `;
+        `
+    ]);
 
-        return { item: itemAtualizado, compra: compraAtualizada };
-    });
+    const itemAtualizado = itensAtualizados[0];
 
-    return result;
+    if (!itemAtualizado) {
+        throw new Error('Item não encontrado para essa compra.');
+    }
+
+    const compraAtualizada = comprasAtualizadas[0];
+
+    return { item: itemAtualizado, compra: compraAtualizada };
 
 }
 
