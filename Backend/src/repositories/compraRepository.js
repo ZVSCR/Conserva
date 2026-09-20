@@ -1,5 +1,12 @@
 const sql = require('../config/database')
 
+class ItemCompraNaoEncontradoError extends Error {
+    constructor() {
+        super('Item não encontrado para essa compra.');
+        this.name = 'ItemCompraNaoEncontradoError';
+    }
+}
+
 async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const updates = {};
 
@@ -59,7 +66,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const itemAtualizado = itensAtualizados[0];
 
     if (!itemAtualizado) {
-        throw new Error('Item não encontrado para essa compra.');
+        throw new ItemCompraNaoEncontradoError();
     }
 
     const compraAtualizada = comprasAtualizadas[0];
@@ -68,4 +75,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 
 }
 
-module.exports = { atualizarPorCompraId };
+module.exports = {
+    atualizarPorCompraId,
+    ItemCompraNaoEncontradoError
+};
