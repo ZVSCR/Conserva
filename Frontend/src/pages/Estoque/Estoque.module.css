@@ -226,6 +226,9 @@
 
     border: 1px solid #ccc;
     border-radius: 6px;
+
+    background-color: #ffffff; /* fundo branco */
+    color: #000000; /* texto preto*/
 }
 
 .modalAcoes {
