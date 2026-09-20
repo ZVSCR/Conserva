@@ -20,9 +20,9 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
             <div className={styles.modal}>
 
                 {/* Título muda conforme o modo: editar ou adicionar */}
-                <h2>{produto ? 'Editar produto' : 'Adicionar produto'}</h2>
+                <h2 className={styles.nomeProduto}>{produto ? 'Editar produto' : 'Adicionar produto'}</h2>
 
-                <label>
+                <label className={styles.labelNomeQtd}>
                     Nome
                 </label>
 
@@ -32,7 +32,7 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
                     onChange={(e) => setNome(e.target.value)}
                 />
 
-                <label>
+                <label className={styles.labelNomeQtd}>
                     Quantidade
                 </label>
 
