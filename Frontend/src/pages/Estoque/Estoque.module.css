@@ -165,14 +165,6 @@
     height: 28px;
 }
 
-.botaoExcluir {
-    width: 30px;
-    height: 30px;
-
-    font-size: 28px;
-    line-height: 1;
-}
-
 
 /* ------------ Modal ------------------*/
 .overlay {
@@ -238,6 +230,41 @@
     gap: 10px;
 
     margin-top: 25px;
+}
+
+.botaoSalvar {
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 6px;
+
+    background-color: #47AA4E; /* verde da marca */
+    color: #ffffff;
+
+    cursor: pointer;
+}
+
+.botaoCancelar {
+    padding: 10px 20px;
+
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+
+    background-color: #f0f0f0;
+    color: #333333;
+
+    cursor: pointer;
+}
+.botaoExcluir {
+    padding: 10px 20px;
+
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+
+    background-color: #c81919;
+    color: #f0f0f0;
+
+    cursor: pointer;
 }
 
 /* -------------- ICONE DE DELETAR --------*/

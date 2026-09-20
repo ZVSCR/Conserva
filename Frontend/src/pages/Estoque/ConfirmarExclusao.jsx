@@ -9,18 +9,18 @@ function ConfirmarExclusao({ produto, onConfirmar, onCancelar }) {
 
                 <h2>Excluir produto</h2>
 
-                <p>
+                <p className={styles.labelNomeQtd}>
                     Tem certeza que deseja excluir
                     "{produto.nome}"?
                 </p>
 
                 <div className={styles.modalAcoes}>
 
-                    <button onClick={onCancelar}>
+                    <button className={styles.botaoCancelar} onClick={onCancelar}>
                         Cancelar
                     </button>
 
-                    <button onClick={onConfirmar}>
+                    <button className={styles.botaoExcluir} onClick={onConfirmar}>
                         Excluir
                     </button>
 

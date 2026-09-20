@@ -44,11 +44,11 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
                 <div className={styles.modalAcoes}>
 
-                    <button onClick={onCancelar}>
+                    <button className={styles.botaoCancelar} onClick={onCancelar}>
                         Cancelar
                     </button>
 
-                    <button onClick={salvar}>
+                    <button className={styles.botaoSalvar} onClick={salvar}>
                         Salvar
                     </button>
 
