@@ -1,7 +1,7 @@
 function BtnLogin() {
     return(
         <div>
-            <button href="/Login" >Login</button>
+            <a href="/login" >Login</a>
         </div>
     );
 }

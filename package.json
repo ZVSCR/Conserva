@@ -1,5 +1,36 @@
 {
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "**Conserva** é uma ferramenta web de gerenciamento de estoque alimentício e sugestão de receitas, com foco em **consumo consciente** — reduzindo desperdício de alimentos e ajudando o usuário a entender melhor seus gastos com comida.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZVSCR/Conserva.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ZVSCR/Conserva/issues"
+  },
+  "homepage": "https://github.com/ZVSCR/Conserva#readme",
   "dependencies": {
-    "react-router-dom": "^7.18.3"
+    "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "jest": "^30.5.1",
+    "superjest": "^0.4.0",
+    "supertest": "^7.2.2"
   }
 }

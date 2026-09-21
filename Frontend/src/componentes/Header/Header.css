@@ -1,0 +1,21 @@
+.Header {
+    position: relative; /* Define este container como referência para posições absolutas */
+    width: 100%;
+    padding: 15px 20px;
+    box-sizing: border-box;
+}
+
+.Header a {
+    position: absolute;
+    top: 15px;      /* Distância do topo */
+    left: 20px;     /* Distância da esquerda */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* O título fica centralizado no espaço do header */
+.Header h1 {
+    margin: 0;
+    text-align: center;
+    width: 100%;
+}
