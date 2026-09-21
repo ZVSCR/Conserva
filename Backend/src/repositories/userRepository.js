@@ -39,7 +39,23 @@ async function updatePreferences(userId, fieldsToUpdate) {
     return result[0];
 }
 
+async function buscarGastosTotaisPorUsuario() {
+    const result = await sql`
+        SELECT 
+            u.id, 
+            u.username, 
+            COALESCE(SUM(c.valor_total), 0) AS total_gasto
+        FROM users u
+        LEFT JOIN compra c ON u.id = c.usuario_id
+        GROUP BY u.id, u.username
+        ORDER BY total_gasto DESC;
+    `;
+
+    return result;
+}
+
 module.exports = {
     findPreferencesByUserId,
-    updatePreferences
+    updatePreferences,
+    buscarGastosTotaisPorUsuario
 };
