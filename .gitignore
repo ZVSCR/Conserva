@@ -36,3 +36,6 @@ dist-ssr
 *.sw?
 
 venv/
+
+# Testes
+Backend/src/server.js
