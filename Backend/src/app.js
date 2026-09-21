@@ -1,17 +1,19 @@
 const express = require('express');
 const cors = require('cors');
-const sql = require('./config/database'); // Importa conexão com o banco de dados
-const userRoutes = require('./routes/userRoutes'); // Importa rotas de usuário
-const items = require('./routes/itemRoutes');
-const authRoutes = require('./routes/authRoutes');
+const sql = require('./config/database');                 // Importa conexão com o banco de dados
+const userRoutes = require('./routes/userRoutes');        // Importa rotas de operações de usuário
+const items = require('./routes/itemRoutes');             // Importa rotas de manipulação de itens
+const authRoutes = require('./routes/authRoutes');        // Importa rotas de autenticação
+const comprasRoutes = require('./routes/compraRoutes');   // Importa rotas de manipulação de compras
 
 const app = express();
 
-app.use(cors()); // Libera o acesso para o frontend
+app.use(cors());                        // Libera o acesso para o frontend
 app.use(express.json());
-app.use('/api/users', userRoutes); // Rota para operações de usuário
-app.use('/api/items', items); // Rota para itens do estoque
-app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);      // Rota para operações de usuário
+app.use('/api/items', items);           // Rota para itens do estoque
+app.use('/api/auth', authRoutes);       // Rota para autenticação de usuário
+app.use('/api/compras', comprasRoutes); // Rota para operações de compras
 
 app.get('/', (req, res) => {
   res.json({
@@ -25,10 +27,10 @@ app.get('/api/teste-banco', async (req, res) => {
     // Executa uma query simples só para ver se responde
     const resultado = await sql`SELECT NOW() AS horaNoBanco;`;
 
-    res.json({ 
-      sucesso: true, 
-      mensagem: 'Conexão com o banco funcionou!', 
-      horaNoBanco: resultado[0] 
+    res.json({
+      sucesso: true,
+      mensagem: 'Conexão com o banco funcionou!',
+      horaNoBanco: resultado[0]
     });
   } catch (erro) {
     console.error('Erro na conexão:', erro);

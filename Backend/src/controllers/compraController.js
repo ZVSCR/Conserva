@@ -1,21 +1,21 @@
 const { atualizarPorCompraId } = require('../repositories/compraRepository');
 
 const validateCompraPayload = (body) => {
-  const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
+    const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
 
-  // Garante que ao menos um campo permitido foi enviado
-  const hasAtLeastOneField = Object.keys(body).some((key) =>
-    allowedFields.includes(key) && body[key] !== undefined
-  );
+    // Garante que ao menos um campo permitido foi enviado
+    const hasAtLeastOneField = Object.keys(body).some((key) =>
+        allowedFields.includes(key) && body[key] !== undefined
+    );
 
-  if (!hasAtLeastOneField) {
-    return {
-      isValid: false,
-      message: 'Forneça ao menos um campo válido para atualização.'
-    };
-  }
+    if (!hasAtLeastOneField) {
+        return {
+            isValid: false,
+            message: 'Forneça ao menos um campo válido para atualização.'
+        };
+    }
 
-  return { isValid: true };
+    return { isValid: true };
 };
 
 async function atualizarItensPorCompra(req, res) {
@@ -57,4 +57,11 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
-module.exports = { atualizarItensPorCompra }
+async function createCompra(req, res) {
+
+}
+
+module.exports = {
+    atualizarItensPorCompra,
+    createCompra
+}

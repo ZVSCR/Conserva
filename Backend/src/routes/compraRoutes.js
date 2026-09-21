@@ -1,8 +1,14 @@
 const express = require('express');
 const compraRouter = express.Router();
-const { atualizarItensPorCompra } = require('../controllers/compraController');
+const {
+    atualizarItensPorCompra,
+    createCompra
+} = require('../controllers/compraController');
 
-compraRouter.route('/compra/:compraId/item/:itemId')
+compraRouter.post('/', createCompra)
+
+// /compra/ quando /api/compras/ existe é redundância
+compraRouter.route('/:compraId/item/:itemId')
     .patch(atualizarItensPorCompra);
 
 module.exports = compraRouter;
