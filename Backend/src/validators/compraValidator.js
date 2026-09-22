@@ -88,7 +88,7 @@ function validateItem(item, index) {
     // Quantidade
     errors.push(...validateNumber({
         value: quantidade,
-        field: `${fieldPrefix}`,
+        field: `${fieldPrefix}.quantidade`,
         messages: {
             required: `Quantidade do item ${index + 1} é obrigatória.`,
             type: `Formato da quantidade do item ${index + 1} não é válido.`,
@@ -99,7 +99,7 @@ function validateItem(item, index) {
     // Unidade de Medida
     errors.push(...validateString({
         value: unidade_de_medida,
-        field: `${fieldPrefix}`,
+        field: `${fieldPrefix}.unidade_de_medida`,
         maxLength: 20,
         messages: {
             required: `Unidade de medida do item ${index + 1} é obrigatória.`,
@@ -112,24 +112,27 @@ function validateItem(item, index) {
     // Valor unitário
     errors.push(...validateNumber({
         value: valor_unitario,
-        field: `${fieldPrefix}`,
+        field: `${fieldPrefix}.valor_unitario`,
         positive: false,
         messages: {
-            required: `Valor unitário do item ${index + 1} é obrigatório`,
-            type: `Formato de valor unitário do item ${index + 1} é inválido`,
+            required: `Valor unitário do item ${index + 1} é obrigatório.`,
+            type: `Formato de valor unitário do item ${index + 1} é inválido.`,
             nonNegative: `Valor unitário do item ${index + 1} deve ser maior ou igual a zero.`
         }
     }));
 
-    // TODO: 5. DATA DE VALIDADE ESTIMADA
-    // TODO: 5.1 foi fornecida?
-    if () {
-
-    } else {
-        // TODO: 5.2 é string?
-        // TODO: 5.3 formato é YYYY-MM-DD?
-        // TODO: 5.4 data existe?
-    }
+    errors.push(...validateDate({
+        value: validade_estimada,
+        field: `${fieldPrefix}.validade_estimada`,
+        required: false,
+        minYear: 1926,
+        messages: {
+            type: `Formato da data de validade do item ${index + 1} é inválido. O formato correto é string.`,
+            format: `Formato da data de validade do item ${index + 1} é inválido. Escreva no formato YYYY-MM-DD.`,
+            minYear: `Forneça um ano igual ou posterior a 1926 para a data de validade do item ${index + 1}.`,
+            invalid: `Data de validade do item ${index + 1} não existe. Forneça uma data existente.`
+        }
+    }));
 
     return errors;
 }
