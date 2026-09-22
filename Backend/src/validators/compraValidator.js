@@ -85,31 +85,16 @@ function validateItem(item, index) {
         }
     }));
 
-    // 2. QUANTIDADE
-    // 2.1 existe?
-    if (number === undefined || number === null) {
-        errors.push({
-            field: `${fieldPrefix}.quantidade`,
-            message: `Quantidade do item ${index + 1} é obrigatória.`
-        });
-    } else if (
-
-        // 2.2 é Number?
-        typeof quantidade !== 'number' ||
-        !Number.isFinite(quantidade)
-    ) {
-        errors.push({
-            field: `${fieldPrefix}.quantidade`,
-            message: `Quantidade do item ${index + 1} precisa ser um número.`
-        });
-    } else if (quantidade <= 0) {
-
-        // TODO: 2.3 é > 0?
-        errors.push({
-            field: `${fieldPrefix}`,
-            message: `Quantidade do item ${index + 1} deve ser maior que zero.`
-        });
-    }
+    // Validação de quantidade
+    errors.push(...validateNumber({
+        value: quantidade,
+        field: `${fieldPrefix}`,
+        messages: {
+            required: `Quantidade do item ${index + 1} é obrigatória.`,
+            type: `Formato da quantidade do item ${index + 1} não é válido.`,
+            positive: `Quantidade do item ${index + 1} deve ser maior que zero.`
+        }
+    }));
 
     // 3. UNIDADE DE MEDIDA
     // 3.1 existe?
