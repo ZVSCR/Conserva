@@ -1,158 +1,42 @@
-// Contrato de retorno de validação quando há erro (exemplo):
-// {
-//     isValid: false,
-//     errors: [
-//         {
-//             field: 'itens[1].quantidade',
-//             message: 'Quantidade deve ser maior que zero.'
-//         }
-//     ]
-// }
-// A função principal deve acumular erros
-// Cada função então deve retornar um array de erros
-
-// Contrato de retorno de validação quando está tudo certo (exemplo):
-// {
-//     isValid: true,
-//     errors: []
-// }
-
-function isDataFormatted(date) {
-
-    // Expressão regular de formato de data esperado
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!datePattern.test(date)) {
-        return false;
-    }
-
-    return true;
-}
-
-function isDataReal(field, date) {
-
-    const errors = [];
-
-    // Constrói data real
-    const [year, month, day] = date
-        .split('-')
-        .map(Number);
-
-    const candidate = new Date(Date.UTC(year, month - 1, day)); // JavaScript numera meses de 0 a 11
-
-    if (year < 1926) {
-        errors.push({
-            field: field,
-            message: 'Forneça um ano igual ou posterior a 1926.'
-        });
-
-        return errors;
-    }
-
-    // Verifica se data existe
-    const isSameDate =
-        candidate.getUTCFullYear() === ano &&
-        candidate.getUTCMonth() === mes - 1 &&
-        candidate.getUTCDate() === dia;
-
-    if (!isSameDate) {
-        errors.push({
-            field: field,
-            message: 'Data não existe. Forneça uma data existente.'
-        });
-
-        return errors;
-    }
-
-    return errors;
-}
+// Validação de campos
+const {
+    validateString,
+    validateDate,
+    validateNumber
+} = require('./generalValidator');
 
 // Valida integridade da entrada de estabelecimento
 function validateEstabelecimento(estabelecimento) {
 
-    const errors = [];
-
-    // Estabelecimento existe?
-    if (estabelecimento === undefined || estabelecimento === null) {
-        errors.push({
-            field: 'estabelecimento',
-            message: 'Estabelecimento é obrigatório.'
-        });
-
-        return errors;
-    }
-
-    // Estabelecimento é string?
-    if (typeof estabelecimento !== 'string') {
-        errors.push({
-            field: 'estabelecimento',
-            message: 'Estabelecimento possui formato inválid./'
-        });
-
-        return errors;
-    }
-
-    const normalizedEstabelecimento = estabelecimento.trim();
-
-    // Estabelecimento é "    "?
-    if (!normalizedEstabelecimento) {
-        errors.push({
-            field: 'estabelecimento',
-            message: 'Estabelecimento não pode conter apenas espaços.'
-        });
-
-        return errors;
-    }
-
-    // Estabelecimento ultrapassa limite de caracteres?
-    if (normalizedEstabelecimento.length > 50) {
-        errors.push({
-            field: 'estabelecimento',
-            message: 'Estabelecimento deve possuir no máximo 50 caracteres.'
-        });
-
-        return errors;
-    }
-
-    return errors;
+    return validateString({
+        value: estabelecimento,
+        field: 'estabelecimento',
+        maxLength: 50,
+        messages: {
+            required: 'Estabelecimento é obrigatório.',
+            type: 'Estabelecimento possui formato inválido.',
+            blank: 'Estabelecimento não pode conter apenas espaços.',
+            maxLenght: 'Estabelecimento deve possuir no máximo 50 caracteres.'
+        }
+    });
 }
 
 // Valida integridade da entrada de data de compra, se existe
 function validateDataCompra(dataCompra) {
 
-    const errors = [];
-
-    // Se data não foi fornecida, encerra execução
-    if (dataCompra === undefined || dataCompra === null) {
-        return errors;
-    }
-
-    // Data é string?
-    if (typeof dataCompra !== 'string') {
-        errors.push({
-            field: 'data_compra',
-            message: 'Formato de data inválido. Data deve ser string.'
-        });
-
-        return errors;
-    }
-
-    // Formato de data é YYYY-MM-DD?
-    if (!isDataFormatted(dataCompra)) {
-        errors.push({
-            field: 'data_compra',
-            message: 'Formato de data inválido. O formato correto é YYYY-MM-DD.'
-        });
-
-        return errors;
-    }
-
-    // Data existe?
-    errors.push(...isDataReal('data_compra', dataCompra));
-
-    // NOTE: compras futuras serão permitidas?
-
-    return errors;
+    return validateDate({
+        value: dataCompra,
+        field: 'data_compra',
+        required: false,
+        minYear: 1926,
+        messages: {
+            type: 'Formato de data inválido. Data deve ser string.',
+            format: 'Formato de data inválido. O formato correto é YYYY-MM-DD',
+            minYear: 'Forneça um ano igual ou posterior a 1926.',
+            invalid: 'Data não existe. Forneça uma data existente'
+        }
+    });
+    // NOTE: datas futuras devem ser aceitas?
 }
 
 function validateItem(item, index) {

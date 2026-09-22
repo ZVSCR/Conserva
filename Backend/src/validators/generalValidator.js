@@ -1,3 +1,9 @@
+// Contrato da validação:
+// {
+//      isValid: boolean,
+//      errors: [{field: string, message: string}]
+// }
+
 // Formato de data padrão
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -124,3 +130,9 @@ function validateNumber({
 
     return [];
 }
+
+module.exports = {
+    validateString,
+    validateDate,
+    validateNumber
+};
