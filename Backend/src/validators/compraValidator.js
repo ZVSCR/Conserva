@@ -195,9 +195,32 @@ function validateItem(item, index) {
             message: `O nome do item ${index + 1} é obrigatório.`
         });
     } else {
-        // TODO: 1.2 é string?
-        // TODO: 1.3 é "   "?
-        // TODO: 1.4 tem até 100 caracteres?
+
+        // 1.2 é string?
+        if (typeof nome_item !== 'string') {
+            errors.push({
+                field: `${fieldPrefix}.nome_item`,
+                message: `Formato do nome do item ${index + 1} inválido.`
+            });
+        } else {
+
+            // 1.3 é "    "?
+            const normalizedNomeItem = nome_item.trim();
+            if (!normalizedNomeItem) {
+                errors.push({
+                    field: `${fieldPrefix}.nome_item`,
+                    message: `Nome do item ${index + 1} não pode conter apenas espaços.`
+                });
+            }
+
+            // 1.4 tem até 100 caracteres?
+            if (normalizedNomeItem.length > 100) {
+                errors.push({
+                    field: `${fieldPrefix}.nome_item`,
+                    message: `Nome do item ${index + 1} deve possuir no máximo 100 caracteres.`
+                });
+            }
+        }
     }
 
     // TODO: 2. QUANTIDADE
