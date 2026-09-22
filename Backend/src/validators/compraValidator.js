@@ -23,7 +23,7 @@ function validateEstabelecimento(estabelecimento) {
     const errors = [];
 
     // Estabelecimento existe?
-    if (!estabelecimento) {
+    if (estabelecimento === undefined || estabelecimento === null) {
         errors.push({
             field: 'estabelecimento',
             message: 'Estabelecimento é obrigatório.'
@@ -42,7 +42,7 @@ function validateEstabelecimento(estabelecimento) {
         return errors;
     }
 
-    const normalizedEstabelecimento = estabelecimento.trim().toLowerCase();
+    const normalizedEstabelecimento = estabelecimento.trim();
 
     // Estabelecimento é "    "?
     if (!normalizedEstabelecimento) {
@@ -63,6 +63,8 @@ function validateEstabelecimento(estabelecimento) {
 
         return errors;
     }
+
+    return errors;
 }
 
 function validateDataCompra(dataCompra) {
@@ -95,9 +97,24 @@ function validateCreateCompraPayload(payload) {
             field: 'payload',
             message: 'A requisição enviada não é um objeto válido.'
         });
+
+        return {
+            isValid: false,
+            errors
+        };
     }
 
+    const {
+        data_compra,
+        estabelecimento,
+        itens
+    } = payload;
 
+    errors.push(...validateEstabelecimento(estabelecimento));
+
+    itens.forEach((item, index) => {
+        // TODO: validação de itens
+    });
 
     return {
         isValid: errors.length == 0,
