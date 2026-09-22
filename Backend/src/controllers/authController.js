@@ -74,33 +74,30 @@ async function register(req, res) {
         );
 
         // 4. Insere usuário
-        const result = await db.query(
-            `
+        const result = await db`
             INSERT INTO users (
                 username,
                 email,
                 tipo,
                 password_hash
             )
-            VALUES ($1, $2, $3, $4)
+            VALUES (
+                ${normalizedUsername},
+                ${normalizedEmail},
+                ${normalizedTipo},
+                ${passwordHash}
+            )
             RETURNING
                 id,
                 username,
                 email,
                 tipo,
-                created_at
-            `,
-            [
-                normalizedUsername,
-                normalizedEmail,
-                normalizedTipo,
-                passwordHash
-            ]
-        );
+                created_at;
+            `;
         // 5. Retorna o usuário criado
         return res.status(201).json({
             message: 'Usuário criado com sucesso.',
-            user: result.rows[0]
+            user: result[0]
         });
     } catch (error) {
 

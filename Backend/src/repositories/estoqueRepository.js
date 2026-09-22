@@ -45,4 +45,23 @@ async function buscarValorEstoquePorUsuario(usuarioId) {
     return result[0];
 }
 
-module.exports = { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario };
+async function buscarItensEstoquePorUsuario(usuarioId) {
+    const result = await sql`
+        SELECT 
+            e.id AS estoque_id,
+            i.id AS item_id,
+            i.nome_item,
+            i.unidade_de_medida,
+            e.quantidade_disponivel,
+            i.valor_unitario,
+            (e.quantidade_disponivel * i.valor_unitario) AS valor_total_item
+        FROM estoque e
+        JOIN item i ON i.id = e.item_id
+        WHERE e.usuario_id = ${usuarioId}
+        ORDER BY i.nome_item;
+    `;
+
+    return result;
+}
+
+module.exports = { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario };

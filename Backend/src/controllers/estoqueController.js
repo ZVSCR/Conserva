@@ -1,4 +1,4 @@
-const { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario } = require('../repositories/estoqueRepository');
+const { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario } = require('../repositories/estoqueRepository');
 
 async function listarEstoque(req, res) {
     try {
@@ -55,4 +55,20 @@ const listarGastosEstoque = async (req, res, next) => {
   }
 };
 
-module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque };
+const listarItensEstoque = async (req, res, next) => {
+  try {
+    const usuarioId = req.user.id;
+
+    const itens = await buscarItensEstoquePorUsuario(usuarioId);
+
+    return res.status(200).json({
+      status: 'success',
+      data: itens
+    });
+  } catch (error) {
+    console.error('Erro em listarItensEstoque:', error);
+    return res.status(500).json({ message: 'Erro ao buscar os itens do estoque.' });
+  }
+};
+
+module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque };
