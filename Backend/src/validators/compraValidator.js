@@ -17,8 +17,8 @@
 //     errors: []
 // }
 
+// Valida integridade da entrada de estabelecimento
 function validateEstabelecimento(estabelecimento) {
-    // TODO: validar tipo, trim e tamanho
 
     const errors = [];
 
@@ -67,8 +67,30 @@ function validateEstabelecimento(estabelecimento) {
     return errors;
 }
 
+// Valida integridade da entrada de data de compra, se existe
 function validateDataCompra(dataCompra) {
-    // TODO: se existe, validar formato da data
+
+    const errors = [];
+
+    // Se data não foi fornecida, encerra execução
+    if (dataCompra === undefined || dataCompra === null) {
+        return errors;
+    }
+
+    // Data é string?
+    if (typeof dataCompra !== 'string') {
+        errors.push({
+            field: 'data_compra',
+            message: 'Formato de data inválido. Data deve ser string.'
+        });
+
+        return errors;
+    }
+
+    // TODO: validar se formato é YYYY-MM-DD
+    // TODO: verificar se data realmente existe
+
+    return errors;
 }
 
 function validateItem(item, index) {
@@ -110,8 +132,11 @@ function validateCreateCompraPayload(payload) {
         itens
     } = payload;
 
+    // Valida estabelecimento e data de compra
     errors.push(...validateEstabelecimento(estabelecimento));
+    errors.push(...validateDataCompra(data_compra));
 
+    // Valida itens
     itens.forEach((item, index) => {
         // TODO: validação de itens
     });
