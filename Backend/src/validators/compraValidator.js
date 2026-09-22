@@ -138,6 +138,85 @@ function validateDataCompra(dataCompra) {
 
 function validateItem(item, index) {
     // TODO: validar um item e identificar sua posição
+
+    const errors = [];
+    const fieldPrefix = `itens[${index}]`; // Nomenclatura do item
+
+    // Item existe?
+    if (
+        item === undefined ||       // Item não definido?
+        item === null ||            // Item nulo?
+        Array.isArray(item) ||      // Item é array? (deve ser objeto)
+        typeof item !== 'object'    // Item não é objeto?
+    ) {
+        errors.push({
+            field: fieldPrefix,
+            message: `Item ${index + 1} não é um objeto válido.`
+        });
+
+        return errors;
+    }
+
+    // Agora, campos estão seguros para acesso
+    const {
+        nome_item,
+        quantidade,
+        unidade_de_medida,
+        valor_unitario,
+        validade_estimada
+    } = item;
+    // Deste modo, cada erro pode explicitar campo
+    // ${fieldPrefix}.nome_campo
+
+    // 1. NOME DE ITEM
+    // 1.1 Nome existe?
+    if (nome_item === undefined || nome_item === null) {
+        errors.push({
+            field: `${fieldPrefix}.nome_item`,
+            message: `O nome do item ${index + 1} é obrigatório.`
+        });
+    } else {
+        // TODO: 1.2 é string?
+        // TODO: 1.3 é "   "?
+        // TODO: 1.4 tem até 100 caracteres?
+    }
+
+    // TODO: 2. QUANTIDADE
+    // TODO: 2.1 é float?
+    if () {
+
+    } else {
+        // TODO: 2.2 é > 0?
+    }
+
+    // TODO: 3. UNIDADE DE MEDIDA
+    // TODO: 3.1 é string?
+    if () {
+
+    } else {
+        // TODO: 3.2 é "   "?
+        // TODO: 3.3 tem até 20 caracteres?
+    }
+
+    // TODO: 4. VALOR UNITÁRIO
+    // TODO: 4.1 é float?
+    if () {
+
+    } else {
+        // TODO: 4.2 é >= 0?
+    }
+
+    // TODO: 5. DATA DE VALIDADE ESTIMADA
+    // TODO: 5.1 foi fornecida?
+    if () {
+
+    } else {
+        // TODO: 5.2 é string?
+        // TODO: 5.3 formato é YYYY-MM-DD?
+        // TODO: 5.4 data existe?
+    }
+
+    return errors;
 }
 
 function validateItens(itens) {
