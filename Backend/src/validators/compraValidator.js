@@ -72,7 +72,7 @@ function validateItem(item, index) {
     // Deste modo, cada erro pode explicitar campo
     // ${fieldPrefix}.nome_campo
 
-    // Valida nome de itens
+    // Nome de itens
     errors.push(...validateString({
         value: nome_item,
         field: `${fieldPrefix}.nome_item`,
@@ -85,7 +85,7 @@ function validateItem(item, index) {
         }
     }));
 
-    // Validação de quantidade
+    // Quantidade
     errors.push(...validateNumber({
         value: quantidade,
         field: `${fieldPrefix}`,
@@ -93,6 +93,19 @@ function validateItem(item, index) {
             required: `Quantidade do item ${index + 1} é obrigatória.`,
             type: `Formato da quantidade do item ${index + 1} não é válido.`,
             positive: `Quantidade do item ${index + 1} deve ser maior que zero.`
+        }
+    }));
+
+    // Unidade de Medida
+    errors.push(...validateString({
+        value: unidade_de_medida,
+        field: `${fieldPrefix}`,
+        maxLength: 20,
+        messages: {
+            required: `Unidade de medida do item ${index + 1} é obrigatória.`,
+            type: `Formato de unidade de medida do item ${index + 1} é inválido.`,
+            blank: `Unidade de medida do item ${index + 1} não pode conter apenas espaços`,
+            maxLength: `Unidade de medida do item ${index + 1} deve possuir no máximo 20 caracteres.`
         }
     }));
 
