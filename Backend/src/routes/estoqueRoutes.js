@@ -1,6 +1,6 @@
 const express = require('express');
 const estoqueRouter = express.Router();
-const { listarEstoque, atualizarQuantidadeItem } = require('../controllers/estoqueController');
+const { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque } = require('../controllers/estoqueController');
 
 const mockAuth = (req, res, next) => {
   req.user = { id: 1 };
@@ -10,6 +10,9 @@ estoqueRouter.use(mockAuth);
 
 estoqueRouter.route('/')
     .get(listarEstoque);
+
+estoqueRouter.route('/gastos')
+    .get(listarGastosEstoque);
 
 estoqueRouter.route('/:itemId')
     .patch(atualizarQuantidadeItem);

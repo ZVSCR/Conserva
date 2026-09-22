@@ -29,4 +29,20 @@ async function atualizarQuantidade(itemId, novaQuantidade) {
     return query[0];
 }
 
-module.exports = { buscarEstoque, atualizarQuantidade };
+async function buscarValorEstoquePorUsuario(usuarioId) {
+    const result = await sql`
+        SELECT 
+            u.id, 
+            u.username, 
+            COALESCE(SUM(e.quantidade_disponivel * i.valor_unitario), 0) AS valor_total_estoque
+        FROM users u
+        LEFT JOIN estoque e ON u.id = e.usuario_id
+        LEFT JOIN item i ON e.item_id = i.id
+        WHERE u.id = ${usuarioId}
+        GROUP BY u.id, u.username;
+    `;
+
+    return result[0];
+}
+
+module.exports = { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario };
