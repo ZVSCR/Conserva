@@ -87,8 +87,51 @@ function validateDataCompra(dataCompra) {
         return errors;
     }
 
-    // TODO: validar se formato é YYYY-MM-DD
-    // TODO: verificar se data realmente existe
+    // Expressão regular de formato de data esperado
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    // Formato de data é YYYY-MM-DD?
+    if (!datePattern.test(dataCompra)) {
+        errors.push({
+            field: 'data_compra',
+            message: 'Formato de data inválido. O formato correto é YYYY-MM-DD.'
+        });
+
+        return errors;
+    }
+
+    // Constrói data real
+    const [ano, mes, dia] = dataCompra
+        .split('-')
+        .map(Number);
+
+    const dataCandidata = new Date(Date.UTC(ano, mes - 1, dia)); // JavaScript numera meses de 0 a 11
+
+    if (ano < 1900) {
+        errors.push({
+            field: 'data_compra',
+            message: 'Forneça um ano válido (igual ou posterior a 1900).'
+        });
+
+        return errors;
+    }
+
+    // Verifica se data existe
+    const isSameDate =
+        dataCandidata.getUTCFullYear() === ano &&
+        dataCandidata.getUTCMonth() === mes - 1 &&
+        dataCandidata.getUTCDate() === dia;
+
+    if (!isSameDate) {
+        errors.push({
+            field: 'data_compra',
+            message: 'Data não existe. Forneça uma data existente.'
+        });
+
+        return errors;
+    }
+
+    // NOTE: compras futuras serão permitidas?
 
     return errors;
 }
