@@ -19,6 +19,50 @@
 
 function validateEstabelecimento(estabelecimento) {
     // TODO: validar tipo, trim e tamanho
+
+    const errors = [];
+
+    // Estabelecimento existe?
+    if (!estabelecimento) {
+        errors.push({
+            field: 'estabelecimento',
+            message: 'Estabelecimento é obrigatório.'
+        });
+
+        return errors;
+    }
+
+    // Estabelecimento é string?
+    if (typeof estabelecimento !== 'string') {
+        errors.push({
+            field: 'estabelecimento',
+            message: 'Estabelecimento possui formato inválid./'
+        });
+
+        return errors;
+    }
+
+    const normalizedEstabelecimento = estabelecimento.trim().toLowerCase();
+
+    // Estabelecimento é "    "?
+    if (!normalizedEstabelecimento) {
+        errors.push({
+            field: 'estabelecimento',
+            message: 'Estabelecimento não pode conter apenas espaços.'
+        });
+
+        return errors;
+    }
+
+    // Estabelecimento ultrapassa limite de caracteres?
+    if (normalizedEstabelecimento.length > 50) {
+        errors.push({
+            field: 'estabelecimento',
+            message: 'Estabelecimento deve possuir no máximo 50 caracteres.'
+        });
+
+        return errors;
+    }
 }
 
 function validateDataCompra(dataCompra) {
@@ -52,6 +96,8 @@ function validateCreateCompraPayload(payload) {
             message: 'A requisição enviada não é um objeto válido.'
         });
     }
+
+
 
     return {
         isValid: errors.length == 0,
