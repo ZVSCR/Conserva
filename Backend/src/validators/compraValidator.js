@@ -16,7 +16,7 @@ function validateEstabelecimento(estabelecimento) {
             required: 'Estabelecimento é obrigatório.',
             type: 'Estabelecimento possui formato inválido.',
             blank: 'Estabelecimento não pode conter apenas espaços.',
-            maxLenght: 'Estabelecimento deve possuir no máximo 50 caracteres.'
+            maxLength: 'Estabelecimento deve possuir no máximo 50 caracteres.'
         }
     });
 }
@@ -68,44 +68,22 @@ function validateItem(item, index) {
         valor_unitario,
         validade_estimada
     } = item;
+
     // Deste modo, cada erro pode explicitar campo
     // ${fieldPrefix}.nome_campo
 
-    // 1. NOME DE ITEM
-    // 1.1 Nome existe?
-    if (nome_item === undefined || nome_item === null) {
-        errors.push({
-            field: `${fieldPrefix}.nome_item`,
-            message: `O nome do item ${index + 1} é obrigatório.`
-        });
-    } else {
-
-        // 1.2 é string?
-        if (typeof nome_item !== 'string') {
-            errors.push({
-                field: `${fieldPrefix}.nome_item`,
-                message: `Formato do nome do item ${index + 1} inválido.`
-            });
-        } else {
-
-            // 1.3 é "    "?
-            const normalizedNomeItem = nome_item.trim();
-            if (!normalizedNomeItem) {
-                errors.push({
-                    field: `${fieldPrefix}.nome_item`,
-                    message: `Nome do item ${index + 1} não pode conter apenas espaços.`
-                });
-            }
-
-            // 1.4 tem até 100 caracteres?
-            if (normalizedNomeItem.length > 100) {
-                errors.push({
-                    field: `${fieldPrefix}.nome_item`,
-                    message: `Nome do item ${index + 1} deve possuir no máximo 100 caracteres.`
-                });
-            }
+    // Valida nome de itens
+    errors.push(...validateString({
+        value: nome_item,
+        field: `${fieldPrefix}.nome_item`,
+        maxLength: 100,
+        messages: {
+            required: `O nome do item ${index + 1} é obrigatório.`,
+            type: `Formato do nome do item ${index + 1} é inválido.`,
+            blank: `Nome do item ${index + 1} não pode conter apenas espaços.`,
+            maxLength: `Nome do item ${index + 1} deve possuir no máximo 100 caracteres.`
         }
-    }
+    }));
 
     // 2. QUANTIDADE
     // 2.1 existe?
