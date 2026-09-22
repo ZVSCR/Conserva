@@ -109,6 +109,8 @@ function validateNumber({
     value,
     field,
     required = true,
+    positive = true,
+    nonNegative = true,
     messages
 }) {
     if (value === undefined || value === null) {
@@ -126,6 +128,23 @@ function validateNumber({
     ) {
         // Tipo não é number -> erro
         return [createError(field, messages.type)];
+    }
+
+    // Verificações <=0 ou <0
+    if (value <= 0) {
+
+        if (positive) {
+
+            return [createError(field, messages.positive)];
+        }
+    }
+
+    if (value < 0) {
+
+        if (nonNegative) {
+
+            return [createError(field, messages.nonNegative)];
+        }
     }
 
     return [];
