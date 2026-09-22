@@ -17,6 +17,56 @@
 //     errors: []
 // }
 
+function isDataFormatted(date) {
+
+    // Expressão regular de formato de data esperado
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!datePattern.test(date)) {
+        return false;
+    }
+
+    return true;
+}
+
+function isDataReal(field, date) {
+
+    const errors = [];
+
+    // Constrói data real
+    const [year, month, day] = date
+        .split('-')
+        .map(Number);
+
+    const candidate = new Date(Date.UTC(year, month - 1, day)); // JavaScript numera meses de 0 a 11
+
+    if (year < 1926) {
+        errors.push({
+            field: field,
+            message: 'Forneça um ano igual ou posterior a 1926.'
+        });
+
+        return errors;
+    }
+
+    // Verifica se data existe
+    const isSameDate =
+        candidate.getUTCFullYear() === ano &&
+        candidate.getUTCMonth() === mes - 1 &&
+        candidate.getUTCDate() === dia;
+
+    if (!isSameDate) {
+        errors.push({
+            field: field,
+            message: 'Data não existe. Forneça uma data existente.'
+        });
+
+        return errors;
+    }
+
+    return errors;
+}
+
 // Valida integridade da entrada de estabelecimento
 function validateEstabelecimento(estabelecimento) {
 
@@ -87,11 +137,8 @@ function validateDataCompra(dataCompra) {
         return errors;
     }
 
-    // Expressão regular de formato de data esperado
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-
     // Formato de data é YYYY-MM-DD?
-    if (!datePattern.test(dataCompra)) {
+    if (!isDataFormatted(dataCompra)) {
         errors.push({
             field: 'data_compra',
             message: 'Formato de data inválido. O formato correto é YYYY-MM-DD.'
@@ -100,36 +147,8 @@ function validateDataCompra(dataCompra) {
         return errors;
     }
 
-    // Constrói data real
-    const [ano, mes, dia] = dataCompra
-        .split('-')
-        .map(Number);
-
-    const dataCandidata = new Date(Date.UTC(ano, mes - 1, dia)); // JavaScript numera meses de 0 a 11
-
-    if (ano < 1900) {
-        errors.push({
-            field: 'data_compra',
-            message: 'Forneça um ano válido (igual ou posterior a 1900).'
-        });
-
-        return errors;
-    }
-
-    // Verifica se data existe
-    const isSameDate =
-        dataCandidata.getUTCFullYear() === ano &&
-        dataCandidata.getUTCMonth() === mes - 1 &&
-        dataCandidata.getUTCDate() === dia;
-
-    if (!isSameDate) {
-        errors.push({
-            field: 'data_compra',
-            message: 'Data não existe. Forneça uma data existente.'
-        });
-
-        return errors;
-    }
+    // Data existe?
+    errors.push(...isDataReal('data_compra', dataCompra));
 
     // NOTE: compras futuras serão permitidas?
 
