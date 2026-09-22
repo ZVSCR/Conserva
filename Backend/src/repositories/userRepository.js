@@ -39,7 +39,26 @@ async function updatePreferences(userId, fieldsToUpdate) {
     return result[0];
 }
 
+async function updateUserData(userId, fieldsToUpdate) {
+    const { username, email, tipo, passwordHash } = fieldsToUpdate;
+
+    const result = await sql`
+        UPDATE users
+        SET
+            username = COALESCE(${username}, username),
+            email = COALESCE(${email}, email),
+            tipo = COALESCE(${tipo}, tipo),
+            password_hash = COALESCE(${passwordHash}, password_hash),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${userId}
+        RETURNING id, username, email, tipo, created_at, updated_at;
+    `;
+
+    return result[0];
+}
+
 module.exports = {
     findPreferencesByUserId,
-    updatePreferences
+    updatePreferences,
+    updateUserData
 };
