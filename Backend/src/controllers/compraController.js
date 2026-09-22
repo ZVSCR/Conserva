@@ -69,9 +69,9 @@ async function createCompra(req, res) {
     //     "itens": [
     //         {
     //             "nome_item": "Arroz",
-    //             "quantidade": "2.00",
+    //             "quantidade": 2,
     //             "unidade_de_medida": "kg",
-    //             "valor_unitario": "8.50",
+    //             "valor_unitario": 8.5,
     //             "validade_estimada": "2027-03-01"
     //         }
     //     ]
