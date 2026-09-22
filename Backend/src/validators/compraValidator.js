@@ -223,8 +223,8 @@ function validateItem(item, index) {
         }
     }
 
-    // TODO: 2. QUANTIDADE
-    // TODO: 2.1 existe?
+    // 2. QUANTIDADE
+    // 2.1 existe?
     if (number === undefined || number === null) {
         errors.push({
             field: `${fieldPrefix}.quantidade`,
@@ -249,17 +249,47 @@ function validateItem(item, index) {
         });
     }
 
-    // TODO: 3. UNIDADE DE MEDIDA
-    // TODO: 3.1 é string?
-    if () {
-
+    // 3. UNIDADE DE MEDIDA
+    // 3.1 existe?
+    if (
+        unidade_de_medida === undefined ||
+        unidade_de_medida === null
+    ) {
+        errors.push({
+            field: `${fieldPrefix}.unidade_de_medida`,
+            message: `A unidade de medida ${index + 1} é obrigatória.`
+        });
     } else {
-        // TODO: 3.2 é "   "?
-        // TODO: 3.3 tem até 20 caracteres?
+
+        // 3.2 é string?
+        if (typeof unidade_de_medida !== 'string') {
+            errors.push({
+                field: `${fieldPrefix}.unidade_de_medida`,
+                message: `Formato da unidade de medida do item ${index + 1} inválida.`
+            });
+        } else {
+
+            // 3.3 é "    "?
+            const normalizedUnidadeDeMedida = unidade_de_medida.trim();
+            if (!normalizedUnidadeDeMedida) {
+                errors.push({
+                    field: `${fieldPrefix}.unidade_de_medida`,
+                    message: `Unidade de medida do item ${index + 1} não pode conter apenas espaços.`
+                });
+            }
+
+            // 3.4 tem até 20 caracteres?
+            if (normalizedUnidadeDeMedida.length > 20) {
+                errors.push({
+                    field: `${fieldPrefix}.unidade_de_medida`,
+                    message: `Unidade de medida do item ${index + 1} deve possuir no máximo 20 caracteres.`
+                });
+            }
+        }
     }
 
     // TODO: 4. VALOR UNITÁRIO
-    // TODO: 4.1 é float?
+    // TODO: 4.1 é Number?
     if () {
 
     } else {
