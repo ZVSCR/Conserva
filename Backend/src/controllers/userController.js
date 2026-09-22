@@ -1,4 +1,6 @@
 const userRepository = require('../repositories/userRepository');
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 12;
 
 const validatePreferencesPayload = (body) => {
   const allowedFields = ['notify_push', 'notify_email', 'is_dark_theme'];
@@ -82,11 +84,41 @@ const listarGastosUsuarios = async (req, res, next) => {
   } catch (error) {
     console.error('Erro em listarGastosUsuarios:', error);
     return res.status(500).json({ message: 'Erro ao buscar o total de gastos dos usuários.' });
+const updateUserData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, tipo, password } = req.body;
+
+    if (!username && !email && !tipo && !password) {
+      return res.status(400).json({ message: 'Forneça ao menos um campo para atualização.' });
+    }
+
+    let passwordHash;
+    if (password) {
+      passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    }
+
+    const usuarioAtualizado = await userRepository.updateUserData(userId, {
+      username, email, tipo, passwordHash
+    });
+
+    if (!usuarioAtualizado) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    return res.status(200).json({ status: 'success', data: usuarioAtualizado });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'Username ou email já cadastrado.' });
+    }
+    console.error('Erro em updateUserData:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
 
 module.exports = {
   getUserPreferences,
   updateUserPreferences,
-  listarGastosUsuarios
+  listarGastosUsuarios,
+  updateUserData
 };
