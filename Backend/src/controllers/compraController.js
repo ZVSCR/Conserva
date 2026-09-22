@@ -1,5 +1,9 @@
 const { atualizarPorCompraId } = require('../repositories/compraRepository');
 
+const {
+    validateCreateCompraPayload
+} = require('../validators/compraValidator');
+
 const validateCompraPayload = (body) => {
     const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
 
@@ -58,7 +62,32 @@ async function atualizarItensPorCompra(req, res) {
 }
 
 async function createCompra(req, res) {
+    // Exemplo de JSON a ser recebido:
+    // {
+    //     "data_compra": "2026-09-20",
+    //     "estabelecimento": "Atacadão",
+    //     "itens": [
+    //         {
+    //             "nome_item": "Arroz",
+    //             "quantidade": "2.00",
+    //             "unidade_de_medida": "kg",
+    //             "valor_unitario": "8.50",
+    //             "validade_estimada": "2027-03-01"
+    //         }
+    //     ]
+    // }
 
+    const payload = req.body;
+
+    const validation = validateCreateCompraPayload(payload);
+
+    if (!validation.isValid) {
+        // TODO: responder 400 com validation.errors
+    }
+
+    // TODO: obter usuário autenticado
+    // TODO: chamar compraService
+    // TODO: responder 201
 }
 
 module.exports = {
