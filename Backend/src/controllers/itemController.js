@@ -1,4 +1,4 @@
-const { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem } = require('../repositories/itemRepository');
+const { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario } = require('../repositories/itemRepository');
 
 const validateItemPayload = (body) => {
   const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
@@ -44,6 +44,20 @@ async function listarPorId(req, res) {
     } catch (erro) {
         res.status(500).json({
             erro: 'Erro ao buscar item no banco'
+        });
+    }
+}
+// =============================================================================
+async function listarItensGastos(req, res) {
+    try {
+        // Pega o ID do usuário injetado pelo mockAuth
+        const usuarioId = req.user.id; 
+        
+        const items = await buscarItensPorUsuario(usuarioId);
+        res.json(items);
+    } catch (erro) {
+        res.status(500).json({
+            erro: 'Erro ao buscar os itens gastos do usuário no banco'
         });
     }
 }
@@ -122,4 +136,4 @@ async function criarItemHandler(req, res) {
     }
 }
 // =============================================================================
-module.exports = { listarItens, listarPorId, atualizarItem, apagarId , criarItemHandler}
+module.exports = { listarItens, listarPorId, atualizarItem, apagarId , criarItemHandler, listarItensGastos}

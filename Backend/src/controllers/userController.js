@@ -73,6 +73,17 @@ const updateUserPreferences = async (req, res, next) => {
   }
 };
 
+const listarGastosUsuarios = async (req, res, next) => {
+  try {
+    const gastos = await userRepository.buscarGastosTotaisPorUsuario();
+    
+    return res.status(200).json({
+      status: 'success',
+      data: gastos
+    });
+  } catch (error) {
+    console.error('Erro em listarGastosUsuarios:', error);
+    return res.status(500).json({ message: 'Erro ao buscar o total de gastos dos usuários.' });
 const updateUserData = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -108,5 +119,6 @@ const updateUserData = async (req, res) => {
 module.exports = {
   getUserPreferences,
   updateUserPreferences,
+  listarGastosUsuarios,
   updateUserData
 };
