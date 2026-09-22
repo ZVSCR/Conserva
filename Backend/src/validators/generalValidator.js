@@ -24,11 +24,8 @@ function validateString({
 
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> segue
-        if (required) {
-
-            return [createError(field, messages.required)];
-        }
+        // Campo obrigatório -> erro / Campo opcional -> s
+        return required ? [createError(field, message.required)] : [];
     }
 
     if (typeof value !== 'string') {
@@ -66,11 +63,8 @@ function validateDate({
 
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> segue
-        if (required) {
-
-            return [createError(field, messages.required)];
-        }
+        // Campo obrigatório -> erro / Campo opcional -> s
+        return required ? [createError(field, message.required)] : [];
     }
 
     if (typeof value !== 'string') {
@@ -98,7 +92,7 @@ function validateDate({
     const candidate = new Date(Date.UTC(year, month - 1, day));
     const isRealDate =
         candidate.getUTCFullYear() === year &&
-        candidate.getUTCMonth() === month &&
+        candidate.getUTCMonth() === month - 1 &&
         candidate.getUTCDate() === day;
 
     // Data fornecida não existe -> erro
@@ -115,11 +109,8 @@ function validateNumber({
 }) {
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> segue
-        if (required) {
-
-            return [createError(field, messages.required)];
-        }
+        // Campo obrigatório -> erro / Campo opcional -> s
+        return required ? [createError(field, message.required)] : [];
     }
 
     if (
