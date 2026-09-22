@@ -39,8 +39,8 @@ function validateDataCompra(dataCompra) {
     // NOTE: datas futuras devem ser aceitas?
 }
 
+// Valida cada campo do registro de um item
 function validateItem(item, index) {
-    // TODO: validar um item e identificar sua posição
 
     const errors = [];
     const fieldPrefix = `itens[${index}]`; // Nomenclatura do item
@@ -121,6 +121,7 @@ function validateItem(item, index) {
         }
     }));
 
+    // Data de validade estimada
     errors.push(...validateDate({
         value: validade_estimada,
         field: `${fieldPrefix}.validade_estimada`,
@@ -140,6 +141,47 @@ function validateItem(item, index) {
 function validateItens(itens) {
     // TODO: validar se array não é vazio
     // TODO: chamar validateItem par cada item
+
+    const errors = [];
+
+    // Lista de itens existe?
+    if (itens === undefined || itens === null) {
+
+        errors.push({
+            field: 'itens',
+            message: 'O registro de itens é obrigatório.'
+        });
+
+        return errors;
+    }
+
+    // Lista de itens é array?
+    if (!Array.isArray(itens)) {
+
+        errors.push({
+            field: 'itens',
+            message: 'Formato do registro de itens inválido. Deve ser um array.'
+        });
+
+        return errors;
+    }
+
+    // Array de itens possui ao menos um item?
+    if (itens.length === 0) {
+
+        errors.push({
+            field: 'itens',
+            message: 'Compra deve ter ao menos um item registrado.'
+        });
+    }
+
+    // Validação de cada item da lista
+    itens.forEach((item, index) => {
+
+        errors.push(...validateItem(item, index));
+    });
+
+    return errors;
 }
 
 function validateCreateCompraPayload(payload) {
@@ -151,6 +193,7 @@ function validateCreateCompraPayload(payload) {
 
     // Payload é objeto?
     if (
+        payload === undefined ||
         payload === null ||
         Array.isArray(payload) ||
         typeof payload !== 'object'
@@ -172,14 +215,10 @@ function validateCreateCompraPayload(payload) {
         itens
     } = payload;
 
-    // Valida estabelecimento e data de compra
+    // Valida estabelecimento, data de compra e itens
     errors.push(...validateEstabelecimento(estabelecimento));
     errors.push(...validateDataCompra(data_compra));
-
-    // Valida itens
-    itens.forEach((item, index) => {
-        // TODO: validação de itens
-    });
+    errors.push(...validateItens(itens));
 
     return {
         isValid: errors.length == 0,
