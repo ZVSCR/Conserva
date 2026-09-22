@@ -224,11 +224,29 @@ function validateItem(item, index) {
     }
 
     // TODO: 2. QUANTIDADE
-    // TODO: 2.1 é float?
-    if () {
+    // TODO: 2.1 existe?
+    if (number === undefined || number === null) {
+        errors.push({
+            field: `${fieldPrefix}.quantidade`,
+            message: `Quantidade do item ${index + 1} é obrigatória.`
+        });
+    } else if (
 
-    } else {
-        // TODO: 2.2 é > 0?
+        // 2.2 é Number?
+        typeof quantidade !== 'number' ||
+        !Number.isFinite(quantidade)
+    ) {
+        errors.push({
+            field: `${fieldPrefix}.quantidade`,
+            message: `Quantidade do item ${index + 1} precisa ser um número.`
+        });
+    } else if (quantidade <= 0) {
+
+        // TODO: 2.3 é > 0?
+        errors.push({
+            field: `${fieldPrefix}`,
+            message: `Quantidade do item ${index + 1} deve ser maior que zero.`
+        });
     }
 
     // TODO: 3. UNIDADE DE MEDIDA
