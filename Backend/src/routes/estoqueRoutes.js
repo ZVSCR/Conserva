@@ -11,6 +11,9 @@ estoqueRouter.use(mockAuth);
 estoqueRouter.route('/')
     .get(listarEstoque);
 
+estoqueRouter.route('/consumo')
+    .get(listarConsumo);
+
 estoqueRouter.route('/:itemId')
     .patch(atualizarQuantidadeItem);
 
