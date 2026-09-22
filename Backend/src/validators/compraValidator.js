@@ -109,52 +109,17 @@ function validateItem(item, index) {
         }
     }));
 
-    // 3. UNIDADE DE MEDIDA
-    // 3.1 existe?
-    if (
-        unidade_de_medida === undefined ||
-        unidade_de_medida === null
-    ) {
-        errors.push({
-            field: `${fieldPrefix}.unidade_de_medida`,
-            message: `A unidade de medida ${index + 1} é obrigatória.`
-        });
-    } else {
-
-        // 3.2 é string?
-        if (typeof unidade_de_medida !== 'string') {
-            errors.push({
-                field: `${fieldPrefix}.unidade_de_medida`,
-                message: `Formato da unidade de medida do item ${index + 1} inválida.`
-            });
-        } else {
-
-            // 3.3 é "    "?
-            const normalizedUnidadeDeMedida = unidade_de_medida.trim();
-            if (!normalizedUnidadeDeMedida) {
-                errors.push({
-                    field: `${fieldPrefix}.unidade_de_medida`,
-                    message: `Unidade de medida do item ${index + 1} não pode conter apenas espaços.`
-                });
-            }
-
-            // 3.4 tem até 20 caracteres?
-            if (normalizedUnidadeDeMedida.length > 20) {
-                errors.push({
-                    field: `${fieldPrefix}.unidade_de_medida`,
-                    message: `Unidade de medida do item ${index + 1} deve possuir no máximo 20 caracteres.`
-                });
-            }
+    // Valor unitário
+    errors.push(...validateNumber({
+        value: valor_unitario,
+        field: `${fieldPrefix}`,
+        positive: false,
+        messages: {
+            required: `Valor unitário do item ${index + 1} é obrigatório`,
+            type: `Formato de valor unitário do item ${index + 1} é inválido`,
+            nonNegative: `Valor unitário do item ${index + 1} deve ser maior ou igual a zero.`
         }
-    }
-
-    // TODO: 4. VALOR UNITÁRIO
-    // TODO: 4.1 é Number?
-    if () {
-
-    } else {
-        // TODO: 4.2 é >= 0?
-    }
+    }));
 
     // TODO: 5. DATA DE VALIDADE ESTIMADA
     // TODO: 5.1 foi fornecida?
