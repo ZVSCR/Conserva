@@ -24,8 +24,8 @@ function validateString({
 
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> s
-        return required ? [createError(field, message.required)] : [];
+        // Campo obrigatório -> erro / Campo opcional -> finaliza
+        return required ? [createError(field, messages.required)] : [];
     }
 
     if (typeof value !== 'string') {
@@ -63,8 +63,8 @@ function validateDate({
 
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> s
-        return required ? [createError(field, message.required)] : [];
+        // Campo obrigatório -> erro / Campo opcional -> finaliza
+        return required ? [createError(field, messages.required)] : [];
     }
 
     if (typeof value !== 'string') {
@@ -109,8 +109,8 @@ function validateNumber({
 }) {
     if (value === undefined || value === null) {
 
-        // Campo obrigatório -> erro / Campo opcional -> s
-        return required ? [createError(field, message.required)] : [];
+        // Campo obrigatório -> erro / Campo opcional -> finaliza
+        return required ? [createError(field, messages.required)] : [];
     }
 
     if (
