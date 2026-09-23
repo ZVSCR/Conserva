@@ -21,6 +21,7 @@ userRouter.route('/gastos')
     
 userRouter.route('/me')
     .all(mockAuth)
+    .get(userController.getUserData)
     .patch(userController.updateUserData);
 
 userRouter.route('/me/preferences')

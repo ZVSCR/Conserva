@@ -84,6 +84,29 @@ const listarGastosUsuarios = async (req, res, next) => {
   } catch (error) {
     console.error('Erro em listarGastosUsuarios:', error);
     return res.status(500).json({ message: 'Erro ao buscar o total de gastos dos usuários.' });
+  }
+}
+
+const getUserData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const usuario = await userRepository.findUserDataById(userId);
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: usuario
+    });
+  } catch (error) {
+    console.error('Erro em getUserData:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
+
 const updateUserData = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -120,5 +143,6 @@ module.exports = {
   getUserPreferences,
   updateUserPreferences,
   listarGastosUsuarios,
-  updateUserData
+  updateUserData,
+  getUserData
 };
