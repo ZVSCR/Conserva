@@ -7,10 +7,11 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
     const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1);
 
     function salvar() {
+         const quantidadeNumerica = Math.max(0, Math.floor(Number(quantidade) || 0)); //Permite salvar o produto com quantidade 0, caso o campo de input esteja vazio
         onSalvar({
             ...produto, //se o prod for null, não adiciona
             nome: nome,
-            quantidade: quantidade
+            quantidade: quantidadeNumerica
         });
     }
 
@@ -38,8 +39,10 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
                 <input
                     type="number"
+                    min="0"
+                    step="1"
                     value={quantidade}
-                    onChange={(e) => setQuantidade(Number(e.target.value))}
+                    onChange={(e) => setQuantidade(e.target.value)}
                 />
 
                 <div className={styles.modalAcoes}>
