@@ -23,6 +23,8 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
     }
 
     return {
+        listarComprasUsuario: jest.fn(),
+        listarCompraPorId: jest.fn(),
         atualizarCompraPorId: jest.fn(),
         atualizarPorCompraId: jest.fn(),
         CompraNaoEncontradaError,
@@ -31,6 +33,8 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
 });
 
 const {
+    listarComprasUsuario,
+    listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
@@ -40,7 +44,138 @@ const app = require('../../Backend/src/app');
 
 const endpoint = '/api/compras/2/items/1';
 const compraEndpoint = '/api/compras/2';
+const listaComprasEndpoint = '/api/compras';
 
+// =============================================================================
+// READ
+describe('GET /api/compras', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('retorna 500 para erro em compraRepository', async () => {
+        listarComprasUsuario.mockRejectedValue(
+            new Error('Falha de conexão.')
+        );
+
+        const response = await request(app)
+            .get(listaComprasEndpoint);
+
+        expect(response.status).toBe(500);
+        expect(response.body.erro).toBe(
+            'Erro no acesso ao repositorio.'
+        );
+        expect(listarComprasUsuario).toHaveBeenCalled();
+    });
+
+    test('retorna 200 para lista vazia de compras', async () => {
+        const compras = [];
+        listarComprasUsuario.mockResolvedValue(compras);
+
+        const response = await request(app)
+            .get(listaComprasEndpoint);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual(compras);
+        expect(listarComprasUsuario).toHaveBeenCalled();
+    });
+
+    test('retorna 200 para lista com compras', async () => {
+        const compras = [
+            {
+                id: 2,
+                usuario_id: 1,
+                data_compra: '2026-09-19T14:30:00.000Z',
+                valor_total: 11.0,
+                estabelecimento: 'Padaria do Zé'
+            },
+            {
+                id: 4,
+                usuario_id: 1,
+                data_compra: '2026-10-06T19:23:00.000Z',
+                valor_total: 165.0,
+                estabelecimento: 'Atacadao'
+            }
+        ];
+        listarComprasUsuario.mockResolvedValue(compras);
+
+        const response = await request(app)
+            .get(listaComprasEndpoint);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual(compras);
+        expect(listarComprasUsuario).toHaveBeenCalled();
+    })
+});
+
+describe('GET /api/compras/:compraId', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('retorna 500 para erro em compraRepository', async () => {
+        listarCompraPorId.mockRejectedValue(
+            new Error('Falha de conexão.')
+        );
+
+        const response = await request(app)
+            .get(compraEndpoint);
+
+        expect(response.status).toBe(500);
+        expect(response.body.erro).toBe(
+            'Erro no acesso ao repositorio.'
+        );
+        expect(listarCompraPorId).toHaveBeenCalled();
+    });
+    
+    test('retorna 400 para compraID invalido antes de consultar o repositorio', async () => {
+        const response = await request(app)
+            .get('/api/compras/abc');
+
+        expect(response.status).toBe(400);
+        expect(response.body.erro).toBe(
+            'compraId deve ser um inteiro positivo.'
+        );
+        expect(listarCompraPorId).not.toHaveBeenCalled();
+    });
+    
+    test('retorna 404 para compra nao existente', async () => {
+        listarCompraPorId.mockRejectedValue(
+            new CompraNaoEncontradaError()
+        );
+
+        const response = await request(app)
+            .get(compraEndpoint);
+
+        expect(response.status).toBe(404);
+        expect(response.body.erro).toBe(
+            'Compra nao existe.'
+        );
+        expect(listarCompraPorId).toHaveBeenCalled();
+    });
+    
+    test('retorna 200 para compra existente', async () => {
+        const compra = {
+                id: 2,
+                usuario_id: 1,
+                data_compra: '2026-10-06T19:23:00.000Z',
+                valor_total: 165.0,
+                estabelecimento: 'Atacadao'
+        };
+        listarCompraPorId.mockResolvedValue(compra);
+
+        const response = await request(app)
+            .get(compraEndpoint);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual(compra);
+        expect(listarCompraPorId).toHaveBeenCalledWith(2);
+    });
+});
+// =============================================================================
+
+// =============================================================================
+// UPDATE
 describe('PATCH /api/compras/:compraId', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -321,3 +456,4 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         });
     });
 });
+// =============================================================================
