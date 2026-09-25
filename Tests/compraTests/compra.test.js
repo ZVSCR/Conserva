@@ -63,7 +63,7 @@ describe('GET /api/compras', () => {
 
         expect(response.status).toBe(500);
         expect(response.body.erro).toBe(
-            'Erro no acesso ao repositorio.'
+            'Erro ao buscar compras no banco de dados'
         );
         expect(listarComprasUsuario).toHaveBeenCalled();
     });
@@ -123,7 +123,7 @@ describe('GET /api/compras/:compraId', () => {
 
         expect(response.status).toBe(500);
         expect(response.body.erro).toBe(
-            'Erro no acesso ao repositorio.'
+            'Erro ao buscar itens da compra'
         );
         expect(listarCompraPorId).toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe('GET /api/compras/:compraId', () => {
 
         expect(response.status).toBe(404);
         expect(response.body.erro).toBe(
-            'Compra nao existe.'
+            'Compra não encontrada'
         );
         expect(listarCompraPorId).toHaveBeenCalled();
     });
@@ -169,7 +169,7 @@ describe('GET /api/compras/:compraId', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compra);
-        expect(listarCompraPorId).toHaveBeenCalledWith(2);
+        expect(listarCompraPorId).toHaveBeenCalledWith(compra.usuario_id, compra.id);
     });
 });
 // =============================================================================
