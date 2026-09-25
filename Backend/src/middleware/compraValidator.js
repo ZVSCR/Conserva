@@ -185,9 +185,6 @@ function validateItens(itens) {
 }
 
 function validateCreateCompraPayload(payload) {
-    // TODO: executar validações modulares
-    // TODO: reunir erros
-    // TODO: devolver resultado
 
     const errors = [];
 
