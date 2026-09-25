@@ -1,4 +1,6 @@
 const {
+    listarComprasUsuario,
+    listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
@@ -215,6 +217,54 @@ const validateAtualizacaoCompraPayload = (body) => {
     return { isValid: true };
 };
 
+async function listarCompras(req, res) {
+    try {
+        const usuarioId = req.params.id;
+
+        const compras = await listarComprasUsuario(usuarioId);
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: compras
+        });
+    } catch (erro) {
+        res.status(500).json({
+            erro: 'Erro ao buscar compras no banco de dados'
+        });
+    }
+}
+
+async function listarItensPorCompra(req, res) {
+    try {
+        //const usuarioId = req.params.id;
+        const usuarioId = 1;
+        const compraId = parsePositiveIntegerParam(req.params.compraId)
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const itens = await listarCompraPorId(usuarioId, compraId);
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: itens
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({
+                erro: 'Compra não encontrada'
+            });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao buscar itens da compra'
+        });
+    }
+}
+
 async function atualizarCompra(req, res) {
     try {
         const compraId = parsePositiveIntegerParam(req.params.compraId);
@@ -309,6 +359,8 @@ async function atualizarItensPorCompra(req, res) {
 }
 
 module.exports = {
+    listarCompras,
+    listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra
 };
