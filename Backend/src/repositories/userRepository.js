@@ -52,6 +52,18 @@ async function buscarGastosTotaisPorUsuario() {
     `;
 
     return result;
+}
+
+async function findUserDataById(userId) {
+    const result = await sql`
+        SELECT id, username, email, tipo, created_at, updated_at
+        FROM users
+        WHERE id = ${userId};
+    `;
+
+    return result[0];
+}
+
 async function updateUserData(userId, fieldsToUpdate) {
     const { username, email, tipo, passwordHash } = fieldsToUpdate;
 
@@ -74,5 +86,6 @@ module.exports = {
     findPreferencesByUserId,
     updatePreferences,
     buscarGastosTotaisPorUsuario,
-    updateUserData
+    updateUserData,
+    findUserDataById
 };
