@@ -3,14 +3,19 @@ import styles from './Estoque.module.css';
 
 function EditarProduto({ produto, onSalvar, onCancelar }) {
 
-     const [nome, setNome] = useState(produto?.nome ?? '');
-    const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1);
+     const [nome, setNome] = useState(produto?.nome ?? ''); //Se o valor for null, ele vai mostrar ''. Para poder usar o mesmo modal de adicionar ou editar.
+    const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1); //Inicia com 1 no input
+    const [erroNome, setErroNome] = useState(''); //Mostra um erro caso tente salvar com o campo de nome do produto vazio.
 
     function salvar() {
+        if (nome.trim() === '') {
+        setErroNome('Informe o nome do produto.');
+        return; // impede o salvamento
+        }
          const quantidadeNumerica = Math.max(0, Math.floor(Number(quantidade) || 0)); //Permite salvar o produto com quantidade 0, caso o campo de input esteja vazio
         onSalvar({
             ...produto, //se o prod for null, não adiciona
-            nome: nome,
+            nome: nome.trim(),
             quantidade: quantidadeNumerica
         });
     }
@@ -30,8 +35,14 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
                 <input
                     type="text"
                     value={nome}
-                    onChange={(e) => setNome(e.target.value)}
+                    onChange={(e) => {
+                        setNome(e.target.value);
+                        if (erroNome) setErroNome(''); // limpa o erro assim que a pessoa começa a corrigir
+                    }}
                 />
+                {erroNome && (
+                    <p className={styles.mensagemErro}>{erroNome}</p>
+                )}
 
                 <label className={styles.labelNomeQtd}>
                     Quantidade

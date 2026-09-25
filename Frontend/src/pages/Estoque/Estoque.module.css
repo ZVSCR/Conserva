@@ -137,6 +137,11 @@
     color:#454444
 }
 
+.mensagemErro { /*Caso tente salvar o nome do produto como vazio*/
+    color: #d32f2f;
+    font-size: 14px;
+    margin: 5px 0 0;
+}
 .quantidade{
     font-size: 20px;
 }
