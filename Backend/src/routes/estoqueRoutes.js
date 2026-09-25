@@ -14,6 +14,9 @@ estoqueRouter.route('/')
 estoqueRouter.route('/gastos')
     .get(listarGastosEstoque);
 
+estoqueRouter.route('/consumo')
+    .get(listarConsumo);
+
 estoqueRouter.route('/:itemId')
     .patch(atualizarQuantidadeItem);
 

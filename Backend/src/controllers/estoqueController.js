@@ -71,4 +71,14 @@ const listarItensEstoque = async (req, res, next) => {
   }
 };
 
-module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque };
+async function listarConsumo(req, res) {
+    try {
+        const usuarioId = req.user.id;
+        const consumo = await buscarConsumo(usuarioId);
+        res.json(consumo);
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao buscar consumo no banco' });
+    }
+}
+
+module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo };

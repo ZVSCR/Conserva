@@ -27,6 +27,18 @@ async function buscarPorId(id) {
 
     return query[0];
 }
+
+// =============================================================================
+// Adicione junto com as funções de LISTAGEM
+async function buscarItensPorUsuario(usuarioId) {
+    const query = await sql`
+        SELECT item.*, compra.valor_total, compra.estabelecimento, compra.data_compra
+        FROM item
+        JOIN compra ON item.compra_id = compra.id
+        WHERE compra.usuario_id = ${usuarioId};
+    `;
+    return query;
+}
 // =============================================================================
 // ATUALIZAÇÃO
 async function atualizarPorId(itemId, fieldsToUpdate) {
@@ -107,4 +119,4 @@ async function criarItem(usuarioId, nomeItem, quantidade, unidadeDeMedida, valor
 }
 // =============================================================================
 
-module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem};
+module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario};

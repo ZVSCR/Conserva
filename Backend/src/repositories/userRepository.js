@@ -39,7 +39,40 @@ async function updatePreferences(userId, fieldsToUpdate) {
     return result[0];
 }
 
+async function buscarGastosTotaisPorUsuario() {
+    const result = await sql`
+        SELECT 
+            u.id, 
+            u.username, 
+            COALESCE(SUM(c.valor_total), 0) AS total_gasto
+        FROM users u
+        LEFT JOIN compra c ON u.id = c.usuario_id
+        GROUP BY u.id, u.username
+        ORDER BY total_gasto DESC;
+    `;
+
+    return result;
+async function updateUserData(userId, fieldsToUpdate) {
+    const { username, email, tipo, passwordHash } = fieldsToUpdate;
+
+    const result = await sql`
+        UPDATE users
+        SET
+            username = COALESCE(${username}, username),
+            email = COALESCE(${email}, email),
+            tipo = COALESCE(${tipo}, tipo),
+            password_hash = COALESCE(${passwordHash}, password_hash),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${userId}
+        RETURNING id, username, email, tipo, created_at, updated_at;
+    `;
+
+    return result[0];
+}
+
 module.exports = {
     findPreferencesByUserId,
-    updatePreferences
+    updatePreferences,
+    buscarGastosTotaisPorUsuario,
+    updateUserData
 };

@@ -16,6 +16,13 @@ const mockAuth = (req, res, next) => {
   next();
 };
 
+userRouter.route('/gastos')
+    .get(userController.listarGastosUsuarios);
+    
+userRouter.route('/me')
+    .all(mockAuth)
+    .patch(userController.updateUserData);
+
 userRouter.route('/me/preferences')
     .all(mockAuth)
     .get(userController.getUserPreferences)
