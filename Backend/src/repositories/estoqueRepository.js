@@ -29,6 +29,41 @@ async function atualizarQuantidade(itemId, novaQuantidade) {
     return query[0];
 }
 
+async function buscarValorEstoquePorUsuario(usuarioId) {
+    const result = await sql`
+        SELECT 
+            u.id, 
+            u.username, 
+            COALESCE(SUM(e.quantidade_disponivel * i.valor_unitario), 0) AS valor_total_estoque
+        FROM users u
+        LEFT JOIN estoque e ON u.id = e.usuario_id
+        LEFT JOIN item i ON e.item_id = i.id
+        WHERE u.id = ${usuarioId}
+        GROUP BY u.id, u.username;
+    `;
+
+    return result[0];
+}
+
+async function buscarItensEstoquePorUsuario(usuarioId) {
+    const result = await sql`
+        SELECT 
+            e.id AS estoque_id,
+            i.id AS item_id,
+            i.nome_item,
+            i.unidade_de_medida,
+            e.quantidade_disponivel,
+            i.valor_unitario,
+            (e.quantidade_disponivel * i.valor_unitario) AS valor_total_item
+        FROM estoque e
+        JOIN item i ON i.id = e.item_id
+        WHERE e.usuario_id = ${usuarioId}
+        ORDER BY i.nome_item;
+    `;
+
+    return result;
+}
+
 //Listar itens com consumo (onde a quantidade disponivel no estoque é menor que a comprada) e seu valor
 async function buscarConsumo(usuarioId) {
     const query = await sql`
@@ -48,5 +83,4 @@ async function buscarConsumo(usuarioId) {
 
     return query;
 }
-
-module.exports = { buscarEstoque, atualizarQuantidade, buscarConsumo };
+module.exports = { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario, buscarConsumo };

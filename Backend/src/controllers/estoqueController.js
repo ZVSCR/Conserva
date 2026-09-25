@@ -1,4 +1,4 @@
-const { buscarEstoque, atualizarQuantidade } = require('../repositories/estoqueRepository');
+const { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario } = require('../repositories/estoqueRepository');
 
 async function listarEstoque(req, res) {
     try {
@@ -31,6 +31,46 @@ async function atualizarQuantidadeItem(req, res) {
     }
 }
 
+const listarGastosEstoque = async (req, res, next) => {
+  try {
+    const usuarioId = req.user.id;
+
+    if (!usuarioId) {
+      return res.status(400).json({ message: 'O id do usuário é obrigatório.' });
+    }
+
+    const gastos = await buscarValorEstoquePorUsuario(usuarioId);
+
+    if (!gastos) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: gastos
+    });
+  } catch (error) {
+    console.error('Erro em listarGastosEstoque:', error);
+    return res.status(500).json({ message: 'Erro ao buscar o total de gastos do usuário.' });
+  }
+};
+
+const listarItensEstoque = async (req, res, next) => {
+  try {
+    const usuarioId = req.user.id;
+
+    const itens = await buscarItensEstoquePorUsuario(usuarioId);
+
+    return res.status(200).json({
+      status: 'success',
+      data: itens
+    });
+  } catch (error) {
+    console.error('Erro em listarItensEstoque:', error);
+    return res.status(500).json({ message: 'Erro ao buscar os itens do estoque.' });
+  }
+};
+
 async function listarConsumo(req, res) {
     try {
         const usuarioId = req.user.id;
@@ -41,4 +81,4 @@ async function listarConsumo(req, res) {
     }
 }
 
-module.exports = { listarEstoque, atualizarQuantidadeItem, listarConsumo };
+module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo };
