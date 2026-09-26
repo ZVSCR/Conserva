@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import styles from './Estoque.module.css';
 import Header from './Header';
@@ -7,6 +7,20 @@ import NavBar from './NavBar';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
 
+useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
+    fetch('http://localhost:3000/api/estoque')
+        .then((res) => res.json())
+        .then((data) => {
+            setProdutos(
+                data.map((item) => ({
+                    id: item.item_id,
+                    nome: item.nome_item,
+                    quantidade: Number(item.quantidade_disponivel)
+                }))
+            );
+        })
+        .catch((erro) => console.error('Erro ao buscar estoque:', erro));
+}, []); 
 
 function PageEstoque(){
     
