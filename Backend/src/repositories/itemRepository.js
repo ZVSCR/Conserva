@@ -1,17 +1,25 @@
 const sql = require('../config/database')
 
 // =============================================================================
-// LISTAGEM
+// LISTAGEM  -- Alterei pra ocultar a senha do usuario e mostrar o id dos itens
 async function buscarItens() {
-    // será implementado quando houver uma forma de autenticação
-    //const query = await sql`
-    //    SELECT * FROM item
-    //    JOIN compra ON item.compra_id = compra.id
-    //    JOIN users ON compra.usuario.id = users.id
-    //    WHERE users.id = ${usuarioId};
-    //`;
     const query = await sql`
-        SELECT * FROM item
+        SELECT 
+            item.id AS item_id,
+            item.nome_item,
+            item.quantidade,
+            item.unidade_de_medida,
+            item.valor_unitario,
+            item.validade_estimada,
+            compra.id AS compra_id,
+            compra.valor_total,
+            compra.estabelecimento,
+            compra.data_compra,
+            users.id AS usuario_id,
+            users.username,
+            users.email,
+            users.tipo
+        FROM item
         JOIN compra ON item.compra_id = compra.id
         JOIN users ON compra.usuario_id = users.id;
     `;
