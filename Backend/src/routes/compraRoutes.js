@@ -2,7 +2,8 @@ const express = require('express');
 const compraRouter = express.Router();
 const {
     atualizarCompra,
-    atualizarItensPorCompra
+    atualizarItensPorCompra,
+    atualizarInstanciasPorCompra
 } = require('../controllers/compraController');
 
 compraRouter.route('/:compraId')
@@ -10,5 +11,8 @@ compraRouter.route('/:compraId')
 
 compraRouter.route('/:compraId/items/:itemId')
     .patch(atualizarItensPorCompra);
+
+compraRouter.route('/:compraId/items')
+    .patch(atualizarInstanciasPorCompra);
 
 module.exports = compraRouter;
