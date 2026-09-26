@@ -62,10 +62,10 @@ describe('GET /api/compras', () => {
             .get(listaComprasEndpoint);
 
         expect(response.status).toBe(500);
-        expect(response.body.erro).toBe(
-            'Erro ao buscar compras no banco de dados'
-        );
-        expect(listarComprasUsuario).toHaveBeenCalled();
+        expect(response.body).toEqual({
+            erro: 'Erro ao buscar compras no banco de dados'
+        });
+        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
     });
 
     test('retorna 200 para lista vazia de compras', async () => {
@@ -77,24 +77,46 @@ describe('GET /api/compras', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compras);
-        expect(listarComprasUsuario).toHaveBeenCalled();
+        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
     });
 
-    test('retorna 200 para lista com compras', async () => {
+    test('retorna 200 para lista com todas as linhas das compras e itens', async () => {
         const compras = [
             {
                 id: 2,
                 usuario_id: 1,
                 data_compra: '2026-09-19T14:30:00.000Z',
-                valor_total: 11.0,
-                estabelecimento: 'Padaria do Zé'
+                valor_total: 165.0,
+                estabelecimento: 'Atacadao',
+                item_id: 10,
+                nome_item: 'Arroz',
+                quantidade: '2.00',
+                valor_unitario: '11.00',
+                username: 'usuario-teste'
+            },
+            {
+                id: 2,
+                usuario_id: 1,
+                data_compra: '2026-09-19T14:30:00.000Z',
+                valor_total: 165.0,
+                estabelecimento: 'Atacadao',
+                item_id: 11,
+                nome_item: 'Feijão',
+                quantidade: '1.00',
+                valor_unitario: '8.00',
+                username: 'usuario-teste'
             },
             {
                 id: 4,
                 usuario_id: 1,
-                data_compra: '2026-10-06T19:23:00.000Z',
-                valor_total: 165.0,
-                estabelecimento: 'Atacadao'
+                data_compra: '2026-11-27T10:02:00.000Z',
+                valor_total: 432.2,
+                estabelecimento: 'Assai',
+                item_id: 12,
+                nome_item: 'Leite',
+                quantidade: '1.00',
+                valor_unitario: '6.00',
+                username: 'usuario-teste'
             }
         ];
         listarComprasUsuario.mockResolvedValue(compras);
@@ -104,8 +126,8 @@ describe('GET /api/compras', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compras);
-        expect(listarComprasUsuario).toHaveBeenCalled();
-    })
+        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
+    });
 });
 
 describe('GET /api/compras/:compraId', () => {
@@ -122,22 +144,24 @@ describe('GET /api/compras/:compraId', () => {
             .get(compraEndpoint);
 
         expect(response.status).toBe(500);
-        expect(response.body.erro).toBe(
-            'Erro ao buscar itens da compra'
-        );
-        expect(listarCompraPorId).toHaveBeenCalled();
+        expect(response.body).toEqual({
+            erro: 'Erro ao buscar itens da compra'
+        });
+        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
     });
     
-    test('retorna 400 para compraID invalido antes de consultar o repositorio', async () => {
-        const response = await request(app)
-            .get('/api/compras/abc');
+    test.each(['/api/compras/abc', '/api/compras/0'])(
+        'retorna 400 para ID inválido em %s',
+        async (url) => {
+            const response = await request(app).get(url);
 
-        expect(response.status).toBe(400);
-        expect(response.body.erro).toBe(
-            'compraId deve ser um inteiro positivo.'
-        );
-        expect(listarCompraPorId).not.toHaveBeenCalled();
-    });
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+            expect(listarCompraPorId).not.toHaveBeenCalled();
+        }
+    );
     
     test('retorna 404 para compra nao existente', async () => {
         listarCompraPorId.mockRejectedValue(
@@ -148,20 +172,39 @@ describe('GET /api/compras/:compraId', () => {
             .get(compraEndpoint);
 
         expect(response.status).toBe(404);
-        expect(response.body.erro).toBe(
-            'Compra não encontrada'
-        );
-        expect(listarCompraPorId).toHaveBeenCalled();
+        expect(response.body).toEqual({
+            erro: 'Compra não encontrada'
+        });
+        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
     });
     
     test('retorna 200 para compra existente', async () => {
-        const compra = {
+        const compra = [
+            {
                 id: 2,
                 usuario_id: 1,
-                data_compra: '2026-10-06T19:23:00.000Z',
+                data_compra: '2026-09-19T14:30:00.000Z',
                 valor_total: 165.0,
-                estabelecimento: 'Atacadao'
-        };
+                estabelecimento: 'Atacadao',
+                item_id: 10,
+                nome_item: 'Arroz',
+                quantidade: '2.00',
+                valor_unitario: '11.00',
+                username: 'usuario-teste'
+            },
+            {
+                id: 2,
+                usuario_id: 1,
+                data_compra: '2026-09-19T14:30:00.000Z',
+                valor_total: 165.0,
+                estabelecimento: 'Atacadao',
+                item_id: 11,
+                nome_item: 'Feijão',
+                quantidade: '1.00',
+                valor_unitario: '8.00',
+                username: 'usuario-teste'
+            }
+        ];
         listarCompraPorId.mockResolvedValue(compra);
 
         const response = await request(app)
@@ -169,7 +212,7 @@ describe('GET /api/compras/:compraId', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compra);
-        expect(listarCompraPorId).toHaveBeenCalledWith(compra.usuario_id, compra.id);
+        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
     });
 });
 // =============================================================================

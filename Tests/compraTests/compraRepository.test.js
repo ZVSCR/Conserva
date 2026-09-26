@@ -23,7 +23,7 @@ describe('compraRepository.listarComprasUsuario', () => {
     });
 
     test('falha na consulta propaga erro do bancoh', async () => {
-        const erro = new Error('Erro ao buscar compras no banco de dados');
+        const erro = new Error('Falha de conexão');
         sql.mockRejectedValue(erro);
 
         await expect(
@@ -35,37 +35,26 @@ describe('compraRepository.listarComprasUsuario', () => {
     test('banco não retorna nada para lista vazia', async () => {
         sql.mockResolvedValue([]);
         await expect(
-            listarComprasUsuario(99)
+            listarComprasUsuario(1)
         ).resolves.toEqual([]);
         expect(sql).toHaveBeenCalledTimes(1);
+        expect(sql.mock.calls[0].slice(1)).toEqual([1]);
     });
 
     test('banco retorna compras corretas', async () => {
-        const compras = [
-            {
-                id: 2,
-                usuario_id: 1,
-                data_compra: '2026-09-19T14:30:00.000Z',
-                valor_total: 11.0,
-                estabelecimento: 'Padaria do Zé'
-            },
-            {
-                id: 4,
-                usuario_id: 1,
-                data_compra: '2026-10-06T19:23:00.000Z',
-                valor_total: 165.0,
-                estabelecimento: 'Atacadao'
-            }
+        const linhas = [
+            { id: 2, item_id: 10, nome_item: 'Arroz' },
+            { id: 2, item_id: 11, nome_item: 'Feijão' },
+            { id: 4, item_id: 12, nome_item: 'Leite' }
         ];
-        sql.mockResolvedValue(compras);
+        sql.mockResolvedValue(linhas);
 
         await expect(
             listarComprasUsuario(1)
-        ).resolves.toEqual(compras);
+        ).resolves.toEqual(linhas);
         expect(sql).toHaveBeenCalledTimes(1);
         // verifica se os parametros corretos foram enviados na chamada
-        const [, ...parametros] = sql.mock.calls[0];
-        expect(parametros).toEqual([1]);
+        expect(sql.mock.calls[0].slice(1)).toEqual([1]);
     });
 });
 
@@ -84,31 +73,29 @@ describe('compraRepository.listarCompraPorId', () => {
         expect(sql).toHaveBeenCalledTimes(1);
     });
 
-    test('banco nao retorna nada para compra inexistente', async () => {
+    test('banco lança CompraNaoEncontradaError para compra inexistente', async () => {
         sql.mockResolvedValue([]);
 
         await expect(
             listarCompraPorId(1, 99)
         ).rejects.toBeInstanceOf(CompraNaoEncontradaError);
         expect(sql).toHaveBeenCalledTimes(1);
+        expect(sql.mock.calls[0].slice(1)).toEqual([1, 99]);
     });
 
     test('banco retorna compra correta', async () => {
-        const compra = {
-                id: 2,
-                usuario_id: 1,
-                data_compra: '2026-09-19T14:30:00.000Z',
-                valor_total: 11.0,
-                estabelecimento: 'Padaria do Zé'
-        };
-        sql.mockResolvedValue([compra]);
+        const linhas = [
+            { id: 2, item_id: 10, nome_item: 'Arroz' },
+            { id: 2, item_id: 11, nome_item: 'Feijão' }
+        ];
+        sql.mockResolvedValue(linhas);
 
         await expect(
             listarCompraPorId(1, 2)
-        ).resolves.toEqual(compra);
+        ).resolves.toEqual(linhas);
         expect(sql).toHaveBeenCalledTimes(1);
         const [, ...parametros] = sql.mock.calls[0];
-        expect(parametros).toEqual([1, 2]);
+        expect(sql.mock.calls[0].slice(1)).toEqual([1, 2]);
     });
 });
 
