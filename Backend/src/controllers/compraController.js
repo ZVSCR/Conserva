@@ -217,11 +217,12 @@ const validateAtualizacaoCompraPayload = (body) => {
     return { isValid: true };
 };
 
+const USUARIO_ID_TEMP = 1;
 async function listarCompras(req, res) {
     try {
-        const usuarioId = req.params.id;
+        //const usuarioId = req.params.id;
 
-        const compras = await listarComprasUsuario(usuarioId);
+        const compras = await listarComprasUsuario(USUARIO_ID_TEMP);
         return res.status(200).json({
             status: 'success',
             message: 'Acesso bem sucedido.',
@@ -237,7 +238,7 @@ async function listarCompras(req, res) {
 async function listarItensPorCompra(req, res) {
     try {
         //const usuarioId = req.params.id;
-        const usuarioId = 1;
+        const usuarioId = USUARIO_ID_TEMP;
         const compraId = parsePositiveIntegerParam(req.params.compraId)
 
         if (compraId === null) {

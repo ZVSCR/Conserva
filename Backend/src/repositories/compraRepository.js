@@ -27,17 +27,18 @@ async function listarComprasUsuario(usuarioId) {
             item.valor_unitario,
             item.validade_estimada,
             users.username
-        from compra
+        FROM compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId}
+        ORDER BY compra.id, item.id
     `;
 
     return compras;
 }
 
 async function listarCompraPorId(usuarioId, compraId) {
-    const [compras] = await sql`
+    const itens = await sql`
         SELECT 
             compra.*,
             item.id AS item_id,
@@ -47,16 +48,16 @@ async function listarCompraPorId(usuarioId, compraId) {
             item.valor_unitario,
             item.validade_estimada,
             users.username
-        from compra
-        from compra
+        FROM compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId} AND item.compra_id = ${compraId}
+        ORDER BY item.id
     `;
 
-    if (!compras) throw new CompraNaoEncontradaError();
+    if (items.length === 0) throw new CompraNaoEncontradaError();
 
-    return compras;
+    return itens;
 }
 // =============================================================================
 
