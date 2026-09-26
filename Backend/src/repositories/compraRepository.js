@@ -14,13 +14,32 @@ class CompraNaoEncontradaError extends Error {
     }
 }
 
+// =============================================================================
+// LISTAGEM
 async function listarComprasUsuario(usuarioId) {
+    const compras = await sql`
+        SELECT * from compra
+        JOIN item ON compra.id = item.compra_id
+        JOIN users ON compra.usuario_id = users.id
+        WHERE users.id = ${usuarioId}
+    `;
 
+    return compras;
 }
 
 async function listarCompraPorId(usuarioId, compraId) {
+    const [compras] = await sql`
+        SELECT * from compra
+        JOIN item ON compra.id = item.compra_id
+        JOIN users ON compra.usuario_id = users.id
+        WHERE users.id = ${usuarioId} AND item.compra_id = ${compraId}
+    `;
 
+    if (!compras) throw new CompraNaoEncontradaError();
+
+    return compras;
 }
+// =============================================================================
 
 async function atualizarCompraPorId(compraId, fieldsToUpdate) {
     const deveAtualizarData = fieldsToUpdate.data_compra !== undefined;
