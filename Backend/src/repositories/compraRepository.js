@@ -14,6 +14,14 @@ class CompraNaoEncontradaError extends Error {
     }
 }
 
+async function listarComprasUsuario(usuarioId) {
+
+}
+
+async function listarCompraPorId(usuarioId, compraId) {
+
+}
+
 async function atualizarCompraPorId(compraId, fieldsToUpdate) {
     const deveAtualizarData = fieldsToUpdate.data_compra !== undefined;
     const deveAtualizarEstabelecimento =
@@ -110,6 +118,8 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 }
 
 module.exports = {
+    listarComprasUsuario,
+    listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
