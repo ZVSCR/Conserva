@@ -89,33 +89,74 @@ async function apagarPorId(id) {
 
 // =============================================================================
 // CRIAÇÃO
-async function criarItem(usuarioId, nomeItem, quantidade, unidadeDeMedida, valorUnitario, validadeEstimada) {
-    const valorTotal = quantidade * valorUnitario;
-
-    // Como item depende de compra, gera uma compra pra cada item adicionado.
-    // Quando a feature de compra estiver organizada, isso deve ser revisado.
-    const resultadoCompra = await sql`
-        INSERT INTO compra (usuario_id, valor_total, estabelecimento)
-        VALUES (${usuarioId}, ${valorTotal}, 'Adição manual')
-        RETURNING id
+async function criarItem(
+    usuarioId, 
+    nomeItem, 
+    quantidade, 
+    unidadeDeMedida, 
+    valorUnitario, 
+    validadeEstimada, 
+    compraId
+) {
+    // Ao usar uma única operação, garantimos que quaisquer erros nesse pipeline
+    // serão suficientes para impedir toda a operação. Assim, temos a certeza de
+    // que nenhum item é criado caso a compra não exista ou nenhuma atualização
+    // na compra/no estoque ocorre se houver um erro no banco de dados.
+    const [resultado] = await sql`
+        WITH compra_atualizada AS (
+            UPDATE compra
+            SET valor_total = COALESCE(valor_total, 0)
+                + ${quantidade}::numeric * ${valorUnitario}::numeric
+            WHERE id = ${compraId}
+              AND usuario_id = ${usuarioId}
+            RETURNING id
+        ),
+        item_criado AS (
+            INSERT INTO item (
+                compra_id,
+                nome_item,
+                quantidade,
+                unidade_de_medida,
+                valor_unitario,
+                validade_estimada
+            )
+            SELECT
+                c.id,
+                ${nomeItem},
+                ${quantidade},
+                ${unidadeDeMedida},
+                ${valorUnitario},
+                ${validadeEstimada}
+            FROM compra_atualizada AS c
+            RETURNING id, compra_id, quantidade
+        ),
+        estoque_criado AS (
+            INSERT INTO estoque (
+                usuario_id,
+                item_id,
+                quantidade_disponivel
+            )
+            SELECT
+                ${usuarioId},
+                i.id,
+                i.quantidade
+            FROM item_criado AS i
+            RETURNING id, item_id
+        )
+        SELECT
+            c.id AS "compraId",
+            i.id AS "idItem",
+            e.id AS "idEstoque"
+        FROM compra_atualizada AS c
+        JOIN item_criado AS i ON i.compra_id = c.id
+        JOIN estoque_criado AS e ON e.item_id = i.id
     `;
-    const idCompra = resultadoCompra[0].id;
 
-    const resultadoItem = await sql`
-        INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
-        VALUES (${idCompra}, ${nomeItem}, ${quantidade}, ${unidadeDeMedida}, ${valorUnitario}, ${validadeEstimada})
-        RETURNING id
-    `;
-    const idItem = resultadoItem[0].id;
+    if (!resultado) {
+        throw new Error('Compra não encontrada para este usuário');
+    }
 
-    const resultadoEstoque = await sql`
-        INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
-        VALUES (${usuarioId}, ${idItem}, ${quantidade})
-        RETURNING id
-    `;
-    const idEstoque = resultadoEstoque[0].id;
-
-    return { idCompra, idItem, idEstoque };
+    return resultado;
 }
 // =============================================================================
 
