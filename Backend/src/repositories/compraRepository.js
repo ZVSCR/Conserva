@@ -14,6 +14,53 @@ class CompraNaoEncontradaError extends Error {
     }
 }
 
+// =============================================================================
+// LISTAGEM
+async function listarComprasUsuario(usuarioId) {
+    const compras = await sql`
+        SELECT
+            compra.*,
+            item.id AS item_id,
+            item.nome_item,
+            item.quantidade,
+            item.unidade_de_medida,
+            item.valor_unitario,
+            item.validade_estimada,
+            users.username
+        FROM compra
+        JOIN item ON compra.id = item.compra_id
+        JOIN users ON compra.usuario_id = users.id
+        WHERE users.id = ${usuarioId}
+        ORDER BY compra.id, item.id
+    `;
+
+    return compras;
+}
+
+async function listarCompraPorId(usuarioId, compraId) {
+    const itens = await sql`
+        SELECT 
+            compra.*,
+            item.id AS item_id,
+            item.nome_item,
+            item.quantidade,
+            item.unidade_de_medida,
+            item.valor_unitario,
+            item.validade_estimada,
+            users.username
+        FROM compra
+        JOIN item ON compra.id = item.compra_id
+        JOIN users ON compra.usuario_id = users.id
+        WHERE users.id = ${usuarioId} AND item.compra_id = ${compraId}
+        ORDER BY item.id
+    `;
+
+    if (itens.length === 0) throw new CompraNaoEncontradaError();
+
+    return itens;
+}
+// =============================================================================
+
 async function atualizarCompraPorId(compraId, fieldsToUpdate) {
     const deveAtualizarData = fieldsToUpdate.data_compra !== undefined;
     const deveAtualizarEstabelecimento =
@@ -110,6 +157,8 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 }
 
 module.exports = {
+    listarComprasUsuario,
+    listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
