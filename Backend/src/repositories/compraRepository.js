@@ -18,7 +18,16 @@ class CompraNaoEncontradaError extends Error {
 // LISTAGEM
 async function listarComprasUsuario(usuarioId) {
     const compras = await sql`
-        SELECT * from compra
+        SELECT
+            compra.*,
+            item.id AS item_id,
+            item.nome_item,
+            item.quantidade,
+            item.unidade_de_medida,
+            item.valor_unitario,
+            item.validade_estimada,
+            users.username
+        from compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId}
@@ -29,7 +38,17 @@ async function listarComprasUsuario(usuarioId) {
 
 async function listarCompraPorId(usuarioId, compraId) {
     const [compras] = await sql`
-        SELECT * from compra
+        SELECT 
+            compra.*,
+            item.id AS item_id,
+            item.nome_item,
+            item.quantidade,
+            item.unidade_de_medida,
+            item.valor_unitario,
+            item.validade_estimada,
+            users.username
+        from compra
+        from compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId} AND item.compra_id = ${compraId}
