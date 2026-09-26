@@ -4,7 +4,8 @@ const {
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    apagarCompraPorId
 } = require('../repositories/compraRepository');
 
 const allowedFields = [
@@ -359,9 +360,40 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
+async function apagarCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const compraRemovida = await apagarCompraPorId(USUARIO_ID_TEMP, compraId);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Compra removida com sucesso.',
+            data: compraRemovida
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({
+                erro: erro.message
+            });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao remover compra no banco'
+        });
+    }
+}
+
 module.exports = {
     listarCompras,
     listarItensPorCompra,
     atualizarCompra,
-    atualizarItensPorCompra
+    atualizarItensPorCompra,
+    apagarCompra
 };

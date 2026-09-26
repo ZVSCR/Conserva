@@ -156,11 +156,26 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 
 }
 
+async function apagarCompraPorId(usuarioId, compraId) {
+    const [compraRemovida] = await sql`
+        DELETE FROM compra
+        WHERE id = ${compraId} AND usuario_id = ${usuarioId}
+        RETURNING id, data_compra, valor_total, estabelecimento;
+    `;
+
+    if (!compraRemovida) {
+        throw new CompraNaoEncontradaError();
+    }
+
+    return compraRemovida;
+}
+
 module.exports = {
     listarComprasUsuario,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    apagarCompraPorId
 };

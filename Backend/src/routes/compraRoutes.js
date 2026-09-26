@@ -4,7 +4,8 @@ const {
     listarCompras,
     listarItensPorCompra,
     atualizarCompra,
-    atualizarItensPorCompra
+    atualizarItensPorCompra,
+    apagarCompra
 } = require('../controllers/compraController');
 
 compraRouter.route('/')
@@ -12,7 +13,8 @@ compraRouter.route('/')
 
 compraRouter.route('/:compraId')
     .get(listarItensPorCompra)
-    .patch(atualizarCompra);
+    .patch(atualizarCompra)
+    .delete(apagarCompra);
 
 compraRouter.route('/:compraId/items/:itemId')
     .patch(atualizarItensPorCompra);
