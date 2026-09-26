@@ -55,7 +55,7 @@ async function listarCompraPorId(usuarioId, compraId) {
         ORDER BY item.id
     `;
 
-    if (items.length === 0) throw new CompraNaoEncontradaError();
+    if (itens.length === 0) throw new CompraNaoEncontradaError();
 
     return itens;
 }
