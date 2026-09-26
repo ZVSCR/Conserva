@@ -7,7 +7,9 @@ import NavBar from './NavBar';
 import EditarProduto from './EditarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
 
-useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
+function PageEstoque(){
+    
+    useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     fetch('http://localhost:3000/api/estoque')
         .then((res) => res.json())
         .then((data) => {
@@ -22,8 +24,6 @@ useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carreg
         .catch((erro) => console.error('Erro ao buscar estoque:', erro));
 }, []); 
 
-function PageEstoque(){
-    
     //Para integração ao BD usar essa parte com [id, nome, qtd]
     const [produtos, setProdutos] = useState([]);
 
@@ -52,19 +52,35 @@ function PageEstoque(){
     setAdicionandoProduto(false);
     }
 
-    //Deve atualizar as edições no BD
-    function salvarEdicao(produtoAtualizado) {
+    //atualizar as edições no BD
+ async function salvarEdicao(produtoAtualizado) {
+    try {
+        const [resNome, resQuantidade] = await Promise.all([
+            fetch(`http://localhost:3000/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome_item: produtoAtualizado.nome })
+            }),
+            fetch(`http://localhost:3000/api/estoque/${produtoAtualizado.id}`, { //Atualiza a quantidade no ESTOQUE
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantidade: produtoAtualizado.quantidade })
+            })
+        ]);
+
+        if (!resNome.ok || !resQuantidade.ok) throw new Error('Erro ao salvar edição');
 
         setProdutos(
             produtos.map((produto) =>
-                produto.id === produtoAtualizado.id
-                    ? produtoAtualizado
-                    : produto
+                produto.id === produtoAtualizado.id ? produtoAtualizado : produto
             )
         );
-
-        setProdutoEditando(null);
+    } catch (erro) {
+        console.error(erro);
     }
+
+    setProdutoEditando(null);
+}
 
     //Deve excluir o produto
     function excluirProduto(produto) {
