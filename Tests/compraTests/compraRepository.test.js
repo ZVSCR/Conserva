@@ -94,7 +94,6 @@ describe('compraRepository.listarCompraPorId', () => {
             listarCompraPorId(1, 2)
         ).resolves.toEqual(linhas);
         expect(sql).toHaveBeenCalledTimes(1);
-        const [, ...parametros] = sql.mock.calls[0];
         expect(sql.mock.calls[0].slice(1)).toEqual([1, 2]);
     });
 });
