@@ -1,6 +1,7 @@
 const {
     atualizarCompraPorId,
     atualizarPorCompraId,
+    atualizarInstanciasPorCompraId,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError
 } = require('../repositories/compraRepository');
@@ -308,7 +309,83 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
+async function atualizarInstanciasPorCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const { itemBusca, novosValores } = req.body;
+
+        if (!itemBusca || typeof itemBusca !== 'object') {
+            return res.status(400).json({
+                erro: 'itemBusca é obrigatório e deve conter nome_item, quantidade, valor_unitario e validade_estimada.'
+            });
+        }
+
+        const { nome_item, quantidade, valor_unitario, validade_estimada } = itemBusca;
+
+        if (
+            nome_item === undefined ||
+            quantidade === undefined ||
+            valor_unitario === undefined
+        ) {
+            return res.status(400).json({
+                erro: 'itemBusca deve conter nome_item, quantidade e valor_unitario.'
+            });
+        }
+
+        const validation = validateCompraPayload(novosValores);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                erro: validation.message
+            });
+        }
+
+        const {
+            quantidade: novaQuantidade,
+            valor_unitario: novoValorUnitario,
+            nome_item: novoNomeItem,
+            unidade_de_medida: novaUnidadeDeMedida,
+            validade_estimada: novaValidadeEstimada
+        } = novosValores;
+
+        const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
+            compraId,
+            { nome_item, quantidade, valor_unitario, validade_estimada },
+            {
+                quantidade: novaQuantidade,
+                valor_unitario: novoValorUnitario,
+                nome_item: novoNomeItem,
+                unidade_de_medida: novaUnidadeDeMedida,
+                validade_estimada: novaValidadeEstimada
+            }
+        );
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Itens atualizados com sucesso.',
+            data: resultadoAtualizacao
+        });
+    } catch (erro) {
+        if (erro instanceof ItemCompraNaoEncontradoError) {
+            return res.status(404).json({
+                erro: erro.message
+            });
+        }
+
+        res.status(500).json({
+            erro: 'Erro ao atualizar itens da compra no banco'
+        });
+    }
+}
+
 module.exports = {
     atualizarCompra,
-    atualizarItensPorCompra
+    atualizarItensPorCompra,
+    atualizarInstanciasPorCompra
 };
