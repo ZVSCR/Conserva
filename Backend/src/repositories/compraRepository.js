@@ -133,11 +133,28 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
         'validade_estimada'
     );
 
+    const quantidadeInformada = updates.quantidade ?? null;
+
     const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
         transactionSql`
+            WITH alvo AS (
+                SELECT id
+                FROM item
+                WHERE compra_id = ${compraId}
+                  AND nome_item = ${itemBusca.nome_item}
+                  AND quantidade = ${itemBusca.quantidade}
+                  AND valor_unitario = ${itemBusca.valor_unitario}
+                  AND validade_estimada IS NOT DISTINCT FROM ${itemBusca.validade_estimada ?? null}
+            ),
+            contagem AS (
+                SELECT COUNT(*)::numeric AS total FROM alvo
+            )
             UPDATE item
             SET 
-                quantidade = COALESCE(${updates.quantidade ?? null}, quantidade),
+                quantidade = COALESCE(
+                    ${quantidadeInformada} / NULLIF(contagem.total, 0),
+                    item.quantidade
+                ),
                 valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
                 nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
                 unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
