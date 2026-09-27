@@ -4,6 +4,7 @@ const {
     atualizarCompraPorId,
     atualizarPorCompraId,
     atualizarInstanciasPorCompraId,
+    createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     apagarCompraPorId
@@ -437,6 +438,7 @@ async function atualizarInstanciasPorCompra(req, res) {
             erro: erro.message
         })};
     }
+}
 // Exemplo de JSON a ser recebido:
 // {
 //     "usuario_id": 7,
@@ -452,6 +454,19 @@ async function atualizarInstanciasPorCompra(req, res) {
 //         }
 //     ]
 // }
+
+async function createCompraVaziaController(req, res) {
+    try{
+        const {usuarioId, data_compra, estabelecimento} = req.body;
+        const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
+        res.status(201).json(resultado);
+    }catch (erro){
+        console.error(erro)
+        res.status(500).json({
+            erro: 'Erro ao criar compra'
+        });
+    }
+}
 
 async function createCompra(req, res) {
 
@@ -533,6 +548,8 @@ module.exports = {
     listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
+    atualizarInstanciasPorCompra,
+    createCompraVaziaController,
     createCompra,
     apagarCompra
 };

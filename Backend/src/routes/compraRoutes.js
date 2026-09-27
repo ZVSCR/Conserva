@@ -6,11 +6,15 @@ const {
     atualizarCompra,
     atualizarItensPorCompra,
     atualizarInstanciasPorCompra,
+    createCompraVaziaController,
     createCompra,
     apagarCompra
 } = require('../controllers/compraController');
 
 compraRouter.post('/', createCompra)
+
+compraRouter.route('/novo')
+    .post(createCompraVaziaController);
 
 compraRouter.route('/')
     .get(listarCompras);
