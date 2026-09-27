@@ -1,6 +1,6 @@
 const {
     validateCreateCompraPayload
-} = require('../../Backend/src/validators/compraValidator');
+} = require('../../Backend/src/middleware/compraValidator');
 
 function createValidItem(overrides = {}) {
     return {
