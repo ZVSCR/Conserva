@@ -1,6 +1,10 @@
 const { atualizarPorCompraId } = require('../repositories/compraRepository');
 
 const {
+    createCompraService
+} = require('../services/compraService');
+
+const {
     validateCreateCompraPayload
 } = require('../middleware/compraValidator');
 
@@ -82,7 +86,10 @@ async function createCompra(req, res) {
     const validation = validateCreateCompraPayload(payload);
 
     if (!validation.isValid) {
-        // TODO: responder 400 com validation.errors
+
+        return res.status(400).json({
+            error: validation.errors
+        });
     }
 
     // TODO: obter usuário autenticado
