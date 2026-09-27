@@ -2,7 +2,7 @@ const { atualizarPorCompraId } = require('../repositories/compraRepository');
 
 const {
     validateCreateCompraPayload
-} = require('../validators/compraValidator');
+} = require('../middleware/compraValidator');
 
 const validateCompraPayload = (body) => {
     const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];

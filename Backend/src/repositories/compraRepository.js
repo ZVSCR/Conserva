@@ -1,4 +1,5 @@
 const sql = require('../config/database')
+const pool = require('../config/transactionDatabase');
 
 async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const updates = {};
@@ -54,8 +55,42 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 
 }
 
-async function createCompraRepo(userId, dadosCompra, itens) {
+async function createCompraRepo(dadosCompra) {
+    const {
+        usuario_id,
+        data_compra,
+        estabelecimento,
+        valor_total,
+        itens,
+    } = dadosCompra;
 
+    const client = await pool.connect();
+
+    try {
+
+        await client.query('BEGIN');
+
+        // Cria registro de compra
+
+        // Cria lotes para cada item
+
+        // Insere lotes no estoque de usuário
+
+
+        // Se tudo for bem sucedido, termina
+        await client.query('COMMIT');
+    } catch (err) {
+
+        // Erro detectado, desfaz operações
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+
+        client.release();
+    }
+
+    // Retornar ID de compra criada
+    return {};
 }
 
 module.exports = {
