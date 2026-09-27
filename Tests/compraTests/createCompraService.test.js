@@ -25,16 +25,16 @@ test('deve encaminhar os dois itens para a criação da compra', async () => {
     };
 
     const repository = {
-        insertCompraBD: jest.fn().mockResolvedValue({ id: 42 })
+        createCompraRepo: jest.fn().mockResolvedValue({ id: 42 })
     };
 
     // Executar
-    await createCompraService(usuarioId, payload, repository);
+    await createCompraService(usuarioId, payload);
 
     // Verificar
-    expect(repository.insertCompraBD).toHaveBeenCalledTimes(1);
+    expect(createCompraRepo).toHaveBeenCalledTimes(1);
 
-    const [dadosRecebidos] = repository.insertCompraBD.mock.calls[0];
+    const [dadosRecebidos] = createCompraRepo.mock.calls[0];
 
     expect(dadosRecebidos.itens).toHaveLength(2);
     expect(dadosRecebidos.itens.map(item => item.nome_item))

@@ -35,7 +35,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         if (!itemAtualizado) {
             throw new Error('Item não encontrado para essa compra.');
         }
-        
+
         const [compraAtualizada] = await sql`
             UPDATE compra
             SET valor_total = (
@@ -54,4 +54,11 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 
 }
 
-module.exports = { atualizarPorCompraId };
+async function createCompraRepo(userId, dadosCompra, itens) {
+
+}
+
+module.exports = {
+    atualizarPorCompraId,
+    createCompraRepo
+};
