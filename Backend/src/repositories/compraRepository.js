@@ -170,6 +170,18 @@ async function apagarCompraPorId(usuarioId, compraId) {
     return compraRemovida;
 }
 
+async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
+    const [resultado] = await sql`
+        INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+        VALUES (${usuarioId}, COALESCE(${data_compra ?? null}, CURRENT_TIMESTAMP), 0, ${estabelecimento})
+        RETURNING id
+    `
+    if(!resultado) {
+        throw new Error('Erro na criação de compra');
+    }
+    return resultado;
+}
+
 async function createCompraRepo(dadosCompra) {
     const {
         usuario_id,
@@ -361,6 +373,7 @@ module.exports = {
     atualizarPorCompraId,
     atualizarInstanciasPorCompraId,
     createCompraRepo,
+    createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     apagarCompraPorId
