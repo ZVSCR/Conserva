@@ -89,14 +89,41 @@ async function createCompraRepo(dadosCompra) {
         for (const item of itens) {
 
             // Cria lotes para cada item
-
+            const {
+                rows: [{ id: itemId }],
+            } = await client.query(`
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING id
+                `,
+                [
+                    compraId,
+                    item.nome_item,
+                    item.quantidade,
+                    item.unidade_de_medida,
+                    item.valor_unitario,
+                    item.validade_estimada
+                ]
+            );
 
             // Insere lotes no estoque de usuário
-
+            await client.query(`
+                INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
+                VALUES ($1, $2, $3)
+                `,
+                [
+                    usuario_id,
+                    itemId,
+                    item.quantidade
+                ]
+            );
         }
 
         // Se tudo for bem sucedido, salva todas as operações
         await client.query('COMMIT');
+
+        // Retorna o objeto de compra com o ID criado
+        return { id: compraId };
     } catch (err) {
 
         // Erro detectado, desfaz todas as operações
@@ -106,9 +133,6 @@ async function createCompraRepo(dadosCompra) {
 
         client.release();
     }
-
-    // Retornar ID de compra criada
-    return {};
 }
 
 module.exports = {
