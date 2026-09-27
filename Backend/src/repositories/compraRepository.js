@@ -71,17 +71,35 @@ async function createCompraRepo(dadosCompra) {
         await client.query('BEGIN');
 
         // Cria registro de compra
+        const {
+            rows: [{ id: compraId }],
+        } = await client.query(`
+            INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id
+            `,
+            [
+                usuario_id,
+                data_compra,
+                valor_total,
+                estabelecimento
+            ]
+        );
 
-        // Cria lotes para cada item
+        for (const item of itens) {
 
-        // Insere lotes no estoque de usuário
+            // Cria lotes para cada item
 
 
-        // Se tudo for bem sucedido, termina
+            // Insere lotes no estoque de usuário
+
+        }
+
+        // Se tudo for bem sucedido, salva todas as operações
         await client.query('COMMIT');
     } catch (err) {
 
-        // Erro detectado, desfaz operações
+        // Erro detectado, desfaz todas as operações
         await client.query('ROLLBACK');
         throw err;
     } finally {
