@@ -274,14 +274,11 @@ async function createCompraRepo(dadosCompra) {
 }
 
 module.exports = {
-    atualizarPorCompraId,
-    createCompraRepo
-};
-module.exports = {
     listarComprasUsuario,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
+    createCompraRepo,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     apagarCompraPorId
