@@ -3,8 +3,8 @@ import styles from './Estoque.module.css';
 
 function EditarProduto({ produto, onSalvar, onCancelar }) {
 
-     const [nome, setNome] = useState(produto?.nome ?? ''); //Se o valor for null, ele vai mostrar ''. Para poder usar o mesmo modal de adicionar ou editar.
-    const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1); //Inicia com 1 no input
+    const [nome, setNome] = useState(produto.nome); //Mostra o nome do produto associado
+    const [quantidade, setQuantidade] = useState(produto.quantidade); // Quantidade 
     const [erroNome, setErroNome] = useState(''); //Mostra um erro caso tente salvar com o campo de nome do produto vazio.
 
     function salvar() {
@@ -25,8 +25,8 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
             <div className={styles.modal}>
 
-                {/* Título muda conforme o modo: editar ou adicionar */}
-                <h2 className={styles.nomeProduto}>{produto ? 'Editar produto' : 'Adicionar produto'}</h2>
+                {/* Apenas editar */}
+                <h2 className={styles.nomeProduto}>Editar produto</h2>
 
                 <label className={styles.labelNomeQtd}>
                     Nome
