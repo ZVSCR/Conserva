@@ -81,14 +81,21 @@ async function createCompra(req, res) {
     //     ]
     // }
 
-    const payload = req.body;
-
-    const validation = validateCreateCompraPayload(payload);
-
+    // Valida payload
+    const validation = validateCreateCompraPayload(req.body);
     if (!validation.isValid) {
 
         return res.status(400).json({
             error: validation.errors
+        });
+    }
+
+    // Valida usuário autenticado
+    const userId = req.user.id;
+    if (userId == undefined) {
+
+        return res.status(401).json({
+            error: 'Usuário não autenticado. Faça login para realizar esta tarefa.'
         });
     }
 
