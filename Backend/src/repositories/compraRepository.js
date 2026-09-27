@@ -1,4 +1,5 @@
 const sql = require('../config/database')
+const pool = require('../config/transactionDatabase');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -153,7 +154,6 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const compraAtualizada = comprasAtualizadas[0];
 
     return { item: itemAtualizado, compra: compraAtualizada };
-
 }
 
 async function apagarCompraPorId(usuarioId, compraId) {
@@ -170,11 +170,115 @@ async function apagarCompraPorId(usuarioId, compraId) {
     return compraRemovida;
 }
 
+async function createCompraRepo(dadosCompra) {
+    const {
+        usuario_id,
+        data_compra,
+        estabelecimento,
+        valor_total,
+        itens,
+    } = dadosCompra;
+
+    const client = await pool.connect();
+
+    try {
+
+        await client.query('BEGIN');
+
+        // Cria registro de compra
+        let compraId;
+        if (data_compra == undefined) {
+            // Se data não foi informada, banco de dados usa DEFAULT
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, valor_total, estabelecimento)
+                VALUES ($1, $2, $3) 
+                RETURNING id 
+                `,
+                [
+                    usuario_id,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        } else {
+            // Se data de compra foi informada, o banco usa a data informada
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
+                `,
+                [
+                    usuario_id,
+                    data_compra,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        }
+
+        for (const item of itens) {
+
+            // Cria lotes para cada item
+            const {
+                rows: [{ id: itemId }],
+            } = await client.query(`
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING id
+                `,
+                [
+                    compraId,
+                    item.nome_item,
+                    item.quantidade,
+                    item.unidade_de_medida,
+                    item.valor_unitario,
+                    item.validade_estimada
+                ]
+            );
+
+            // Insere lotes no estoque de usuário
+            await client.query(`
+                INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
+                VALUES ($1, $2, $3)
+                `,
+                [
+                    usuario_id,
+                    itemId,
+                    item.quantidade
+                ]
+            );
+        }
+
+        // Se tudo for bem sucedido, salva todas as operações
+        await client.query('COMMIT');
+
+        // Retorna o objeto de compra com o ID criado
+        return { id: compraId };
+    } catch (err) {
+
+        // Erro detectado, desfaz todas as operações
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+
+        client.release();
+    }
+}
+
 module.exports = {
     listarComprasUsuario,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
+    createCompraRepo,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     apagarCompraPorId

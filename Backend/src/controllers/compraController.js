@@ -65,6 +65,14 @@ const parsePositiveIntegerParam = (value) => {
     return Number.isSafeInteger(parsedValue) ? parsedValue : null;
 };
 
+const {
+    createCompraService
+} = require('../services/compraService');
+
+const {
+    validateCreateCompraPayload
+} = require('../middleware/compraValidator');
+
 const validateCompraPayload = (body) => {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) {
         return invalidResult('O corpo da requisição deve ser um objeto JSON.');
@@ -360,6 +368,67 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
+// Exemplo de JSON a ser recebido:
+// {
+//     "usuario_id": 7,
+//     "data_compra": "2026-09-20",
+//     "estabelecimento": "Atacadão",
+//     "itens": [
+//         {
+//             "nome_item": "Arroz",
+//             "quantidade": 2,
+//             "unidade_de_medida": "kg",
+//             "valor_unitario": 8.5,
+//             "validade_estimada": "2027-03-01"
+//         }
+//     ]
+// }
+
+async function createCompra(req, res) {
+
+    // Valida payload
+    const validation = validateCreateCompraPayload(req.body);
+    if (!validation.isValid) {
+
+        return res.status(400).json({
+            error: validation.errors
+        });
+    }
+
+    // Identificação temporária para testar funcionalidade; não autentica o usuário.
+    const userId = req.body.usuario_id;
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+
+        return res.status(400).json({
+            error: [{
+                field: 'usuario_id',
+                message: 'Informe um ID de usuário inteiro e positivo.'
+            }]
+        });
+    }
+
+    try {
+
+        // Chama serviço de criar compra
+        const result = await createCompraService(userId, req.body);
+
+        return res.status(201).json({
+            message: 'Compra registrada com sucesso.',
+            compra: result.id
+        });
+    } catch (error) {
+
+        // log de descrição do erro encontrado
+        console.log('Erro ao registrar compra:', error);
+
+        // Retorna status 500 de erro
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+
+}
+
 async function apagarCompra(req, res) {
     try {
         const compraId = parsePositiveIntegerParam(req.params.compraId);
@@ -395,5 +464,6 @@ module.exports = {
     listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
+    createCompra,
     apagarCompra
 };
