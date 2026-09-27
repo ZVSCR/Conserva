@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home/PageHome';
 import Login from './pages/Login/PageLogin';
 import Register from './pages/Register/PageRegister';
+import Estoque from './pages/Estoque/PageEstoque';
 import UserData from './pages/UserData/PageUserData';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />
 
+        <Route path='/Estoque' element={<Estoque />} />
         <Route path="/AlterarDados" element={<UserData/>}/>
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
