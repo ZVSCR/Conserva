@@ -5,6 +5,7 @@ const {
     listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
+    atualizarInstanciasPorCompra,
     createCompra,
     apagarCompra
 } = require('../controllers/compraController');
@@ -21,5 +22,8 @@ compraRouter.route('/:compraId')
 
 compraRouter.route('/:compraId/items/:itemId')
     .patch(atualizarItensPorCompra);
+
+compraRouter.route('/:compraId/items')
+    .patch(atualizarInstanciasPorCompra);
 
 module.exports = compraRouter;
