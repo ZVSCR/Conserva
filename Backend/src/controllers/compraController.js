@@ -452,6 +452,7 @@ async function atualizarInstanciasPorCompra(req, res) {
 //         }
 //     ]
 // }
+}
 
 async function createCompra(req, res) {
 
@@ -533,6 +534,7 @@ module.exports = {
     listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
+    atualizarInstanciasPorCompra,
     createCompra,
     apagarCompra
 };
