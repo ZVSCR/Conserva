@@ -71,20 +71,43 @@ async function createCompraRepo(dadosCompra) {
         await client.query('BEGIN');
 
         // Cria registro de compra
-        const {
-            rows: [{ id: compraId }],
-        } = await client.query(`
-            INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id
-            `,
-            [
-                usuario_id,
-                data_compra,
-                valor_total,
-                estabelecimento
-            ]
-        );
+        let compraId;
+        if (data_compra == undefined) {
+            // Se data não foi informada, banco de dados usa DEFAULT
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, valor_total, estabelecimento)
+                VALUES ($1, $2, $3) 
+                RETURNING id 
+                `,
+                [
+                    usuario_id,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        } else {
+            // Se data de compra foi informada, o banco usa a data informada
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
+                `,
+                [
+                    usuario_id,
+                    data_compra,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        }
 
         for (const item of itens) {
 
