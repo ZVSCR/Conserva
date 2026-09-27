@@ -65,21 +65,23 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
+// Exemplo de JSON a ser recebido:
+// {
+//     "usuario_id": 7,
+//     "data_compra": "2026-09-20",
+//     "estabelecimento": "Atacadão",
+//     "itens": [
+//         {
+//             "nome_item": "Arroz",
+//             "quantidade": 2,
+//             "unidade_de_medida": "kg",
+//             "valor_unitario": 8.5,
+//             "validade_estimada": "2027-03-01"
+//         }
+//     ]
+// }
+
 async function createCompra(req, res) {
-    // Exemplo de JSON a ser recebido:
-    // {
-    //     "data_compra": "2026-09-20",
-    //     "estabelecimento": "Atacadão",
-    //     "itens": [
-    //         {
-    //             "nome_item": "Arroz",
-    //             "quantidade": 2,
-    //             "unidade_de_medida": "kg",
-    //             "valor_unitario": 8.5,
-    //             "validade_estimada": "2027-03-01"
-    //         }
-    //     ]
-    // }
 
     // Valida payload
     const validation = validateCreateCompraPayload(req.body);
@@ -90,18 +92,38 @@ async function createCompra(req, res) {
         });
     }
 
-    // Valida usuário autenticado
-    const userId = req.user.id;
-    if (userId == undefined) {
+    // Identificação temporária para testar funcionalidade; não autentica o usuário.
+    const userId = req.body.usuario_id;
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
 
-        return res.status(401).json({
-            error: 'Usuário não autenticado. Faça login para realizar esta tarefa.'
+        return res.status(400).json({
+            error: [{
+                field: 'usuario_id',
+                message: 'Informe um ID de usuário inteiro e positivo.'
+            }]
         });
     }
 
-    // TODO: obter usuário autenticado
-    // TODO: chamar compraService
-    // TODO: responder 201
+    try {
+
+        // Chama serviço de criar compra
+        const result = await createCompraService(userId, req.body);
+
+        return res.status(201).json({
+            message: 'Compra registrada com sucesso.',
+            compra: result.id
+        });
+    } catch (error) {
+
+        // log de descrição do erro encontrado
+        console.log('Erro ao registrar compra:', error);
+
+        // Retorna status 500 de erro
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+
 }
 
 module.exports = {
