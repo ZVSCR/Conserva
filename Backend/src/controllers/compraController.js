@@ -1,9 +1,12 @@
 const {
+    listarComprasUsuario,
+    listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     atualizarInstanciasPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    apagarCompraPorId
 } = require('../repositories/compraRepository');
 
 const allowedFields = [
@@ -62,6 +65,14 @@ const parsePositiveIntegerParam = (value) => {
 
     return Number.isSafeInteger(parsedValue) ? parsedValue : null;
 };
+
+const {
+    createCompraService
+} = require('../services/compraService');
+
+const {
+    validateCreateCompraPayload
+} = require('../middleware/compraValidator');
 
 const validateCompraPayload = (body) => {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) {
@@ -215,6 +226,55 @@ const validateAtualizacaoCompraPayload = (body) => {
 
     return { isValid: true };
 };
+
+const USUARIO_ID_TEMP = 1;
+async function listarCompras(req, res) {
+    try {
+        //const usuarioId = req.params.id;
+
+        const compras = await listarComprasUsuario(USUARIO_ID_TEMP);
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: compras
+        });
+    } catch (erro) {
+        res.status(500).json({
+            erro: 'Erro ao buscar compras no banco de dados'
+        });
+    }
+}
+
+async function listarItensPorCompra(req, res) {
+    try {
+        //const usuarioId = req.params.id;
+        const usuarioId = USUARIO_ID_TEMP;
+        const compraId = parsePositiveIntegerParam(req.params.compraId)
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const itens = await listarCompraPorId(usuarioId, compraId);
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: itens
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({
+                erro: 'Compra não encontrada'
+            });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao buscar itens da compra'
+        });
+    }
+}
 
 async function atualizarCompra(req, res) {
     try {
@@ -373,19 +433,106 @@ async function atualizarInstanciasPorCompra(req, res) {
         });
     } catch (erro) {
         if (erro instanceof ItemCompraNaoEncontradoError) {
+          return res.status(404).json({
+            erro: erro.message
+        })};
+    }
+// Exemplo de JSON a ser recebido:
+// {
+//     "usuario_id": 7,
+//     "data_compra": "2026-09-20",
+//     "estabelecimento": "Atacadão",
+//     "itens": [
+//         {
+//             "nome_item": "Arroz",
+//             "quantidade": 2,
+//             "unidade_de_medida": "kg",
+//             "valor_unitario": 8.5,
+//             "validade_estimada": "2027-03-01"
+//         }
+//     ]
+// }
+
+async function createCompra(req, res) {
+
+    // Valida payload
+    const validation = validateCreateCompraPayload(req.body);
+    if (!validation.isValid) {
+
+        return res.status(400).json({
+            error: validation.errors
+        });
+    }
+
+    // Identificação temporária para testar funcionalidade; não autentica o usuário.
+    const userId = req.body.usuario_id;
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+
+        return res.status(400).json({
+            error: [{
+                field: 'usuario_id',
+                message: 'Informe um ID de usuário inteiro e positivo.'
+            }]
+        });
+    }
+
+    try {
+
+        // Chama serviço de criar compra
+        const result = await createCompraService(userId, req.body);
+
+        return res.status(201).json({
+            message: 'Compra registrada com sucesso.',
+            compra: result.id
+        });
+    } catch (error) {
+
+        // log de descrição do erro encontrado
+        console.log('Erro ao registrar compra:', error);
+
+        // Retorna status 500 de erro
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+
+}
+
+async function apagarCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const compraRemovida = await apagarCompraPorId(USUARIO_ID_TEMP, compraId);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Compra removida com sucesso.',
+            data: compraRemovida
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
             return res.status(404).json({
                 erro: erro.message
             });
         }
 
-        res.status(500).json({
-            erro: 'Erro ao atualizar itens da compra no banco'
+        return res.status(500).json({
+            erro: 'Erro ao remover compra no banco'
         });
     }
 }
 
 module.exports = {
+    listarCompras,
+    listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
-    atualizarInstanciasPorCompra
+    createCompra,
+    apagarCompra
 };
