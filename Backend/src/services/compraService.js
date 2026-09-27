@@ -26,6 +26,7 @@ async function createCompraService(userId, validatedPayload) {
         usuario_id: userId,
         data_compra,
         estabelecimento,
+        valor_total: itensTotalValueReal,
         itens
     });
 }
