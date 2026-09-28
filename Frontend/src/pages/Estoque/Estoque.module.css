@@ -137,6 +137,11 @@
     color:#454444
 }
 
+.mensagemErro { /*Caso tente salvar o nome do produto como vazio*/
+    color: #d32f2f;
+    font-size: 14px;
+    margin: 5px 0 0;
+}
 .quantidade{
     font-size: 20px;
 }
@@ -279,8 +284,11 @@
 .navBar {
     position: fixed;
     bottom: 0;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
     width: 100%;
+    max-width: 1126px; /* mesmo valor do #root */
 
     display: flex;
     justify-content: space-around;
