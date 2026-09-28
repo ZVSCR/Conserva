@@ -5,11 +5,11 @@ import Header from './Header';
 import Produto from './Produto';
 import NavBar from './NavBar';
 import EditarProduto from './EditarProd';
-import AdicionarProduto from './AdicionarProd';
+ // import AdicionarProduto from './AdicionarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
 
 // ---------- A ser modificado !!!!!---------------------------
-async function criarProdutoNoBackend(dadosCompra) {
+/*async function criarProdutoNoBackend(dadosCompra) {
     return {
         idItem: Date.now(),
         nome_item: dadosCompra.itens[0].nome_item,
@@ -19,6 +19,7 @@ async function criarProdutoNoBackend(dadosCompra) {
         validade_estimada: dadosCompra.itens[0].validade_estimada
     };
 }
+    */
 // -------------------------------------------------------
 function PageEstoque(){
     
@@ -52,7 +53,7 @@ function PageEstoque(){
     }
     
     // ------------- Parte a ser modificada, apenas para manutenção do front no momento! --------
-    async function adicionarProduto(dadosCompra) {
+    /*async function adicionarProduto(dadosCompra) {
     const criado = await criarProdutoNoBackend(dadosCompra);
 
     setProdutos([
@@ -68,7 +69,7 @@ function PageEstoque(){
     ]);
 
     setAdicionandoProduto(false);
-}
+}*/
 // -----------------------------------------------------------------------------------
 
     //atualizar as edições no BD
@@ -146,7 +147,7 @@ function PageEstoque(){
                 </div>
 
             </main>
-            <NavBar onAdicionar={() => setAdicionandoProduto(true)} />            
+            <NavBar /*onAdicionar={() => setAdicionandoProduto(true)}*/ />          {/*Botão de adicionar omitido */}  
                 
                 {/*Modal de Editar*/}
               {produtoEditando && (
@@ -156,13 +157,14 @@ function PageEstoque(){
                     onCancelar={() => setProdutoEditando(null)}
                 />
             )}
-            {/*Modal de Adicionar*/}
+            {/*Modal de Adicionar
             {adicionandoProduto && (
                 <AdicionarProduto
                     onSalvar={adicionarProduto}
                     onCancelar={() => setAdicionandoProduto(false)}
                 />
             )}
+            */}
 
             {/*Modal de excluir*/}
             {produtoExcluindo && (
