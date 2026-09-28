@@ -25,8 +25,8 @@ function PageUserPreferences() {
         setAppliedPreferences(loadedPreferences);
         setDraftPreferences({ ...loadedPreferences });
       })
-      .catch(() => {
-        if (active) setNotice({ type: 'error', text: 'Não foi possível carregar as preferências.' });
+      .catch((error) => {
+        if (active) setNotice({ type: 'error', text: error.message || 'Não foi possível carregar as preferências.' });
       })
       .finally(() => {
         if (active) setIsLoading(false);
@@ -66,10 +66,10 @@ function PageUserPreferences() {
       setDraftPreferences({ ...savedPreferences });
       setNotice({
         type: 'info',
-        text: 'Preferências aplicadas na demonstração. Nada foi salvo no servidor.',
+        text: 'Preferências atualizadas no servidor.',
       });
-    } catch {
-      setNotice({ type: 'error', text: 'Não foi possível aplicar as preferências.' });
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Não foi possível aplicar as preferências.' });
     } finally {
       setIsSaving(false);
     }
