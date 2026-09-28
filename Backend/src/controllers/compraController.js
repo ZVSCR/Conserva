@@ -3,8 +3,11 @@ const {
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
+    atualizarInstanciasPorCompraId,
+    createCompraVazia,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    apagarCompraPorId
 } = require('../repositories/compraRepository');
 
 const allowedFields = [
@@ -63,6 +66,14 @@ const parsePositiveIntegerParam = (value) => {
 
     return Number.isSafeInteger(parsedValue) ? parsedValue : null;
 };
+
+const {
+    createCompraService
+} = require('../services/compraService');
+
+const {
+    validateCreateCompraPayload
+} = require('../middleware/compraValidator');
 
 const validateCompraPayload = (body) => {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) {
@@ -359,9 +370,186 @@ async function atualizarItensPorCompra(req, res) {
     }
 }
 
+async function atualizarInstanciasPorCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const { itemBusca, novosValores } = req.body;
+
+        if (!itemBusca || typeof itemBusca !== 'object') {
+            return res.status(400).json({
+                erro: 'itemBusca é obrigatório e deve conter nome_item, quantidade, valor_unitario e validade_estimada.'
+            });
+        }
+
+        const { nome_item, quantidade, valor_unitario, validade_estimada } = itemBusca;
+
+        if (
+            nome_item === undefined ||
+            quantidade === undefined ||
+            valor_unitario === undefined
+        ) {
+            return res.status(400).json({
+                erro: 'itemBusca deve conter nome_item, quantidade e valor_unitario.'
+            });
+        }
+
+        const validation = validateCompraPayload(novosValores);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                erro: validation.message
+            });
+        }
+
+        const {
+            quantidade: novaQuantidade,
+            valor_unitario: novoValorUnitario,
+            nome_item: novoNomeItem,
+            unidade_de_medida: novaUnidadeDeMedida,
+            validade_estimada: novaValidadeEstimada
+        } = novosValores;
+
+        const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
+            compraId,
+            { nome_item, quantidade, valor_unitario, validade_estimada },
+            {
+                quantidade: novaQuantidade,
+                valor_unitario: novoValorUnitario,
+                nome_item: novoNomeItem,
+                unidade_de_medida: novaUnidadeDeMedida,
+                validade_estimada: novaValidadeEstimada
+            }
+        );
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Itens atualizados com sucesso.',
+            data: resultadoAtualizacao
+        });
+    } catch (erro) {
+        if (erro instanceof ItemCompraNaoEncontradoError) {
+          return res.status(404).json({
+            erro: erro.message
+        })};
+    }
+}
+// Exemplo de JSON a ser recebido:
+// {
+//     "usuario_id": 7,
+//     "data_compra": "2026-09-20",
+//     "estabelecimento": "Atacadão",
+//     "itens": [
+//         {
+//             "nome_item": "Arroz",
+//             "quantidade": 2,
+//             "unidade_de_medida": "kg",
+//             "valor_unitario": 8.5,
+//             "validade_estimada": "2027-03-01"
+//         }
+//     ]
+// }
+
+async function createCompraVaziaController(req, res) {
+    try{
+        const {usuarioId, data_compra, estabelecimento} = req.body;
+        const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
+        res.status(201).json(resultado);
+    }catch (erro){
+        console.error(erro)
+        res.status(500).json({
+            erro: 'Erro ao criar compra'
+        });
+    }
+}
+
+async function createCompra(req, res) {
+
+    // Valida payload
+    const validation = validateCreateCompraPayload(req.body);
+    if (!validation.isValid) {
+
+        return res.status(400).json({
+            error: validation.errors
+        });
+    }
+
+    // Identificação temporária para testar funcionalidade; não autentica o usuário.
+    const userId = req.body.usuario_id;
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+
+        return res.status(400).json({
+            error: [{
+                field: 'usuario_id',
+                message: 'Informe um ID de usuário inteiro e positivo.'
+            }]
+        });
+    }
+
+    try {
+
+        // Chama serviço de criar compra
+        const result = await createCompraService(userId, req.body);
+
+        return res.status(201).json({
+            message: 'Compra registrada com sucesso.',
+            compra: result.id
+        });
+    } catch (error) {
+
+        // log de descrição do erro encontrado
+        console.log('Erro ao registrar compra:', error);
+
+        // Retorna status 500 de erro
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+
+}
+
+async function apagarCompra(req, res) {
+    try {
+        const compraId = parsePositiveIntegerParam(req.params.compraId);
+
+        if (compraId === null) {
+            return res.status(400).json({
+                erro: 'compraId deve ser um inteiro positivo.'
+            });
+        }
+
+        const compraRemovida = await apagarCompraPorId(USUARIO_ID_TEMP, compraId);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Compra removida com sucesso.',
+            data: compraRemovida
+        });
+    } catch (erro) {
+        if (erro instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({
+                erro: erro.message
+            });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao remover compra no banco'
+        });
+    }
+}
+
 module.exports = {
     listarCompras,
     listarItensPorCompra,
     atualizarCompra,
-    atualizarItensPorCompra
+    atualizarItensPorCompra,
+    atualizarInstanciasPorCompra,
+    createCompraVaziaController,
+    createCompra,
+    apagarCompra
 };

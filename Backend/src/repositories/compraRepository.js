@@ -1,4 +1,5 @@
 const sql = require('../config/database')
+const pool = require('../config/transactionDatabase');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -153,7 +154,216 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
     const compraAtualizada = comprasAtualizadas[0];
 
     return { item: itemAtualizado, compra: compraAtualizada };
+}
 
+async function apagarCompraPorId(usuarioId, compraId) {
+    const [compraRemovida] = await sql`
+        DELETE FROM compra
+        WHERE id = ${compraId} AND usuario_id = ${usuarioId}
+        RETURNING id, data_compra, valor_total, estabelecimento;
+    `;
+
+    if (!compraRemovida) {
+        throw new CompraNaoEncontradaError();
+    }
+
+    return compraRemovida;
+}
+
+async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
+    const [resultado] = await sql`
+        INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+        VALUES (${usuarioId}, COALESCE(${data_compra ?? null}, CURRENT_TIMESTAMP), 0, ${estabelecimento})
+        RETURNING id
+    `
+    if(!resultado) {
+        throw new Error('Erro na criação de compra');
+    }
+    return resultado;
+}
+
+async function createCompraRepo(dadosCompra) {
+    const {
+        usuario_id,
+        data_compra,
+        estabelecimento,
+        valor_total,
+        itens,
+    } = dadosCompra;
+
+    const client = await pool.connect();
+
+    try {
+
+        await client.query('BEGIN');
+
+        // Cria registro de compra
+        let compraId;
+        if (data_compra == undefined) {
+            // Se data não foi informada, banco de dados usa DEFAULT
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, valor_total, estabelecimento)
+                VALUES ($1, $2, $3) 
+                RETURNING id 
+                `,
+                [
+                    usuario_id,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        } else {
+            // Se data de compra foi informada, o banco usa a data informada
+            const {
+                rows: [{ id: compraIdBranch }],
+            } = await client.query(`
+                INSERT INTO compra (usuario_id, data_compra, valor_total, estabelecimento)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
+                `,
+                [
+                    usuario_id,
+                    data_compra,
+                    valor_total,
+                    estabelecimento
+                ]
+            );
+
+            compraId = compraIdBranch;
+        }
+
+        for (const item of itens) {
+
+            // Cria lotes para cada item
+            const {
+                rows: [{ id: itemId }],
+            } = await client.query(`
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING id
+                `,
+                [
+                    compraId,
+                    item.nome_item,
+                    item.quantidade,
+                    item.unidade_de_medida,
+                    item.valor_unitario,
+                    item.validade_estimada
+                ]
+            );
+
+            // Insere lotes no estoque de usuário
+            await client.query(`
+                INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
+                VALUES ($1, $2, $3)
+                `,
+                [
+                    usuario_id,
+                    itemId,
+                    item.quantidade
+                ]
+            );
+        }
+
+        // Se tudo for bem sucedido, salva todas as operações
+        await client.query('COMMIT');
+
+        // Retorna o objeto de compra com o ID criado
+        return { id: compraId };
+    } catch (err) {
+
+        // Erro detectado, desfaz todas as operações
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+
+        client.release();
+    }
+}
+
+async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdate) {
+    const updates = {};
+
+    if (fieldsToUpdate.quantidade !== undefined) {
+        updates.quantidade = fieldsToUpdate.quantidade;
+    }
+    if (fieldsToUpdate.valor_unitario !== undefined) {
+        updates.valor_unitario = fieldsToUpdate.valor_unitario;
+    }
+    if (fieldsToUpdate.nome_item !== undefined) {
+        updates.nome_item = fieldsToUpdate.nome_item;
+    }
+    if (fieldsToUpdate.unidade_de_medida !== undefined) {
+        updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
+    }
+    if (fieldsToUpdate.validade_estimada !== undefined) {
+        updates.validade_estimada = fieldsToUpdate.validade_estimada;
+    }
+
+    const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(
+        updates,
+        'validade_estimada'
+    );
+
+    const quantidadeInformada = updates.quantidade ?? null;
+
+    const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
+        transactionSql`
+            WITH alvo AS (
+                SELECT id
+                FROM item
+                WHERE compra_id = ${compraId}
+                  AND nome_item = ${itemBusca.nome_item}
+                  AND quantidade = ${itemBusca.quantidade}
+                  AND valor_unitario = ${itemBusca.valor_unitario}
+                  AND validade_estimada IS NOT DISTINCT FROM ${itemBusca.validade_estimada ?? null}
+            ),
+            contagem AS (
+                SELECT COUNT(*)::numeric AS total FROM alvo
+            )
+            UPDATE item
+            SET 
+                quantidade = COALESCE(
+                    ${quantidadeInformada} / NULLIF(contagem.total, 0),
+                    item.quantidade
+                ),
+                valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
+                nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
+                unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
+                validade_estimada = CASE
+                    WHEN ${deveAtualizarValidade} THEN ${updates.validade_estimada ?? null}
+                    ELSE validade_estimada
+                END
+            WHERE compra_id = ${compraId}
+              AND nome_item = ${itemBusca.nome_item}
+              AND quantidade = ${itemBusca.quantidade}
+              AND valor_unitario = ${itemBusca.valor_unitario}
+              AND validade_estimada IS NOT DISTINCT FROM ${itemBusca.validade_estimada ?? null}
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
+        `,
+        transactionSql`
+            UPDATE compra
+            SET valor_total = (
+                SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
+                FROM item
+                WHERE compra_id = ${compraId}
+            )
+            WHERE id = ${compraId}
+            RETURNING id, valor_total;
+        `
+    ]);
+
+    if (itensAtualizados.length === 0) {
+        throw new ItemCompraNaoEncontradoError();
+    }
+
+    const compraAtualizada = comprasAtualizadas[0];
+
+    return { itens: itensAtualizados, compra: compraAtualizada };
 }
 
 module.exports = {
@@ -161,6 +371,10 @@ module.exports = {
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
+    atualizarInstanciasPorCompraId,
+    createCompraRepo,
+    createCompraVazia,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    apagarCompraPorId
 };
