@@ -21,18 +21,13 @@ async function listarComprasUsuario(usuarioId) {
     const compras = await sql`
         SELECT
             compra.*,
-            item.id AS item_id,
-            item.nome_item,
-            item.quantidade,
-            item.unidade_de_medida,
-            item.valor_unitario,
-            item.validade_estimada,
-            users.username
+            COUNT(item.id) AS quantidade_itens
         FROM compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId}
-        ORDER BY compra.id, item.id
+        GROUP BY compra.id
+        ORDER BY compra.id
     `;
 
     return compras;

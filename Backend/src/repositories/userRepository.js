@@ -11,27 +11,25 @@ async function findPreferencesByUserId(userId) {
 }
 
 async function updatePreferences(userId, fieldsToUpdate) {
-    // Isola apenas as colunas que foram enviadas na requisição
-    const updates = {};
-
-    if (fieldsToUpdate.notify_push !== undefined) {
-        updates.notify_push = fieldsToUpdate.notify_push;
-    }
-
-    if (fieldsToUpdate.notify_email !== undefined) {
-        updates.notify_email = fieldsToUpdate.notify_email;
-    }
-
-    if (fieldsToUpdate.is_dark_theme !== undefined) {
-        updates.is_dark_theme = fieldsToUpdate.is_dark_theme;
-    }
-
-    // Atualiza a coluna de timestamp
-    updates.updated_at = new Date();
-
     const result = await sql`
         UPDATE users
-        SET ${sql(updates)}
+        SET
+            notify_push = CASE
+                WHEN ${fieldsToUpdate.notify_push !== undefined}
+                    THEN ${fieldsToUpdate.notify_push ?? null}
+                ELSE notify_push
+            END,
+            notify_email = CASE
+                WHEN ${fieldsToUpdate.notify_email !== undefined}
+                    THEN ${fieldsToUpdate.notify_email ?? null}
+                ELSE notify_email
+            END,
+            is_dark_theme = CASE
+                WHEN ${fieldsToUpdate.is_dark_theme !== undefined}
+                    THEN ${fieldsToUpdate.is_dark_theme ?? null}
+                ELSE is_dark_theme
+            END,
+            updated_at = CURRENT_TIMESTAMP
         WHERE id = ${userId}
         RETURNING notify_push, notify_email, is_dark_theme;
     `;
