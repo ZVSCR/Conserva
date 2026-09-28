@@ -101,22 +101,31 @@ function PageEstoque(){
     setProdutoEditando(null);
 }
 
-    //Deve excluir o produto
+    //Guarda qual produto foi clicado para controlar a exibição do modal
     function excluirProduto(produto) {
         setProdutoExcluindo(produto);
     }
 
 
-    function confirmarExclusao() {
+    async function confirmarExclusao() {
+    try {
+        const resposta = await fetch(`http://localhost:3000/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
+            method: 'DELETE'
+        });
+
+        if (!resposta.ok) throw new Error('Erro ao excluir produto');
 
         setProdutos(
             produtos.filter(
                 (produto) => produto.id !== produtoExcluindo.id
             )
         );
-
-        setProdutoExcluindo(null);
+    } catch (erro) {
+        console.error(erro);
     }
+
+    setProdutoExcluindo(null);
+}
 
     return(
         <div className={styles.paginaEstoque}>
