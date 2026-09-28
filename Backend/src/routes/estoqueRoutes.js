@@ -16,11 +16,11 @@ estoqueRouter.route('/gastos')
 
 estoqueRouter.route('/consumo')
     .get(listarConsumo);
+    
+estoqueRouter.route('/itens')
+    .get(listarItensEstoque);
 
 estoqueRouter.route('/:itemId')
     .patch(atualizarQuantidadeItem);
-
-estoqueRouter.route('/itens')
-    .get(listarItensEstoque);
 
 module.exports = estoqueRouter;
