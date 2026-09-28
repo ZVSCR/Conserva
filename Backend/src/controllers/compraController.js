@@ -11,7 +11,8 @@ const {
 } = require('../repositories/compraRepository');
 
 const {
-    createCompraService
+    createCompraService,
+    updateCompraAddItensService
 } = require('../services/compraService');
 
 const {
