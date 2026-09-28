@@ -1,4 +1,5 @@
-const sql = require('../config/database')
+const Decimal = require('decimal.js');
+const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 
 class ItemCompraNaoEncontradoError extends Error {
@@ -176,7 +177,7 @@ async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
         VALUES (${usuarioId}, COALESCE(${data_compra ?? null}, CURRENT_TIMESTAMP), 0, ${estabelecimento})
         RETURNING id
     `
-    if(!resultado) {
+    if (!resultado) {
         throw new Error('Erro na criação de compra');
     }
     return resultado;
@@ -366,6 +367,21 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
     return { itens: itensAtualizados, compra: compraAtualizada };
 }
 
+async function getValorTotalCompra(compraId) {
+
+    const { rows } = await sql(`
+        SELECT valor_total
+        FROM compra
+        WHERE id = $1
+    `,
+        [compraId]
+    );
+
+    const valorTotal = new Decimal(rows[0].valor_total);
+
+    return valorTotal;
+}
+
 module.exports = {
     listarComprasUsuario,
     listarCompraPorId,
@@ -376,5 +392,6 @@ module.exports = {
     createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
-    apagarCompraPorId
+    apagarCompraPorId,
+    getValorTotalCompra
 };
