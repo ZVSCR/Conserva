@@ -552,9 +552,6 @@ async function apagarCompra(req, res) {
 async function updateCompraAddItens(req, res) {
 
     // TODO: Definir endpoint desta tarefa
-    // TODO: Chama service para executar tarefa
-    // TODO: Middleware
-    // TODO: Service
     // TODO: Repository
 
     // Valida payload
