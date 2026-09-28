@@ -434,9 +434,10 @@ async function atualizarInstanciasPorCompra(req, res) {
         });
     } catch (erro) {
         if (erro instanceof ItemCompraNaoEncontradoError) {
-          return res.status(404).json({
-            erro: erro.message
-        })};
+            return res.status(404).json({
+                erro: erro.message
+            })
+        };
     }
 }
 // Exemplo de JSON a ser recebido:
@@ -456,11 +457,11 @@ async function atualizarInstanciasPorCompra(req, res) {
 // }
 
 async function createCompraVaziaController(req, res) {
-    try{
-        const {usuarioId, data_compra, estabelecimento} = req.body;
+    try {
+        const { usuarioId, data_compra, estabelecimento } = req.body;
         const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
         res.status(201).json(resultado);
-    }catch (erro){
+    } catch (erro) {
         console.error(erro)
         res.status(500).json({
             erro: 'Erro ao criar compra'
@@ -543,12 +544,27 @@ async function apagarCompra(req, res) {
     }
 }
 
+
+
+async function updateCompraAddItens(req, res) {
+
+    // TODO: Definir endpoint desta tarefa
+    // TODO: Valida payload de novos itens
+    // TODO: Valida se ID de compra e usuário foram informados
+    // TODO: Chama service para executar tarefa
+    // TODO: Middleware
+    // TODO: Service
+    // TODO: Repository
+    // TODO: Tratemento de erros
+}
+
 module.exports = {
     listarCompras,
     listarItensPorCompra,
     atualizarCompra,
     atualizarItensPorCompra,
     atualizarInstanciasPorCompra,
+    updateCompraAddItens,
     createCompraVaziaController,
     createCompra,
     apagarCompra
