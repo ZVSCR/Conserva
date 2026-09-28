@@ -29,7 +29,7 @@ function NavBar({ onAdicionar }) {
                 <img src={IconNotificacoes} alt="Notificações" />
             </Link>
 
-            <Link to="/Estoque" className={styles.navItem}>
+            <Link to="/configuracoes" className={styles.navItem}>
                 <img src={IconConfiguracao} alt="Configurações" />
             </Link>
         </nav>
