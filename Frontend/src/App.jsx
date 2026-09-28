@@ -4,6 +4,7 @@ import Login from './pages/Login/PageLogin';
 import Register from './pages/Register/PageRegister';
 import Estoque from './pages/Estoque/PageEstoque';
 import UserData from './pages/UserData/PageUserData';
+import UserPreferences from './pages/UserPreferences/PageUserPreferences';
 import ExtratoCompras from './pages/ExtratoCompras/PageExtratoCompras';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
 
         <Route path='/Estoque' element={<Estoque />} />
         <Route path="/AlterarDados" element={<UserData/>}/>
+        <Route path="/configuracoes" element={<UserPreferences />} />
         <Route path="/ExtratoCompras" element={<ExtratoCompras/>}/>
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
