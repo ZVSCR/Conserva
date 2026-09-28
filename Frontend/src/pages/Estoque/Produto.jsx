@@ -12,7 +12,10 @@ function Produto({ produto, onEditar, onExcluir }) {
                 </span>
 
                 <span className={styles.nomeProduto}>
-                    {produto.quantidade}
+                    {Number.isInteger(produto.quantidade) // Se for inteiro mostra apenas o valor
+                    ? produto.quantidade
+                    : produto.quantidade.toFixed(1)   //Caso seja um valor quebrado, deixa apenas 1 casa decimal
+                    }  
                 </span>
             </div>
 

@@ -12,7 +12,7 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
         setErroNome('Informe o nome do produto.');
         return; // impede o salvamento
         }
-         const quantidadeNumerica = Math.max(0, Math.floor(Number(quantidade) || 0)); //Permite salvar o produto com quantidade 0, caso o campo de input esteja vazio
+         const quantidadeNumerica = Math.max(0, Number(Number(quantidade) || 0).toFixed(1)); //Permite salvar o produto com quantidade 0, caso o campo de input esteja vazio e deixa 1 casa decimal
         onSalvar({
             ...produto, //se o prod for null, não adiciona
             nome: nome.trim(),
@@ -51,7 +51,7 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
                 <input
                     type="number"
                     min="0"
-                    step="1"
+                    step="0.1"
                     value={quantidade}
                     onChange={(e) => setQuantidade(e.target.value)}
                 />
