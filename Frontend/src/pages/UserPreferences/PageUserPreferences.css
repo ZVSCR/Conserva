@@ -146,6 +146,20 @@
   text-align: center;
 }
 
+.preferences-page__feedback--error {
+  color: #a51c30;
+}
+
+.preferences-page__loading {
+  margin: 0;
+  color: #333;
+  text-align: center;
+}
+
+.preferences-page__toggle:disabled {
+  cursor: wait;
+}
+
 .preferences-page__actions button {
   min-height: 37px;
   padding: 0 8px;

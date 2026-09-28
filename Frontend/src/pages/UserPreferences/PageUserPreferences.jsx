@@ -1,12 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { loadPreferences, savePreferences } from '../../services/userPreferences';
 import './PageUserPreferences.css';
-
-const defaultPreferences = {
-  notify_email: true,
-  notify_push: true,
-  is_dark_theme: false,
-};
 
 const preferences = [
   { id: 'notify_email', label: 'Notificações Email' },
@@ -15,30 +10,69 @@ const preferences = [
 ];
 
 function PageUserPreferences() {
-  const [appliedPreferences, setAppliedPreferences] = useState(defaultPreferences);
-  const [draftPreferences, setDraftPreferences] = useState(defaultPreferences);
-  const [feedback, setFeedback] = useState('');
+  const [appliedPreferences, setAppliedPreferences] = useState(null);
+  const [draftPreferences, setDraftPreferences] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [notice, setNotice] = useState(null);
 
-  const changedPreferences = Object.fromEntries(
-    preferences
-      .filter(({ id }) => draftPreferences[id] !== appliedPreferences[id])
-      .map(({ id }) => [id, draftPreferences[id]]),
-  );
+  useEffect(() => {
+    let active = true;
+
+    loadPreferences()
+      .then((loadedPreferences) => {
+        if (!active) return;
+        setAppliedPreferences(loadedPreferences);
+        setDraftPreferences({ ...loadedPreferences });
+      })
+      .catch(() => {
+        if (active) setNotice({ type: 'error', text: 'Não foi possível carregar as preferências.' });
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  const changedPreferences = appliedPreferences && draftPreferences
+    ? Object.fromEntries(
+      preferences
+        .filter(({ id }) => draftPreferences[id] !== appliedPreferences[id])
+        .map(({ id }) => [id, draftPreferences[id]]),
+    )
+    : {};
   const hasChanges = Object.keys(changedPreferences).length > 0;
 
   const handleToggle = (id, checked) => {
     setDraftPreferences((current) => ({ ...current, [id]: checked }));
-    setFeedback('');
+    setNotice(null);
   };
 
   const handleCancel = () => {
     setDraftPreferences({ ...appliedPreferences });
-    setFeedback('Alterações pendentes descartadas.');
+    setNotice({ type: 'info', text: 'Alterações pendentes descartadas.' });
   };
 
-  const handleApply = () => {
-    setAppliedPreferences((current) => ({ ...current, ...changedPreferences }));
-    setFeedback('Preferências aplicadas apenas nesta página. Nada foi salvo no servidor.');
+  const handleApply = async () => {
+    if (!hasChanges || isSaving) return;
+
+    setIsSaving(true);
+    setNotice(null);
+
+    try {
+      const savedPreferences = await savePreferences(changedPreferences);
+      setAppliedPreferences(savedPreferences);
+      setDraftPreferences({ ...savedPreferences });
+      setNotice({
+        type: 'info',
+        text: 'Preferências aplicadas na demonstração. Nada foi salvo no servidor.',
+      });
+    } catch {
+      setNotice({ type: 'error', text: 'Não foi possível aplicar as preferências.' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -54,8 +88,8 @@ function PageUserPreferences() {
 
       <h1 className="preferences-page__heading">Altere suas preferências</h1>
 
-      <div className="preferences-page__options">
-        {preferences.map(({ id, label }) => (
+      <div className="preferences-page__options" aria-busy={isLoading || isSaving}>
+        {draftPreferences ? preferences.map(({ id, label }) => (
           <label className="preferences-page__option" htmlFor={id} key={id}>
             <span>{label}</span>
             <input
@@ -66,16 +100,28 @@ function PageUserPreferences() {
               role="switch"
               checked={draftPreferences[id]}
               onChange={(event) => handleToggle(id, event.target.checked)}
+              disabled={isSaving}
             />
           </label>
-        ))}
+        )) : <p className="preferences-page__loading" role="status">
+          {isLoading ? 'Carregando preferências...' : 'Preferências indisponíveis.'}
+        </p>}
       </div>
 
-      {feedback && <p className="preferences-page__feedback" role="status">{feedback}</p>}
+      {notice && (
+        <p
+          className={`preferences-page__feedback${notice.type === 'error' ? ' preferences-page__feedback--error' : ''}`}
+          role={notice.type === 'error' ? 'alert' : 'status'}
+        >
+          {notice.text}
+        </p>
+      )}
 
       <div className="preferences-page__actions">
-        <button type="button" onClick={handleCancel} disabled={!hasChanges}>Cancelar</button>
-        <button type="button" onClick={handleApply} disabled={!hasChanges}>Aplicar</button>
+        <button type="button" onClick={handleCancel} disabled={!hasChanges || isSaving}>Cancelar</button>
+        <button type="button" onClick={handleApply} disabled={!hasChanges || isSaving}>
+          {isSaving ? 'Aplicando...' : 'Aplicar'}
+        </button>
       </div>
     </main>
   );
