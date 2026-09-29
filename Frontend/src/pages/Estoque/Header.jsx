@@ -11,9 +11,9 @@ function Header() {
             <nav>
                 <ul className={styles.headerNav}>
                     <li>
-                        <a href="#">
+                        <Link to="/alterar-dados">
                             <img src={perfil} alt="Perfil" className={styles.perfilImg} />
-                        </a>
+                        </Link>
                     </li>
                 </ul>
             </nav>

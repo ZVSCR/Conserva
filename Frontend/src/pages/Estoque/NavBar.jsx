@@ -14,7 +14,7 @@ function NavBar({ onAdicionar }) {
                 <img src={IconReceitas} alt="Receitas" />
             </Link>
 
-            <Link to="/Estoque" className={styles.navItem}>
+            <Link to="/nova-compra" className={styles.navItem}>
                 <img src={IconCompras} alt="Compras" />
             </Link>
             
@@ -27,7 +27,7 @@ function NavBar({ onAdicionar }) {
             </button>
             
 
-            <Link to="/Estoque" className={styles.navItem}>
+            <Link to="/extrato-compras" className={styles.navItem}>
                 <img src={IconEstoque} alt="Estoque" />
             </Link>
 
