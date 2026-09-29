@@ -1,0 +1,308 @@
+.compra-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(100% - 40px, 500px);
+  box-sizing: border-box;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 8px;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: left;
+  color-scheme: dark;
+}
+
+/* Register.css sets a global height for every div inside #root. */
+#root .compra-container,
+#root .compra-container div {
+  height: auto;
+}
+
+.compra-titulo {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  text-align: center;
+}
+
+.compra-feedback {
+  font-size: 14px;
+}
+
+.compra-erro {
+  color: #ffb4b4;
+}
+
+.estabelecimento-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 2px;
+  margin-bottom: -25px;
+}
+
+.estabelecimento-text {
+  flex: 0 0 auto;
+  color: #b9bbbe;
+}
+
+.estabelecimento-valor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  text-align: right;
+}
+
+.estabelecimento-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-weight: bold;
+}
+
+.compra-container .search-box input,
+.compra-container .item-modal input,
+.compra-container .item-modal select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #424549;
+  border-radius: 6px;
+  background: #2b2d31;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.compra-container .search-box input {
+  margin-bottom: 0;
+}
+
+.search-box input:focus-visible,
+.item-modal input:focus-visible,
+.item-modal select:focus-visible,
+.compra-container button:focus-visible {
+  outline: 2px solid #57f287;
+  outline-offset: 2px;
+}
+
+.compra-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.lista-itens {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.lista-itens > p {
+  padding: 15px;
+  color: #8e9297;
+  text-align: center;
+}
+
+.item-card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 15px;
+  border: 1px solid #424549;
+  border-radius: 8px;
+  background: #2b2d31;
+}
+
+.nome-item {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+}
+
+.item-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 14px;
+}
+
+.preco-item {
+  color: #57f287;
+}
+
+.quantidade-e-medida-item {
+  color: #b9bbbe;
+}
+
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.compra-container button {
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.compra-container .btn-novo-item,
+.compra-container .btn-post-compra,
+.compra-container .btn-adiciona-novo-item {
+  background: #3ba55d;
+  font-weight: bold;
+}
+
+.compra-container .btn-novo-item {
+  align-self: flex-start;
+  min-width: 44px;
+  font-size: 20px;
+}
+
+.compra-container .btn-cancela-acao,
+.compra-container .btn-cancela-novo-item,
+.compra-container .btn-cancela-editar-nome-estabelecimento {
+  background: #4f545c;
+  font-weight: bold;
+}
+
+.compra-container .btn-altera-nome-estabelecimento {
+  background: #3ba55d;
+  font-weight: bold;
+}
+
+.compra-container .btn-editar-estabelecimento {
+  min-height: 0;
+  padding: 6px 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #57f287;
+  text-decoration: underline;
+}
+
+.compra-container .btn-edit,
+.compra-container .btn-excluir {
+  min-height: 0;
+  padding: 6px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.compra-container button:hover {
+  filter: brightness(1.12);
+}
+
+.compra-container button:disabled {
+  cursor: default;
+  opacity: 0.65;
+  filter: none;
+}
+
+.compra-container .btn-edit:hover,
+.compra-container .btn-excluir:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.item-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.item-modal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 420px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #424549;
+  border-radius: 8px;
+  background: #2b2d31;
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.item-modal h2,
+.item-modal > label,
+.quantidade-medida {
+  grid-column: 1 / -1;
+}
+
+.item-modal h2 {
+  margin: 0 0 10px;
+  color: #fff;
+}
+
+.item-modal-erro {
+  grid-column: 1 / -1;
+  color: #ffb4b4;
+  font-size: 14px;
+}
+
+.item-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quantidade-medida {
+  display: flex;
+  gap: 12px;
+}
+
+.quantidade-medida label {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .compra-container {
+    margin: 20px auto;
+  }
+
+  .compra-form {
+    grid-template-columns: 1fr;
+  }
+
+  .lista-itens {
+    grid-column: auto;
+  }
+
+  .item-card {
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    width: 100%;
+  }
+
+  .item-modal {
+    padding: 20px;
+  }
+}

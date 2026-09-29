@@ -3,14 +3,20 @@ import styles from './Estoque.module.css';
 
 function EditarProduto({ produto, onSalvar, onCancelar }) {
 
-     const [nome, setNome] = useState(produto?.nome ?? '');
-    const [quantidade, setQuantidade] = useState(produto?.quantidade ?? 1);
+    const [nome, setNome] = useState(produto.nome); //Mostra o nome do produto associado
+    const [quantidade, setQuantidade] = useState(produto.quantidade); // Quantidade 
+    const [erroNome, setErroNome] = useState(''); //Mostra um erro caso tente salvar com o campo de nome do produto vazio.
 
     function salvar() {
+        if (nome.trim() === '') {
+        setErroNome('Informe o nome do produto.');
+        return; // impede o salvamento
+        }
+         const quantidadeNumerica = Math.max(0, Number(Number(quantidade) || 0).toFixed(1)); //Permite salvar o produto com quantidade 0, caso o campo de input esteja vazio e deixa 1 casa decimal
         onSalvar({
             ...produto, //se o prod for null, não adiciona
-            nome: nome,
-            quantidade: quantidade
+            nome: nome.trim(),
+            quantidade: quantidadeNumerica
         });
     }
 
@@ -19,8 +25,8 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
             <div className={styles.modal}>
 
-                {/* Título muda conforme o modo: editar ou adicionar */}
-                <h2 className={styles.nomeProduto}>{produto ? 'Editar produto' : 'Adicionar produto'}</h2>
+                {/* Apenas editar */}
+                <h2 className={styles.nomeProduto}>Editar produto</h2>
 
                 <label className={styles.labelNomeQtd}>
                     Nome
@@ -29,8 +35,14 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
                 <input
                     type="text"
                     value={nome}
-                    onChange={(e) => setNome(e.target.value)}
+                    onChange={(e) => {
+                        setNome(e.target.value);
+                        if (erroNome) setErroNome(''); // limpa o erro assim que a pessoa começa a corrigir
+                    }}
                 />
+                {erroNome && (
+                    <p className={styles.mensagemErro}>{erroNome}</p>
+                )}
 
                 <label className={styles.labelNomeQtd}>
                     Quantidade
@@ -38,8 +50,10 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
 
                 <input
                     type="number"
+                    min="0"
+                    step="0.1"
                     value={quantidade}
-                    onChange={(e) => setQuantidade(Number(e.target.value))}
+                    onChange={(e) => setQuantidade(e.target.value)}
                 />
 
                 <div className={styles.modalAcoes}>

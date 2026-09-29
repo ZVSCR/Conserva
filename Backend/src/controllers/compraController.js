@@ -10,6 +10,16 @@ const {
     apagarCompraPorId
 } = require('../repositories/compraRepository');
 
+const {
+    createCompraService,
+    adicionaItensACompraService
+} = require('../services/compraService');
+
+const {
+    validateCreateCompraPayload,
+    validateItensPayload
+} = require('../middleware/compraValidator');
+
 const allowedFields = [
     'quantidade',
     'valor_unitario',
@@ -67,13 +77,6 @@ const parsePositiveIntegerParam = (value) => {
     return Number.isSafeInteger(parsedValue) ? parsedValue : null;
 };
 
-const {
-    createCompraService
-} = require('../services/compraService');
-
-const {
-    validateCreateCompraPayload
-} = require('../middleware/compraValidator');
 
 const validateCompraPayload = (body) => {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) {
@@ -240,6 +243,27 @@ async function listarCompras(req, res) {
             data: compras
         });
     } catch (erro) {
+        res.status(500).json({
+            erro: 'Erro ao buscar compras no banco de dados'
+        });
+    }
+}
+
+async function listarComprasData(req, res) {
+    try {
+        // Usa o ID do token JWT se existir; caso contrário, usa o ID temporário
+        const usuarioId = req.user?.id || USUARIO_ID_TEMP;
+        const { dataInicio, dataFim } = req.query;
+
+        const compras = await listarComprasUsuarioData(usuarioId, dataInicio, dataFim);
+        
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: compras
+        });
+    } catch (erro) {
+        console.error('Erro ao buscar compras:', erro);
         res.status(500).json({
             erro: 'Erro ao buscar compras no banco de dados'
         });
@@ -434,9 +458,10 @@ async function atualizarInstanciasPorCompra(req, res) {
         });
     } catch (erro) {
         if (erro instanceof ItemCompraNaoEncontradoError) {
-          return res.status(404).json({
-            erro: erro.message
-        })};
+            return res.status(404).json({
+                erro: erro.message
+            })
+        };
     }
 }
 // Exemplo de JSON a ser recebido:
@@ -456,11 +481,11 @@ async function atualizarInstanciasPorCompra(req, res) {
 // }
 
 async function createCompraVaziaController(req, res) {
-    try{
-        const {usuarioId, data_compra, estabelecimento} = req.body;
+    try {
+        const { usuarioId, data_compra, estabelecimento } = req.body;
         const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
         res.status(201).json(resultado);
-    }catch (erro){
+    } catch (erro) {
         console.error(erro)
         res.status(500).json({
             erro: 'Erro ao criar compra'
@@ -502,7 +527,7 @@ async function createCompra(req, res) {
         });
     } catch (error) {
 
-        // log de descrição do erro encontrado
+        // Log de descrição do erro encontrado
         console.log('Erro ao registrar compra:', error);
 
         // Retorna status 500 de erro
@@ -543,12 +568,76 @@ async function apagarCompra(req, res) {
     }
 }
 
+
+
+async function adicionaItensACompra(req, res) {
+
+    // TODO: Definir endpoint desta tarefa
+
+    // Valida payload
+    const validation = validateItensPayload(req.body);
+    if (!validation.isValid) {
+
+        return res.status(400).json({
+            error: validation.errors
+        });
+    }
+
+    // Identificação temporária de IDs de usuário e compra
+    const userId = Number(req.body.usuario_id);
+    const compraId = req.params.compraId;
+    // Valida IDs de usuário
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+
+        return res.status(400).json({
+            error: [{
+                field: 'usuario_id',
+                message: 'Informe um ID de usuário inteiro e positivo.'
+            }]
+        });
+    }
+    // Valida ID de compra
+    if (!Number.isSafeInteger(compraId) || compraId <= 0) {
+
+        return res.status(400).json({
+            error: [{
+                field: 'compra_id',
+                message: 'Informe um ID de compra inteiro e positivo.'
+            }]
+        });
+    }
+
+    try {
+
+        // Chama serviço de atualizar compra com novos itens
+        const result = await adicionaItensACompraService(userId, compraId, req.body);
+
+        return res.status(200).json({
+            message: 'Compra atualizada com novos itens com sucesso.',
+            compra: result.id
+        });
+
+    } catch (error) {
+
+        // Log de descrição do erro encontrado
+        console.log('Erro ao adicionar itens:', error);
+
+        // Retorna status 500 de erro
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+
+}
+
 module.exports = {
     listarCompras,
     listarItensPorCompra,
+    listarComprasData,
     atualizarCompra,
     atualizarItensPorCompra,
     atualizarInstanciasPorCompra,
+    adicionaItensACompra,
     createCompraVaziaController,
     createCompra,
     apagarCompra

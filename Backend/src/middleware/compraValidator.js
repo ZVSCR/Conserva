@@ -223,6 +223,43 @@ function validateCreateCompraPayload(payload) {
     };
 }
 
+function validateItensPayload(payload) {
+
+    const errors = [];
+
+    // Payload é objeto?
+    if (
+        payload === undefined ||
+        payload === null ||
+        Array.isArray(payload) ||
+        typeof payload !== 'object'
+    ) {
+        errors.push({
+            field: 'payload',
+            message: 'A requisição enviada não é um objeto válido.'
+        });
+
+        return {
+            isValid: false,
+            errors
+        };
+    }
+
+    const {
+        itens
+    } = payload;
+
+    // Valida itens
+    errors.push(...validateItens(itens));
+
+    return {
+        isValid: errors.length == 0,
+        errors
+    };
+
+}
+
 module.exports = {
-    validateCreateCompraPayload
+    validateCreateCompraPayload,
+    validateItensPayload
 };

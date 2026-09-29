@@ -1,4 +1,5 @@
-const sql = require('../config/database')
+const Decimal = require('decimal.js');
+const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 
 class ItemCompraNaoEncontradoError extends Error {
@@ -21,18 +22,13 @@ async function listarComprasUsuario(usuarioId) {
     const compras = await sql`
         SELECT
             compra.*,
-            item.id AS item_id,
-            item.nome_item,
-            item.quantidade,
-            item.unidade_de_medida,
-            item.valor_unitario,
-            item.validade_estimada,
-            users.username
+            COUNT(item.id) AS quantidade_itens
         FROM compra
         JOIN item ON compra.id = item.compra_id
         JOIN users ON compra.usuario_id = users.id
         WHERE users.id = ${usuarioId}
-        ORDER BY compra.id, item.id
+        GROUP BY compra.id
+        ORDER BY compra.id
     `;
 
     return compras;
@@ -60,6 +56,27 @@ async function listarCompraPorId(usuarioId, compraId) {
 
     return itens;
 }
+
+async function listarComprasUsuarioData(usuarioId, dataInicio, dataFim) {
+    const compras = await sql`
+        SELECT
+            c.id,
+            c.data_compra,
+            c.valor_total,
+            c.estabelecimento,
+            c.usuario_id,
+            COUNT(i.id) AS quantidade_itens
+        FROM compra c
+        LEFT JOIN item i ON c.id = i.compra_id
+        WHERE c.usuario_id = ${usuarioId}
+          ${dataInicio && dataFim ? sql`AND c.data_compra BETWEEN ${dataInicio} AND${dataFim}` : sql``}
+        GROUP BY c.id, c.data_compra, c.valor_total, c.estabelecimento, c.usuario_id
+        ORDER BY c.data_compra DESC
+    `;
+
+    return compras;
+}
+
 // =============================================================================
 
 async function atualizarCompraPorId(compraId, fieldsToUpdate) {
@@ -176,7 +193,7 @@ async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
         VALUES (${usuarioId}, COALESCE(${data_compra ?? null}, CURRENT_TIMESTAMP), 0, ${estabelecimento})
         RETURNING id
     `
-    if(!resultado) {
+    if (!resultado) {
         throw new Error('Erro na criação de compra');
     }
     return resultado;
@@ -366,8 +383,114 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
     return { itens: itensAtualizados, compra: compraAtualizada };
 }
 
+// Função para obter valor total de uma compra a partir de seu ID
+// async function getValorTotalCompra(compraId) {
+
+//     const { rows } = await sql(`
+//         SELECT valor_total
+//         FROM compra
+//         WHERE id = $1
+//     `,
+//         [compraId]
+//     );
+
+//     const valorTotal = new Decimal(rows[0].valor_total);
+
+//     return valorTotal;
+// }
+
+async function adicionaItensACompraRepo(novosItens) {
+
+    const {
+        usuario_id,
+        compra_id,
+        valor_itens_novos,
+        itens
+    } = novosItens;
+
+    const client = await pool.connect();
+
+    try {
+
+        // Inicia transação
+        await client.query('BEGIN');
+
+        // Atualiza o valor total da compra
+        const { rows } = await client.query(`
+            UPDATE compra
+            SET valor_total = COALESCE(valor_total, 0) + $1
+            WHERE id = $2 AND usuario_id = $3
+            RETURNING id
+            `,
+            [
+                valor_itens_novos,
+                compra_id,
+                usuario_id
+            ]
+        );
+
+        // Compra não encontrada para o usuário
+        if (rows.length === 0) {
+            throw new Error('Compra não encontrada para este usuário');
+        }
+
+        const compraId = rows[0].id;
+
+        for (const item of itens) {
+
+            // Cria lotes para cada novo item
+            const {
+                rows: [{ id: itemId }],
+            } = await client.query(`
+                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id              
+                `,
+                [
+                    compraId,
+                    item.nome_item,
+                    item.quantidade,
+                    item.unidade_de_medida,
+                    item.valor_unitario,
+                    item.validade_estimada
+                ]
+            );
+
+            // Insere lotes no estoque de usuário
+            await client.query(`
+                INSERT INTO estoque (usuario_id, item_id, quantidade_disponivel)
+                VALUES ($1, $2, $3)
+                `,
+                [
+                    usuario_id,
+                    itemId,
+                    item.quantidade
+                ]
+            );
+        }
+
+        // Se tudo for bem sucedido, todas as operações acontecem
+        await client.query('COMMIT');
+
+        // Retorna objeto de compra com o ID atualizado
+        return { id: compraId };
+
+    } catch (err) {
+        try {
+            // Proteção de erro de rollback
+            await client.query('ROLLBACK');
+        } catch (rollbackErr) {
+            console.error('Falha no rollback:', rollbackErr);
+        }
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     listarComprasUsuario,
+    listarComprasUsuarioData,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
@@ -376,5 +499,6 @@ module.exports = {
     createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
-    apagarCompraPorId
+    apagarCompraPorId,
+    adicionaItensACompraRepo
 };
