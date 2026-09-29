@@ -249,6 +249,27 @@ async function listarCompras(req, res) {
     }
 }
 
+async function listarComprasData(req, res) {
+    try {
+        // Usa o ID do token JWT se existir; caso contrário, usa o ID temporário
+        const usuarioId = req.user?.id || USUARIO_ID_TEMP;
+        const { dataInicio, dataFim } = req.query;
+
+        const compras = await listarComprasUsuarioData(usuarioId, dataInicio, dataFim);
+        
+        return res.status(200).json({
+            status: 'success',
+            message: 'Acesso bem sucedido.',
+            data: compras
+        });
+    } catch (erro) {
+        console.error('Erro ao buscar compras:', erro);
+        res.status(500).json({
+            erro: 'Erro ao buscar compras no banco de dados'
+        });
+    }
+}
+
 async function listarItensPorCompra(req, res) {
     try {
         //const usuarioId = req.params.id;
@@ -612,6 +633,7 @@ async function adicionaItensACompra(req, res) {
 module.exports = {
     listarCompras,
     listarItensPorCompra,
+    listarComprasData,
     atualizarCompra,
     atualizarItensPorCompra,
     atualizarInstanciasPorCompra,

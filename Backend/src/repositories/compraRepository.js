@@ -56,6 +56,27 @@ async function listarCompraPorId(usuarioId, compraId) {
 
     return itens;
 }
+
+async function listarComprasUsuarioData(usuarioId, dataInicio, dataFim) {
+    const compras = await sql`
+        SELECT
+            c.id,
+            c.data_compra,
+            c.valor_total,
+            c.estabelecimento,
+            c.usuario_id,
+            COUNT(i.id) AS quantidade_itens
+        FROM compra c
+        LEFT JOIN item i ON c.id = i.compra_id
+        WHERE c.usuario_id = ${usuarioId}
+          ${dataInicio && dataFim ? sql`AND c.data_compra BETWEEN ${dataInicio} AND${dataFim}` : sql``}
+        GROUP BY c.id, c.data_compra, c.valor_total, c.estabelecimento, c.usuario_id
+        ORDER BY c.data_compra DESC
+    `;
+
+    return compras;
+}
+
 // =============================================================================
 
 async function atualizarCompraPorId(compraId, fieldsToUpdate) {
@@ -469,6 +490,7 @@ async function adicionaItensACompraRepo(novosItens) {
 
 module.exports = {
     listarComprasUsuario,
+    listarComprasUsuarioData,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
