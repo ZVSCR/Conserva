@@ -130,7 +130,20 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         'validade_estimada'
     );
 
-    const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
+    // Captura a quantidade atual antes de sobrescrever
+    const [itemAntigo] = await sql`
+        SELECT quantidade FROM item WHERE id = ${itemId} AND compra_id = ${compraId}
+    `;
+
+    if (!itemAntigo) {
+        throw new ItemCompraNaoEncontradoError();
+    }
+
+    const quantidadeAntiga = Number(itemAntigo.quantidade);
+    const novaQuantidade = updates.quantidade ?? quantidadeAntiga;
+    const delta = novaQuantidade - quantidadeAntiga;
+
+    const [itensAtualizados, comprasAtualizadas, estoqueAtualizado] = await sql.transaction((transactionSql) => [
         transactionSql`
             UPDATE item
             SET 
@@ -159,6 +172,13 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
                   WHERE id = ${itemId} AND compra_id = ${compraId}
               )
             RETURNING id, valor_total;
+        `,
+        // Propaga o delta pro estoque
+        transactionSql`
+            UPDATE estoque
+            SET quantidade_disponivel = quantidade_disponivel + ${delta}
+            WHERE item_id = ${itemId}
+            RETURNING id, quantidade_disponivel;
         `
     ]);
 
@@ -170,7 +190,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
 
     const compraAtualizada = comprasAtualizadas[0];
 
-    return { item: itemAtualizado, compra: compraAtualizada };
+    return { item: itemAtualizado, compra: compraAtualizada, estoque: estoqueAtualizado[0] };
 }
 
 async function apagarCompraPorId(usuarioId, compraId) {
