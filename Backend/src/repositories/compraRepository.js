@@ -367,27 +367,28 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
     return { itens: itensAtualizados, compra: compraAtualizada };
 }
 
-async function getValorTotalCompra(compraId) {
+// Função para obter valor total de uma compra a partir de seu ID
+// async function getValorTotalCompra(compraId) {
 
-    const { rows } = await sql(`
-        SELECT valor_total
-        FROM compra
-        WHERE id = $1
-    `,
-        [compraId]
-    );
+//     const { rows } = await sql(`
+//         SELECT valor_total
+//         FROM compra
+//         WHERE id = $1
+//     `,
+//         [compraId]
+//     );
 
-    const valorTotal = new Decimal(rows[0].valor_total);
+//     const valorTotal = new Decimal(rows[0].valor_total);
 
-    return valorTotal;
-}
+//     return valorTotal;
+// }
 
-async function updateCompraAddItensRepo(novosItens) {
+async function adicionaItensACompraRepo(novosItens) {
 
     const {
         usuario_id,
         compra_id,
-        valor_total,
+        valor_itens_novos,
         itens
     } = novosItens;
 
@@ -401,12 +402,12 @@ async function updateCompraAddItensRepo(novosItens) {
         // Atualiza o valor total da compra
         const { rows } = await client.query(`
             UPDATE compra
-            SET valor_total = $1
+            SET valor_total = COALESCE(valor_total, 0) + $1
             WHERE id = $2 AND usuario_id = $3
             RETURNING id
             `,
             [
-                valor_total,
+                valor_itens_novos,
                 compra_id,
                 usuario_id
             ]
@@ -414,7 +415,7 @@ async function updateCompraAddItensRepo(novosItens) {
 
         // Compra não encontrada para o usuário
         if (rows.length === 0) {
-            throw new Error('Comrpa não encontrada para este usuário');
+            throw new Error('Compra não encontrada para este usuário');
         }
 
         const compraId = rows[0].id;
@@ -482,6 +483,5 @@ module.exports = {
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     apagarCompraPorId,
-    getValorTotalCompra,
-    updateCompraAddItensRepo
+    adicionaItensACompraRepo
 };

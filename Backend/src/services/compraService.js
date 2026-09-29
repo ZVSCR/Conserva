@@ -1,7 +1,6 @@
 const {
-    getValorTotalCompra,
     createCompraRepo,
-    updateCompraAddItensRepo
+    adicionaItensACompraRepo
 } = require('../repositories/compraRepository')
 
 
@@ -33,14 +32,13 @@ async function createCompraService(userId, validatedPayload) {
     });
 }
 
-async function updateCompraAddItensService(userId, compraId, validatedPayload) {
+async function adicionaItensACompraService(userId, compraId, validatedPayload) {
 
     const {
         itens
     } = validatedPayload;
 
-    const compraTotalValue = getValorTotalCompra(compraId);
-    let newItensValueInCents = 0.
+    let newItensValueInCents = 0;
 
     itens.forEach((item) => {
         const valorInCents = Math.round(100 * item.valor_unitario);
@@ -48,14 +46,12 @@ async function updateCompraAddItensService(userId, compraId, validatedPayload) {
     });
 
     const itensTotalValueRounded = Math.round(newItensValueInCents);
-    const itensTotalValueReal = itensTotalValueRounded / 100;
+    const itensTotalValueReal = (itensTotalValueRounded / 100).toFixed(2);
 
-    const compraTotalValueReal = compraTotalValue + itensTotalValueReal;
-
-    return updateCompraAddItensRepo({
+    return adicionaItensACompraRepo({
         usuario_id: userId,
         compra_id: compraId,
-        valor_total: compraTotalValueReal,
+        valor_itens_novos: itensTotalValueReal,
         itens
     });
 
@@ -63,5 +59,5 @@ async function updateCompraAddItensService(userId, compraId, validatedPayload) {
 
 module.exports = {
     createCompraService,
-    updateCompraAddItensService
+    adicionaItensACompraService
 }

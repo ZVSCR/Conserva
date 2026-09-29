@@ -12,7 +12,7 @@ const {
 
 const {
     createCompraService,
-    updateCompraAddItensService
+    adicionaItensACompraService
 } = require('../services/compraService');
 
 const {
@@ -549,10 +549,9 @@ async function apagarCompra(req, res) {
 
 
 
-async function updateCompraAddItens(req, res) {
+async function adicionaItensACompra(req, res) {
 
     // TODO: Definir endpoint desta tarefa
-    // TODO: Repository
 
     // Valida payload
     const validation = validateItensPayload(req.body);
@@ -564,8 +563,8 @@ async function updateCompraAddItens(req, res) {
     }
 
     // Identificação temporária de IDs de usuário e compra
-    const userId = req.body.usuario_id;
-    const compraId = req.body.compra_id;
+    const userId = Number(req.body.usuario_id);
+    const compraId = req.params.compraId;
     // Valida IDs de usuário
     if (!Number.isSafeInteger(userId) || userId <= 0) {
 
@@ -577,7 +576,7 @@ async function updateCompraAddItens(req, res) {
         });
     }
     // Valida ID de compra
-    if (!Number.isSafeInteger(comprarId) || userId <= 0) {
+    if (!Number.isSafeInteger(compraId) || compraId <= 0) {
 
         return res.status(400).json({
             error: [{
@@ -589,10 +588,10 @@ async function updateCompraAddItens(req, res) {
 
     try {
 
-        // Chama serviço de criar comrpa
-        const result = await updateCompraAddItensService(userId, compraId, req.body);
+        // Chama serviço de atualizar compra com novos itens
+        const result = await adicionaItensACompraService(userId, compraId, req.body);
 
-        return res.status(201).json({
+        return res.status(200).json({
             message: 'Compra atualizada com novos itens com sucesso.',
             compra: result.id
         });
@@ -600,7 +599,7 @@ async function updateCompraAddItens(req, res) {
     } catch (error) {
 
         // Log de descrição do erro encontrado
-        console.log('Erro ao registrar compra:', error);
+        console.log('Erro ao adicionar itens:', error);
 
         // Retorna status 500 de erro
         return res.status(500).json({
@@ -616,7 +615,7 @@ module.exports = {
     atualizarCompra,
     atualizarItensPorCompra,
     atualizarInstanciasPorCompra,
-    updateCompraAddItens,
+    adicionaItensACompra,
     createCompraVaziaController,
     createCompra,
     apagarCompra
