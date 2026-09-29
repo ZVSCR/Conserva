@@ -1,4 +1,8 @@
-const { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario } = require('../repositories/estoqueRepository');
+const { buscarEstoque, 
+  atualizarQuantidade, 
+  buscarValorEstoquePorUsuario, 
+  buscarItensEstoquePorUsuario,
+  buscarConsumo } = require('../repositories/estoqueRepository');
 
 async function listarEstoque(req, res) {
     try {
