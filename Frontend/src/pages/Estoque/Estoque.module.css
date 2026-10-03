@@ -117,10 +117,16 @@
 
 .informacoes {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 40px;
 
     min-width: 0;
+}
+
+@media (max-width: 480px) {
+    .informacoes {
+        gap: 16px;
+    }
 }
 
 .nomeProduto {
@@ -189,6 +195,12 @@
 
     overflow: hidden; /* garante que o preenchimento não vaze dos cantos arredondados */
     box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .barraBase {
+        width: 90px;
+        height: 10px;
+    }
 }
 
 /* Barra de preenchimento  */
