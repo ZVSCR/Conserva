@@ -1,15 +1,23 @@
 import styles from './Estoque.module.css';
 import IconEditar from '../../assets/IconsEstoque/editar.png';
 import IconDeletar from '../../assets/IconsEstoque/delete.png';
+import BarraEstoque from './BarraConsumo';
 
 function Produto({ produto, onEditar, onExcluir }) {
     return (
         <div className={styles.produto}>
 
             <div className={styles.informacoes}>
-                <span className={styles.nomeProduto}>
-                    {produto.nome}
-                </span>
+                {/* nome do produto e barra de consumo na mesma coluna*/}
+                <div className={styles.informacoesProduto}>
+                    <span className={styles.nomeProduto}>
+                        {produto.nome}
+                    </span>
+                    <BarraEstoque
+                        quantidadeAtual={produto.quantidade}
+                        quantidadeMaxima={produto.quantidadeOriginal}
+                    />
+                </div>
 
                 <span className={styles.nomeProduto}>
                     {Number.isInteger(produto.quantidade) // Se for inteiro mostra apenas o valor
