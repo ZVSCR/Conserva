@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import "./PanelUserData.css";
+import {useNavigate} from 'react-router-dom';
 
 function PanelUserData() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -110,7 +113,7 @@ function PanelUserData() {
       }
 
       console.log("Dados atualizados com sucesso:", data.data);
-      setSuccessMsg("Dados atualizados com sucesso!");
+      navigate('/estoque'); 
 
       // Atualiza também os dados originais com o que acabou de ser salvo com sucesso
       const updatedOriginals = {

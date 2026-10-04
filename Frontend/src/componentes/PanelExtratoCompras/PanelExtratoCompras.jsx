@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./PanelExtratoCompras.css";
+import { useNavigate } from 'react-router-dom';
+
 
 function ExtratoCompras() {
   const [compras, setCompras] = useState([]);
@@ -12,6 +14,8 @@ function ExtratoCompras() {
   const [salvando, setSalvando] = useState(false);
   const [erroSalvar, setErroSalvar] = useState("");
 
+  const navigate = useNavigate();
+  
   const USUARIO_MOCK_ID = 1;
 
   // Busca as compras do usuário para exibir em scroll
@@ -328,10 +332,10 @@ function ExtratoCompras() {
       </div>
 
       <div className="extrato-footer"> 
-        <button type="button" className="btn btn-cancel"> 
+        <button type="button" className="btn btn-cancel" onClick={() => navigate('/estoque')}> 
           CANCELAR
         </button>
-        <button type="button" className="btn btn-concluir">
+        <button type="button" className="btn btn-concluir" onClick={() => navigate('/estoque')}>
           CONCLUIR
         </button>
       </div>
