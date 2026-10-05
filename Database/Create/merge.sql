@@ -25,8 +25,14 @@ CREATE TABLE item (
     nome_item VARCHAR(100) NOT NULL,
     quantidade NUMERIC(9, 2) NOT NULL,
     unidade_de_medida VARCHAR(20) NOT NULL,
+    tipo_medida VARCHAR(10) NOT NULL,
     valor_unitario NUMERIC(9, 2) NOT NULL,
-    validade_estimada DATE
+    validade_estimada DATE,
+    CONSTRAINT item_quantidade_positiva CHECK (quantidade > 0),
+    CONSTRAINT item_tipo_medida_valido CHECK (
+        (tipo_medida = 'unitaria' AND unidade_de_medida = 'un' AND quantidade = trunc(quantidade))
+        OR (tipo_medida = 'variavel' AND unidade_de_medida IN ('kg', 'g', 'L', 'mL'))
+    )
 );
 
 -- 4. Tabela de Estoque
@@ -35,7 +41,8 @@ CREATE TABLE estoque (
     usuario_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     item_id INTEGER NOT NULL UNIQUE REFERENCES item(id) ON DELETE CASCADE,
     quantidade_disponivel NUMERIC(9, 2) NOT NULL,
-    gasto BOOLEAN NOT NULL DEFAULT FALSE
+    gasto BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT estoque_quantidade_nao_negativa CHECK (quantidade_disponivel >= 0)
 );
 
 -- 5. Tabela de Receitas
