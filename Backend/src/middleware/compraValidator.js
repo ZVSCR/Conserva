@@ -4,6 +4,12 @@ const {
     validateDate,
     validateNumber
 } = require('./generalValidator');
+const {
+    UNIDADES_VARIAVEIS,
+    MAX_EMBALAGENS,
+    MAX_ITENS_EXPANDIDOS,
+    tipoMedida
+} = require('../services/granularidadeService');
 
 // Valida integridade da entrada de estabelecimento
 function validateEstabelecimento(estabelecimento) {
@@ -65,6 +71,8 @@ function validateItem(item, index) {
         nome_item,
         quantidade,
         unidade_de_medida,
+        tipo_medida,
+        numero_embalagens,
         valor_unitario,
         validade_estimada
     } = item;
@@ -84,6 +92,33 @@ function validateItem(item, index) {
             maxLength: `Nome do item ${index + 1} deve possuir no máximo 100 caracteres.`
         }
     }));
+
+    const tipo = tipoMedida(item);
+    if (tipo_medida !== undefined && !['unitaria', 'variavel'].includes(tipo_medida)) {
+        errors.push({ field: `${fieldPrefix}.tipo_medida`, message: 'tipo_medida deve ser unitaria ou variavel.' });
+    } else if (typeof unidade_de_medida === 'string' && unidade_de_medida.trim() && unidade_de_medida.length <= 20) {
+        if (tipo === 'unitaria' && unidade_de_medida !== 'un') {
+            errors.push({ field: `${fieldPrefix}.unidade_de_medida`, message: 'Item unitário deve usar un.' });
+        }
+        if (tipo === 'variavel' && !UNIDADES_VARIAVEIS.has(unidade_de_medida)) {
+            errors.push({ field: `${fieldPrefix}.unidade_de_medida`, message: 'Item variável deve usar kg, g, L ou mL.' });
+        }
+    }
+
+    if (typeof quantidade === 'number' && Number.isFinite(quantidade) && quantidade > 0 &&
+        tipo === 'unitaria' && !Number.isSafeInteger(quantidade)) {
+        errors.push({ field: `${fieldPrefix}.quantidade`, message: 'Quantidade unitária deve ser um inteiro positivo.' });
+    }
+
+    if (numero_embalagens !== undefined) {
+        if (tipo !== 'variavel' || !Number.isSafeInteger(numero_embalagens) ||
+            numero_embalagens < 1 || numero_embalagens > MAX_EMBALAGENS) {
+            errors.push({
+                field: `${fieldPrefix}.numero_embalagens`,
+                message: `numero_embalagens deve ser um inteiro de 1 a ${MAX_EMBALAGENS} para item variável.`
+            });
+        }
+    }
 
     // Quantidade
     errors.push(...validateNumber({
@@ -181,6 +216,15 @@ function validateItens(itens) {
         errors.push(...validateItem(item, index));
     });
 
+    const totalExpandido = itens.reduce((total, item) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) return total;
+        const numero = tipoMedida(item) === 'variavel' ? (item.numero_embalagens ?? 1) : 1;
+        return total + (Number.isSafeInteger(numero) && numero > 0 ? numero : 0);
+    }, 0);
+    if (totalExpandido > MAX_ITENS_EXPANDIDOS) {
+        errors.push({ field: 'itens', message: `A compra pode conter até ${MAX_ITENS_EXPANDIDOS} registros de item.` });
+    }
+
     return errors;
 }
 
@@ -261,5 +305,6 @@ function validateItensPayload(payload) {
 
 module.exports = {
     validateCreateCompraPayload,
-    validateItensPayload
+    validateItensPayload,
+    validateItem
 };
