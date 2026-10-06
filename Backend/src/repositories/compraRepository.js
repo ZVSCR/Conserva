@@ -342,84 +342,78 @@ async function createCompraRepo(dadosCompra) {
 }
 
 async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdate) {
-    const updates = {};
-
-    if (fieldsToUpdate.quantidade !== undefined) {
-        updates.quantidade = fieldsToUpdate.quantidade;
-    }
-    if (fieldsToUpdate.valor_unitario !== undefined) {
-        updates.valor_unitario = fieldsToUpdate.valor_unitario;
-    }
-    if (fieldsToUpdate.nome_item !== undefined) {
-        updates.nome_item = fieldsToUpdate.nome_item;
-    }
-    if (fieldsToUpdate.unidade_de_medida !== undefined) {
-        updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
-    }
-    if (fieldsToUpdate.validade_estimada !== undefined) {
-        updates.validade_estimada = fieldsToUpdate.validade_estimada;
-    }
-
-    const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(
-        updates,
-        'validade_estimada'
+    // Cada embalagem pode ter um saldo próprio; a edição coletiva altera só dados compartilhados.
+    const allowedBulkFields = ['nome_item', 'valor_unitario', 'validade_estimada'];
+    const unsupportedFields = Object.keys(fieldsToUpdate).filter((field) =>
+        !allowedBulkFields.includes(field)
     );
 
-    const quantidadeInformada = updates.quantidade ?? null;
+    if (unsupportedFields.length > 0) {
+        throw new GranularidadeInvalidaError(
+            'A atualização coletiva permite apenas nome_item, valor_unitario e validade_estimada.'
+        );
+    }
 
-    const [itensAtualizados, comprasAtualizadas] = await sql.transaction((transactionSql) => [
-        transactionSql`
-            WITH alvo AS (
-                SELECT id
-                FROM item
-                WHERE compra_id = ${compraId}
-                  AND nome_item = ${itemBusca.nome_item}
-                  AND quantidade = ${itemBusca.quantidade}
-                  AND valor_unitario = ${itemBusca.valor_unitario}
-                  AND validade_estimada IS NOT DISTINCT FROM ${itemBusca.validade_estimada ?? null}
-            ),
-            contagem AS (
-                SELECT COUNT(*)::numeric AS total FROM alvo
-            )
+    const updates = fieldsToUpdate;
+
+    const deveAtualizarValidade = updates.validade_estimada !== undefined;
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+        const { rows: itensAtualizados } = await client.query(`
             UPDATE item
-            SET 
-                quantidade = COALESCE(
-                    ${quantidadeInformada} / NULLIF(contagem.total, 0),
-                    item.quantidade
-                ),
-                valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
-                nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
-                unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
+            SET
+                valor_unitario = COALESCE($1, valor_unitario),
+                nome_item = COALESCE($2, nome_item),
                 validade_estimada = CASE
-                    WHEN ${deveAtualizarValidade} THEN ${updates.validade_estimada ?? null}
+                    WHEN $3 THEN $4
                     ELSE validade_estimada
                 END
-            WHERE compra_id = ${compraId}
-              AND nome_item = ${itemBusca.nome_item}
-              AND quantidade = ${itemBusca.quantidade}
-              AND valor_unitario = ${itemBusca.valor_unitario}
-              AND validade_estimada IS NOT DISTINCT FROM ${itemBusca.validade_estimada ?? null}
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-        `,
-        transactionSql`
+            WHERE compra_id = $5
+              AND nome_item = $6
+              AND quantidade = $7
+              AND unidade_de_medida = $8
+              AND valor_unitario = $9
+              AND validade_estimada IS NOT DISTINCT FROM $10
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada;
+        `, [
+            updates.valor_unitario ?? null,
+            updates.nome_item ?? null,
+            deveAtualizarValidade,
+            updates.validade_estimada ?? null,
+            compraId,
+            itemBusca.nome_item,
+            itemBusca.quantidade,
+            itemBusca.unidade_de_medida,
+            itemBusca.valor_unitario,
+            itemBusca.validade_estimada ?? null
+        ]);
+
+        if (itensAtualizados.length === 0) {
+            throw new ItemCompraNaoEncontradoError();
+        }
+
+        const { rows: [compraAtualizada] } = await client.query(`
             UPDATE compra
             SET valor_total = (
                 SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
                 FROM item
-                WHERE compra_id = ${compraId}
+                WHERE compra_id = $1
             )
-            WHERE id = ${compraId}
+            WHERE id = $1
             RETURNING id, valor_total;
-        `
-    ]);
+        `, [compraId]);
 
-    if (itensAtualizados.length === 0) {
-        throw new ItemCompraNaoEncontradoError();
+        await client.query('COMMIT');
+        return { itens: itensAtualizados, compra: compraAtualizada };
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
     }
-
-    const compraAtualizada = comprasAtualizadas[0];
-
-    return { itens: itensAtualizados, compra: compraAtualizada };
 }
 
 // Função para obter valor total de uma compra a partir de seu ID
