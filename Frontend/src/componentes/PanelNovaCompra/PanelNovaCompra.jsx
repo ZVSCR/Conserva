@@ -51,7 +51,7 @@ function PanelNovaCompra() {
     const USUARIO_MOCK_ID = 1;
     const busca = filtro.trim().toLowerCase();
     const itensFiltrados = itens.filter(
-        (item) =>
+        (item) => 
         item.nome_item.toLowerCase().includes(busca) ||
         item.valor_unitario.toString().includes(busca) ||
         item.quantidade.toString().includes(busca)
@@ -152,7 +152,7 @@ function PanelNovaCompra() {
         setErrorMsg("");
         setModalEstabelecimentoAberto(false);
     }
-
+    
     function alterarItem(event) {
         const { name, value } = event.target;
         setItem((atual) => ({ ...atual, [name]: value }));
@@ -226,7 +226,7 @@ function PanelNovaCompra() {
         setErrorMsg("");
         fecharModalItem();
     }
-
+    
     return (
         <div className="compra-container">
             <h2 className="compra-titulo">Itens comprados</h2>
@@ -303,7 +303,7 @@ function PanelNovaCompra() {
                         +
                     </button>
                 </div>
-
+                
                 <button type="button" className="btn btn-cancela-acao" onClick={() => navigate("/home")} disabled={loading}>
                     CANCELAR
                 </button>
@@ -334,15 +334,15 @@ function PanelNovaCompra() {
 
                         {estabelecimentoErrorMsg && <p className="item-modal-erro" role="alert">{estabelecimentoErrorMsg}</p>}
 
-                        <button
-                            type="button"
-                            className="btn btn-cancela-editar-nome-estabelecimento"
+                        <button 
+                            type="button" 
+                            className="btn btn-cancela-editar-nome-estabelecimento" 
                             onClick={() => setModalEstabelecimentoAberto(false)}
                         >
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
+                        <button 
+                            type="submit" 
                             className="btn btn-altera-nome-estabelecimento"
                         >
                             Concluir
@@ -415,15 +415,15 @@ function PanelNovaCompra() {
 
                     {itemErrorMsg && <p className="item-modal-erro" role="alert">{itemErrorMsg}</p>}
 
-                    <button
-                        type="button"
-                        className="btn btn-cancela-novo-item"
+                    <button 
+                        type="button" 
+                        className="btn btn-cancela-novo-item" 
                         onClick={fecharModalItem}
                     >
                         Cancelar
                     </button>
-                    <button
-                        type="submit"
+                    <button 
+                        type="submit" 
                         className="btn btn-adiciona-novo-item"
                     >
                         {itemEditandoId === null ? "Adicionar" : "Salvar alterações"}
