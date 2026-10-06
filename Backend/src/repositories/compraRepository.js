@@ -1,4 +1,3 @@
-const Decimal = require('decimal.js');
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 
@@ -42,6 +41,7 @@ async function listarCompraPorId(usuarioId, compraId) {
             item.nome_item,
             item.quantidade,
             item.unidade_de_medida,
+            item.tipo_medida,
             item.valor_unitario,
             item.validade_estimada,
             users.username
@@ -279,8 +279,8 @@ async function createCompraRepo(dadosCompra) {
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                     RETURNING id
                 `,
                 [
@@ -288,6 +288,7 @@ async function createCompraRepo(dadosCompra) {
                     item.nome_item,
                     item.quantidade,
                     item.unidade_de_medida,
+                    item.tipo_medida,
                     item.valor_unitario,
                     item.validade_estimada
                 ]
@@ -462,8 +463,8 @@ async function adicionaItensACompraRepo(novosItens) {
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING id              
                 `,
                 [
@@ -471,6 +472,7 @@ async function adicionaItensACompraRepo(novosItens) {
                     item.nome_item,
                     item.quantidade,
                     item.unidade_de_medida,
+                    item.tipo_medida,
                     item.valor_unitario,
                     item.validade_estimada
                 ]
