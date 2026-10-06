@@ -1,5 +1,5 @@
 const express = require('express');
-const receitaRouter = express.Router;
+const receitaRouter = express.Router();
 
 receitaRouter.route('/')
     .get()
