@@ -22,13 +22,18 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
         }
     }
 
+    class GranularidadeInvalidaError extends Error {}
+    class ItemCompraConflitoError extends Error {}
+
     return {
         listarComprasUsuario: jest.fn(),
         listarCompraPorId: jest.fn(),
         atualizarCompraPorId: jest.fn(),
         atualizarPorCompraId: jest.fn(),
         CompraNaoEncontradaError,
-        ItemCompraNaoEncontradoError
+        ItemCompraNaoEncontradoError,
+        GranularidadeInvalidaError,
+        ItemCompraConflitoError
     };
 });
 
@@ -38,7 +43,9 @@ const {
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError
 } = require('../../Backend/src/repositories/compraRepository');
 const app = require('../../Backend/src/app');
 
@@ -482,6 +489,18 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         expect(response.body).toEqual({
             erro: 'Item não encontrado para essa compra.'
         });
+    });
+
+    test('retorna 400 para medida incompatível com o tipo do item', async () => {
+        atualizarPorCompraId.mockRejectedValue(new GranularidadeInvalidaError('Medida inválida'));
+        const response = await request(app).patch(endpoint).send({ quantidade: 1.5 });
+        expect(response.status).toBe(400);
+    });
+
+    test('retorna 409 ao tentar corrigir quantidade original após consumo', async () => {
+        atualizarPorCompraId.mockRejectedValue(new ItemCompraConflitoError('Item já consumido'));
+        const response = await request(app).patch(endpoint).send({ quantidade: 4 });
+        expect(response.status).toBe(409);
     });
 
     test('mantém 500 para outras falhas do repositório', async () => {

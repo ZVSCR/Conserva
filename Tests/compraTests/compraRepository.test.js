@@ -3,19 +3,20 @@ jest.mock('../../Backend/src/config/database.js', () => {
     sql.transaction = jest.fn();
     return sql;
 });
+jest.mock('../../Backend/src/config/transactionDatabase', () => ({ connect: jest.fn() }));
 
-const expectCookies = require('supertest/lib/cookies');
 const sql = require('../../Backend/src/config/database');
+const pool = require('../../Backend/src/config/transactionDatabase');
 const {
     listarComprasUsuario,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError
 } = require('../../Backend/src/repositories/compraRepository');
-
-const transactionSql = (strings, ...values) => ({ strings, values });
 
 describe('compraRepository.listarComprasUsuario', () => {
     beforeEach(() => {
@@ -131,34 +132,78 @@ describe('compraRepository.atualizarCompraPorId', () => {
 });
 
 describe('compraRepository.atualizarPorCompraId', () => {
+    function prepararCliente(atual) {
+        const item = { id: 1, quantidade: '3.00', tipo_medida: 'unitaria' };
+        const compra = { id: 2, valor_total: '6.00' };
+        const estoque = { id: 10, quantidade_disponivel: '3.00' };
+        const client = {
+            query: jest.fn(async (query) => {
+                if (query.includes('SELECT i.*')) return { rows: atual ? [atual] : [] };
+                if (query.includes('UPDATE item')) return { rows: [item] };
+                if (query.includes('UPDATE estoque')) return { rows: [estoque] };
+                if (query.includes('UPDATE compra')) return { rows: [compra] };
+                return { rows: [] };
+            }),
+            release: jest.fn()
+        };
+        pool.connect.mockResolvedValue(client);
+        return { client, item, compra, estoque };
+    }
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     test('lança ItemCompraNaoEncontradoError quando nenhum item é atualizado', async () => {
-        sql.transaction.mockImplementation(async (buildQueries) => {
-            const queries = buildQueries(transactionSql);
-            expect(queries).toHaveLength(2);
-            return [[], []];
-        });
+        const { client } = prepararCliente(null);
 
         await expect(
             atualizarPorCompraId(99, 2, { quantidade: 1 })
         ).rejects.toBeInstanceOf(ItemCompraNaoEncontradoError);
+        expect(client.query.mock.calls.map(([query]) => query)).toContain('ROLLBACK');
+        expect(client.release).toHaveBeenCalledTimes(1);
     });
 
-    test('retorna o item e a compra produzidos pela transação', async () => {
-        const item = { id: 1, quantidade: '2.00' };
-        const compra = { id: 2, valor_total: '20.00' };
-
-        sql.transaction.mockImplementation(async (buildQueries) => {
-            const queries = buildQueries(transactionSql);
-            expect(queries).toHaveLength(2);
-            return [[item], [compra]];
+    test('corrige lote ainda não consumido e mantém item, estoque e compra juntos', async () => {
+        const { client, item, compra, estoque } = prepararCliente({
+            id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
         });
 
         await expect(
-            atualizarPorCompraId(1, 2, { quantidade: 2 })
-        ).resolves.toEqual({ item, compra });
+            atualizarPorCompraId(1, 2, { quantidade: 3 })
+        ).resolves.toEqual({ item, compra, estoque });
+        expect(client.query.mock.calls.some(([query, values]) =>
+            query.includes('UPDATE estoque') && values[0] === 3
+        )).toBe(true);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
+    });
+
+    test('não reescreve a quantidade original depois de consumo', async () => {
+        const { client } = prepararCliente({
+            id: 1, quantidade: '3.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        });
+        await expect(atualizarPorCompraId(1, 2, { quantidade: 4 }))
+            .rejects.toBeInstanceOf(ItemCompraConflitoError);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(false);
+    });
+
+    test('rejeita fração para lote unitário', async () => {
+        prepararCliente({
+            id: 1, quantidade: '3.00', quantidade_disponivel: '3.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        });
+        await expect(atualizarPorCompraId(1, 2, { quantidade: 1.5 }))
+            .rejects.toBeInstanceOf(GranularidadeInvalidaError);
+    });
+
+    test('exige quantidade e preço ao trocar a unidade de um item variável', async () => {
+        prepararCliente({
+            id: 1, quantidade: '0.50', quantidade_disponivel: '0.50',
+            estoque_id: 10, tipo_medida: 'variavel', unidade_de_medida: 'kg'
+        });
+        await expect(atualizarPorCompraId(1, 2, { unidade_de_medida: 'g' }))
+            .rejects.toBeInstanceOf(GranularidadeInvalidaError);
     });
 });

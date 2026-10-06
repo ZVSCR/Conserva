@@ -8,6 +8,7 @@ const {
     UNIDADES_VARIAVEIS,
     MAX_EMBALAGENS,
     MAX_ITENS_EXPANDIDOS,
+    quantidadeRepresentavel,
     tipoMedida
 } = require('../services/granularidadeService');
 
@@ -130,6 +131,13 @@ function validateItem(item, index) {
             positive: `Quantidade do item ${index + 1} deve ser maior que zero.`
         }
     }));
+    if (typeof quantidade === 'number' && Number.isFinite(quantidade) && quantidade > 0 &&
+        !quantidadeRepresentavel(quantidade)) {
+        errors.push({
+            field: `${fieldPrefix}.quantidade`,
+            message: 'Quantidade deve ter até duas casas decimais e caber no campo do banco.'
+        });
+    }
 
     // Unidade de Medida
     errors.push(...validateString({

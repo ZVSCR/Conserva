@@ -7,6 +7,8 @@ const {
     createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError,
     apagarCompraPorId
 } = require('../repositories/compraRepository');
 
@@ -19,6 +21,7 @@ const {
     validateCreateCompraPayload,
     validateItensPayload
 } = require('../middleware/compraValidator');
+const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 const allowedFields = [
     'quantidade',
@@ -115,6 +118,9 @@ const validateCompraPayload = (body) => {
             return invalidResult(
                 'quantidade deve ser um número maior que zero.'
             );
+        }
+        if (!quantidadeRepresentavel(quantidade)) {
+            return invalidResult('quantidade deve ter até duas casas decimais e caber no campo do banco.');
         }
     }
 
@@ -386,6 +392,14 @@ async function atualizarItensPorCompra(req, res) {
             return res.status(404).json({
                 erro: erro.message
             });
+        }
+
+        if (erro instanceof GranularidadeInvalidaError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+
+        if (erro instanceof ItemCompraConflitoError) {
+            return res.status(409).json({ erro: erro.message });
         }
 
         res.status(500).json({

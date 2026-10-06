@@ -1,5 +1,6 @@
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
+const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -12,6 +13,20 @@ class CompraNaoEncontradaError extends Error {
     constructor() {
         super('Compra não encontrada.');
         this.name = 'CompraNaoEncontradaError';
+    }
+}
+
+class GranularidadeInvalidaError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'GranularidadeInvalidaError';
+    }
+}
+
+class ItemCompraConflitoError extends Error {
+    constructor() {
+        super('A quantidade original só pode ser corrigida antes do consumo do item.');
+        this.name = 'ItemCompraConflitoError';
     }
 }
 
@@ -107,90 +122,93 @@ async function atualizarCompraPorId(compraId, fieldsToUpdate) {
 }
 
 async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
-    const updates = {};
+    const client = await pool.connect();
 
-    if (fieldsToUpdate.quantidade !== undefined) {
-        updates.quantidade = fieldsToUpdate.quantidade;
-    }
-    if (fieldsToUpdate.valor_unitario !== undefined) {
-        updates.valor_unitario = fieldsToUpdate.valor_unitario;
-    }
-    if (fieldsToUpdate.nome_item !== undefined) {
-        updates.nome_item = fieldsToUpdate.nome_item;
-    }
-    if (fieldsToUpdate.unidade_de_medida !== undefined) {
-        updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
-    }
-    if (fieldsToUpdate.validade_estimada !== undefined) {
-        updates.validade_estimada = fieldsToUpdate.validade_estimada;
-    }
+    try {
+        await client.query('BEGIN');
+        const { rows: [atual] } = await client.query(`
+            SELECT i.*, e.id AS estoque_id, e.quantidade_disponivel
+            FROM item i
+            JOIN estoque e ON e.item_id = i.id
+            WHERE i.id = $1 AND i.compra_id = $2
+            FOR UPDATE OF i, e
+        `, [itemId, compraId]);
 
-    const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(
-        updates,
-        'validade_estimada'
-    );
+        if (!atual) throw new ItemCompraNaoEncontradoError();
 
-    // Captura a quantidade atual antes de sobrescrever
-    const [itemAntigo] = await sql`
-        SELECT quantidade FROM item WHERE id = ${itemId} AND compra_id = ${compraId}
-    `;
+        const quantidade = fieldsToUpdate.quantidade ?? Number(atual.quantidade);
+        const unidade = fieldsToUpdate.unidade_de_medida ?? atual.unidade_de_medida;
+        const medidaValida = atual.tipo_medida === 'unitaria'
+            ? unidade === 'un' && Number.isSafeInteger(quantidade) && quantidade > 0 &&
+              quantidadeRepresentavel(quantidade)
+            : ['kg', 'g', 'L', 'mL'].includes(unidade) &&
+              quantidadeRepresentavel(quantidade) && quantidade > 0;
 
-    if (!itemAntigo) {
-        throw new ItemCompraNaoEncontradoError();
-    }
+        if (!medidaValida) {
+            throw new GranularidadeInvalidaError('Quantidade ou unidade incompatível com o tipo do item.');
+        }
 
-    const quantidadeAntiga = Number(itemAntigo.quantidade);
-    const novaQuantidade = updates.quantidade ?? quantidadeAntiga;
-    const delta = novaQuantidade - quantidadeAntiga;
+        if (unidade !== atual.unidade_de_medida &&
+            (fieldsToUpdate.quantidade === undefined || fieldsToUpdate.valor_unitario === undefined)) {
+            throw new GranularidadeInvalidaError(
+                'Ao trocar a unidade, informe também a quantidade e o preço na nova unidade.'
+            );
+        }
 
-    const [itensAtualizados, comprasAtualizadas, estoqueAtualizado] = await sql.transaction((transactionSql) => [
-        transactionSql`
+        const alterouMedida = quantidade !== Number(atual.quantidade) || unidade !== atual.unidade_de_medida;
+        if (alterouMedida && Number(atual.quantidade_disponivel) !== Number(atual.quantidade)) {
+            throw new ItemCompraConflitoError();
+        }
+
+        const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(fieldsToUpdate, 'validade_estimada') &&
+            fieldsToUpdate.validade_estimada !== undefined;
+        const { rows: [item] } = await client.query(`
             UPDATE item
-            SET 
-                quantidade = COALESCE(${updates.quantidade ?? null}, quantidade),
-                valor_unitario = COALESCE(${updates.valor_unitario ?? null}, valor_unitario),
-                nome_item = COALESCE(${updates.nome_item ?? null}, nome_item),
-                unidade_de_medida = COALESCE(${updates.unidade_de_medida ?? null}, unidade_de_medida),
-                validade_estimada = CASE
-                    WHEN ${deveAtualizarValidade} THEN ${updates.validade_estimada ?? null}
-                    ELSE validade_estimada
-                END
-            WHERE id = ${itemId} AND compra_id = ${compraId}
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-        `,
-        transactionSql`
+            SET quantidade = $1,
+                unidade_de_medida = $2,
+                valor_unitario = COALESCE($3, valor_unitario),
+                nome_item = COALESCE($4, nome_item),
+                validade_estimada = CASE WHEN $5 THEN $6 ELSE validade_estimada END
+            WHERE id = $7 AND compra_id = $8
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada
+        `, [
+            quantidade, unidade, fieldsToUpdate.valor_unitario ?? null,
+            fieldsToUpdate.nome_item ?? null, deveAtualizarValidade,
+            fieldsToUpdate.validade_estimada ?? null, itemId, compraId
+        ]);
+
+        let estoque = {
+            id: atual.estoque_id,
+            quantidade_disponivel: atual.quantidade_disponivel
+        };
+        if (alterouMedida) {
+            const { rows: [estoqueAtualizado] } = await client.query(`
+                UPDATE estoque
+                SET quantidade_disponivel = $1
+                WHERE item_id = $2
+                RETURNING id, quantidade_disponivel
+            `, [quantidade, itemId]);
+            estoque = estoqueAtualizado;
+        }
+
+        const { rows: [compra] } = await client.query(`
             UPDATE compra
             SET valor_total = (
                 SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
-                FROM item
-                WHERE compra_id = ${compraId}
+                FROM item WHERE compra_id = $1
             )
-            WHERE id = ${compraId}
-              AND EXISTS (
-                  SELECT 1
-                  FROM item
-                  WHERE id = ${itemId} AND compra_id = ${compraId}
-              )
-            RETURNING id, valor_total;
-        `,
-        // Propaga o delta pro estoque
-        transactionSql`
-            UPDATE estoque
-            SET quantidade_disponivel = quantidade_disponivel + ${delta}
-            WHERE item_id = ${itemId}
-            RETURNING id, quantidade_disponivel;
-        `
-    ]);
+            WHERE id = $1
+            RETURNING id, valor_total
+        `, [compraId]);
 
-    const itemAtualizado = itensAtualizados[0];
-
-    if (!itemAtualizado) {
-        throw new ItemCompraNaoEncontradoError();
+        await client.query('COMMIT');
+        return { item, compra, estoque };
+    } catch (erro) {
+        await client.query('ROLLBACK');
+        throw erro;
+    } finally {
+        client.release();
     }
-
-    const compraAtualizada = comprasAtualizadas[0];
-
-    return { item: itemAtualizado, compra: compraAtualizada, estoque: estoqueAtualizado[0] };
 }
 
 async function apagarCompraPorId(usuarioId, compraId) {
@@ -521,6 +539,8 @@ module.exports = {
     createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError,
     apagarCompraPorId,
     adicionaItensACompraRepo
 };
