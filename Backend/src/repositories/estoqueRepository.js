@@ -6,6 +6,7 @@ async function buscarEstoque(usuarioId) {
         SELECT estoque.id,
                estoque.item_id,
                estoque.quantidade_disponivel,
+               estoque.gasto,
                item.nome_item,
                item.unidade_de_medida,
                item.validade_estimada

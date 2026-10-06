@@ -34,7 +34,8 @@ CREATE TABLE estoque (
     id SERIAL PRIMARY KEY,
     usuario_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     item_id INTEGER NOT NULL UNIQUE REFERENCES item(id) ON DELETE CASCADE,
-    quantidade_disponivel NUMERIC(9, 2) NOT NULL
+    quantidade_disponivel NUMERIC(9, 2) NOT NULL,
+    gasto BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- 5. Tabela de Receitas
