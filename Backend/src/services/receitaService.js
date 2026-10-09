@@ -11,7 +11,7 @@ async function createReceitaService(payload) {
         modo_preparo
     } = payload;
 
-    const normalizedNome = nome.trim().toLowerCase();
+    const normalizedNome = nome.trim();
 
     return createReceitaRepo({
         nome: normalizedNome,
