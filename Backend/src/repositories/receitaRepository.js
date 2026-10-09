@@ -1,8 +1,7 @@
 const sql = require('../config/database');
 
+// Cuida da inserção SQL de uma nova receita
 async function createReceitaRepo(payload) {
-
-    // TODO: inserções SQL com try/catch
 
     const {
         nome,
