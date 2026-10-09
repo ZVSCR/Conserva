@@ -6,9 +6,10 @@ const {
 } = require('../controllers/receitaController');
 
 receitaRouter.route('/')
-    .get()
-    .patch()
-    .post(createReceita)
-    .delete();
+    .post(createReceita);
+// .get()
+// .patch()
+// .delete();
+// Adicionar somente quando funções forem implementadas
 
 module.exports = receitaRouter;
