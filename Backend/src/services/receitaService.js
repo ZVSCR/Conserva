@@ -2,11 +2,22 @@ const {
     createReceitaRepo
 } = require('../repositories/receitaRepository');
 
-async function createReceitaService(validatedPayload) {
+// Recebe o payload validado, normaliza o nome e envia para inserção SQL
+async function createReceitaService(payload) {
 
-    // TODO: extrair info do payload
-    // TODO: passar info como objeto para repositório
-    // TODO: retornar o resultado da chamada da função de repositório
+    const {
+        nome,
+        descricao,
+        modo_preparo
+    } = payload;
+
+    const normalizedNome = nome.trim().toLowerCase();
+
+    return createReceitaRepo({
+        nome: normalizedNome,
+        descricao,
+        modo_preparo
+    });
 }
 
 module.exports = {
