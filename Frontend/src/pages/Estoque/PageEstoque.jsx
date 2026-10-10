@@ -31,7 +31,8 @@ function PageEstoque(){
                 data.map((item) => ({
                     id: item.item_id,
                     nome: item.nome_item,
-                    quantidade: Number(item.quantidade_disponivel)
+                    quantidade: Number(item.quantidade_disponivel),
+                    quantidadeOriginal: Number(item.quantidade_original)
                 }))
             );
         })

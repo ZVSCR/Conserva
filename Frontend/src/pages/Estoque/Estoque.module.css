@@ -117,10 +117,16 @@
 
 .informacoes {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 40px;
 
     min-width: 0;
+}
+
+@media (max-width: 480px) {
+    .informacoes {
+        gap: 16px;
+    }
 }
 
 .nomeProduto {
@@ -168,6 +174,53 @@
 .botaoEditar img {
     width: 28px;
     height: 28px;
+}
+
+/* ------------------ Barra de Consumo --------*/
+.informacoesProduto {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Barra base (fundo) */
+.barraBase {
+    width: 150px; /* tamanho FIXO, não depende do nome do produto */
+    height: 14px;
+
+    border: 1px solid #000000;
+    border-radius: 10px;
+
+    background-color: #FAE1FA;
+
+    overflow: hidden; /* garante que o preenchimento não vaze dos cantos arredondados */
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .barraBase {
+        width: 90px;
+        height: 10px;
+    }
+}
+
+/* Barra de preenchimento  */
+.barraPreenchimento {
+    height: 100%;
+    border-radius: 10px;
+
+    transition: width 0.3s ease, background-color 0.3s ease; /* anima suavemente ao mudar */
+}
+
+.barraVerde {
+    background-color: #47AA4E;
+}
+
+.barraAmarela {
+    background-color: #EEE711;
+}
+
+.barraVermelha {
+    background-color: #D5272A;
 }
 
 

@@ -5,7 +5,7 @@ function Header() {
         <header className="Header">
             <div>
                 <a href="/">HOME</a>
-                <h1>ConservIA</h1>
+                <h1>ConservAI</h1>
             </div>
         </header>
     );

@@ -5,7 +5,10 @@ import './NovaCompra.css';
 function NovaCompra() {
     return (
         <div>
-            <Header/>
+            <header className="Header">
+                <h1>ConservaAI</h1>
+                <a href="/scan">VOLTAR</a>
+            </header>
             <PanelNovaCompra />
         </div>
     );
