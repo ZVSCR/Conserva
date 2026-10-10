@@ -33,7 +33,7 @@ CREATE TABLE item (
     unidade_de_medida VARCHAR(20) NOT NULL,
     valor_unitario NUMERIC(9, 2) NOT NULL,
     validade_estimada DATE,
-    ingrediente_id integer references ingrediente(id) on delete set null --adicionado o id de ingrediente
+    ingrediente_id integer references ingrediente(id) --adicionado o id de ingrediente
 );
 
 -- 5. Tabela de Estoque
@@ -68,4 +68,13 @@ CREATE TABLE receita_preparada_estoque (
     estoque_id INTEGER NOT NULL REFERENCES estoque(id) ON DELETE CASCADE,
     quantidade_gasta NUMERIC(9, 2) NOT NULL,
     PRIMARY KEY (receita_preparada_id, estoque_id)
+);
+
+-- 9. Tabela de relação de Receita e Ingrediente
+CREATE TABLE receita_ingrediente (
+    receita_id INTEGER NOT NULL REFERENCES receita(id) ON DELETE CASCADE,
+    ingrediente_id INTEGER NOT NULL REFERENCES ingrediente(id) ON DELETE RESTRICT,
+    quantidade NUMERIC(9, 2) NOT NULL,
+    unidade_de_medida VARCHAR(20) NOT NULL,
+    PRIMARY KEY (receita_id, ingrediente_id)
 );
