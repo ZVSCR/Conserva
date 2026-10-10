@@ -7,7 +7,7 @@ create table item (
     tipo_medida varchar(10) not null,
     valor_unitario numeric(9, 2) not null,
     validade_estimada date,
-    ingrediente_id integer references ingrediente(id)
+    ingrediente_id integer references ingrediente(id),
     constraint item_quantidade_positiva check (quantidade > 0),
     constraint item_tipo_medida_valido check (
         (tipo_medida = 'unitaria' and unidade_de_medida = 'un' and quantidade = trunc(quantidade))
