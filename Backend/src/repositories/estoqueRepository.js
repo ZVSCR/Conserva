@@ -12,7 +12,7 @@ async function buscarEstoque(usuarioId) {
                item.tipo_medida,
                item.unidade_de_medida,
                item.validade_estimada,
-               item.quantidade AS quantidade_original
+               item.ingrediente_id
         FROM estoque
         JOIN item ON estoque.item_id = item.id
         WHERE estoque.usuario_id = ${usuarioId};
