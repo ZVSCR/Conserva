@@ -1,12 +1,15 @@
 jest.mock('../../Backend/src/repositories/compraRepository', () => ({
-    createCompraRepo: jest.fn()
+    createCompraRepo: jest.fn(),
+    adicionaItensACompraRepo: jest.fn()
 }));
 
 const {
-    createCompraRepo
+    createCompraRepo,
+    adicionaItensACompraRepo
 } = require('../../Backend/src/repositories/compraRepository');
 const {
-    createCompraService
+    createCompraService,
+    adicionaItensACompraService
 } = require('../../Backend/src/services/compraService');
 
 function createValidPayload() {
@@ -36,6 +39,7 @@ describe('createCompraService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         createCompraRepo.mockResolvedValue({ id: 42 });
+        adicionaItensACompraRepo.mockResolvedValue({ id: 42 });
     });
 
     test('encaminha uma compra com todos os itens para uma única operação de persistência', async () => {
@@ -45,7 +49,7 @@ describe('createCompraService', () => {
 
         expect(createCompraRepo).toHaveBeenCalledTimes(1);
         const [dados] = createCompraRepo.mock.calls[0];
-        expect(dados.itens).toEqual(payload.itens);
+        expect(dados.itens).toEqual(payload.itens.map(item => ({ ...item, tipo_medida: 'variavel' })));
     });
 
     test('associa a compra ao usuário autenticado, não ao ID enviado no payload', async () => {
@@ -70,6 +74,35 @@ describe('createCompraService', () => {
 
         const [dados] = createCompraRepo.mock.calls[0];
         expect(dados.valor_total).toBe(29);
+    });
+
+    test('calcula cada pacote variável sem mudar o preço por kg', async () => {
+        const payload = createValidPayload();
+        payload.itens = [{
+            nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
+            valor_unitario: 20, numero_embalagens: 2
+        }];
+
+        await createCompraService(7, payload);
+
+        const [dados] = createCompraRepo.mock.calls[0];
+        expect(dados.valor_total).toBe(20);
+        expect(dados.itens).toHaveLength(2);
+        expect(dados.itens[0]).toEqual(dados.itens[1]);
+    });
+
+    test('mantém três maçãs num lote pelo preço por maçã', async () => {
+        const payload = createValidPayload();
+        payload.itens = [{
+            nome_item: 'Maçã', quantidade: 3, unidade_de_medida: 'un', valor_unitario: 2
+        }];
+
+        await createCompraService(7, payload);
+
+        const [dados] = createCompraRepo.mock.calls[0];
+        expect(dados.valor_total).toBe(6);
+        expect(dados.itens).toHaveLength(1);
+        expect(dados.itens[0].tipo_medida).toBe('unitaria');
     });
 
     test('representa o total monetário com precisão de centavos', async () => {
@@ -129,4 +162,21 @@ describe('createCompraService', () => {
             .rejects.toBe(falha);
         expect(createCompraRepo).toHaveBeenCalledTimes(1);
     });
+});
+
+test('adiciona embalagens variáveis à compra pelo preço da medida', async () => {
+    jest.clearAllMocks();
+    adicionaItensACompraRepo.mockResolvedValue({ id: 42 });
+    const itens = [{
+        nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
+        valor_unitario: 20, numero_embalagens: 2
+    }];
+
+    await adicionaItensACompraService(7, 42, { itens });
+
+    expect(adicionaItensACompraRepo).toHaveBeenCalledTimes(1);
+    const [dados] = adicionaItensACompraRepo.mock.calls[0];
+    expect(dados.valor_itens_novos).toBe('20.00');
+    expect(dados.itens).toHaveLength(2);
+    expect(dados.itens.every(item => item.tipo_medida === 'variavel')).toBe(true);
 });

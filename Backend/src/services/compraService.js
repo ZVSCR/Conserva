@@ -1,9 +1,8 @@
 const {
     createCompraRepo,
     adicionaItensACompraRepo
-} = require('../repositories/compraRepository')
-
-
+} = require('../repositories/compraRepository');
+const { normalizarItens } = require('./granularidadeService');
 
 async function createCompraService(userId, validatedPayload) {
 
@@ -13,9 +12,10 @@ async function createCompraService(userId, validatedPayload) {
         itens
     } = validatedPayload;
 
+    const itensNormalizados = normalizarItens(itens);
     let itensTotalValueInCents = 0;
 
-    itens.forEach((item) => {
+    itensNormalizados.forEach((item) => {
         const valorInCents = Math.round(100 * item.valor_unitario);
         itensTotalValueInCents += item.quantidade * valorInCents;
     });
@@ -28,7 +28,7 @@ async function createCompraService(userId, validatedPayload) {
         data_compra,
         estabelecimento,
         valor_total: itensTotalValueReal,
-        itens
+        itens: itensNormalizados
     });
 }
 
@@ -38,9 +38,10 @@ async function adicionaItensACompraService(userId, compraId, validatedPayload) {
         itens
     } = validatedPayload;
 
+    const itensNormalizados = normalizarItens(itens);
     let newItensValueInCents = 0;
 
-    itens.forEach((item) => {
+    itensNormalizados.forEach((item) => {
         const valorInCents = Math.round(100 * item.valor_unitario);
         newItensValueInCents += item.quantidade * valorInCents;
     });
@@ -52,7 +53,7 @@ async function adicionaItensACompraService(userId, compraId, validatedPayload) {
         usuario_id: userId,
         compra_id: compraId,
         valor_itens_novos: itensTotalValueReal,
-        itens
+        itens: itensNormalizados
     });
 
 }

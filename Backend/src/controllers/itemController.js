@@ -1,7 +1,23 @@
-const { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario } = require('../repositories/itemRepository');
+const { buscarItens, buscarPorId, atualizarPorId, apagarPorId, buscarItensPorUsuario } = require('../repositories/itemRepository');
+const { adicionaItensACompraService } = require('../services/compraService');
+const { validateItem } = require('../middleware/compraValidator');
+const { validateDate } = require('../middleware/generalValidator');
+const { quantidadeRepresentavel } = require('../services/granularidadeService');
+const {
+  GranularidadeInvalidaError,
+  ItemCompraConflitoError,
+  ItemCompraNaoEncontradoError
+} = require('../repositories/compraRepository');
 
 const validateItemPayload = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { isValid: false, message: 'O corpo da requisição deve ser um objeto JSON.' };
+  }
   const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
+
+  if (Object.keys(body).some(key => !allowedFields.includes(key))) {
+    return { isValid: false, message: 'A atualização contém campos não permitidos.' };
+  }
 
   // Garante que ao menos um campo permitido foi enviado
   const hasAtLeastOneField = Object.keys(body).some((key) =>
@@ -13,6 +29,35 @@ const validateItemPayload = (body) => {
       isValid: false,
       message: 'Forneça ao menos um campo válido para atualização.'
     };
+  }
+
+  if (body.quantidade !== undefined &&
+      (typeof body.quantidade !== 'number' || !Number.isFinite(body.quantidade) || body.quantidade <= 0)) {
+    return { isValid: false, message: 'quantidade deve ser um número maior que zero.' };
+  }
+  if (body.quantidade !== undefined && !quantidadeRepresentavel(body.quantidade)) {
+    return { isValid: false, message: 'quantidade deve ter até duas casas decimais e caber no campo do banco.' };
+  }
+  if (body.valor_unitario !== undefined &&
+      (typeof body.valor_unitario !== 'number' || !Number.isFinite(body.valor_unitario) || body.valor_unitario < 0)) {
+    return { isValid: false, message: 'valor_unitario deve ser um número maior ou igual a zero.' };
+  }
+  if (body.nome_item !== undefined &&
+      (typeof body.nome_item !== 'string' || !body.nome_item.trim() || body.nome_item.length > 100)) {
+    return { isValid: false, message: 'nome_item deve ser um texto não vazio de até 100 caracteres.' };
+  }
+  if (body.unidade_de_medida !== undefined &&
+      (typeof body.unidade_de_medida !== 'string' || !body.unidade_de_medida.trim() || body.unidade_de_medida.length > 20)) {
+    return { isValid: false, message: 'unidade_de_medida deve ser um texto não vazio de até 20 caracteres.' };
+  }
+  if (body.validade_estimada !== undefined && validateDate({
+    value: body.validade_estimada,
+    field: 'validade_estimada',
+    required: false,
+    minYear: 1926,
+    messages: { type: 'Data inválida.', format: 'Data inválida.', minYear: 'Data inválida.', invalid: 'Data inválida.' }
+  }).length > 0) {
+    return { isValid: false, message: 'validade_estimada deve ser uma data válida no formato YYYY-MM-DD ou null.' };
   }
 
   return { isValid: true };
@@ -66,7 +111,10 @@ async function listarItensGastos(req, res) {
 
 async function atualizarItem(req, res) {
     try {
-        const { id } = req.params;
+        const id = Number(req.params.id);
+        if (!Number.isSafeInteger(id) || id <= 0) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
 
         const validation = validateItemPayload(req.body);
         if (!validation.isValid) {
@@ -97,6 +145,15 @@ async function atualizarItem(req, res) {
             data: itemAtualizado
         });
     } catch (erro) {
+        if (erro instanceof GranularidadeInvalidaError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+        if (erro instanceof ItemCompraConflitoError) {
+            return res.status(409).json({ erro: erro.message });
+        }
+        if (erro instanceof ItemCompraNaoEncontradoError) {
+            return res.status(404).json({ erro: erro.message });
+        }
         res.status(500).json({
             erro: 'Erro ao atualizar item no banco'
         });
@@ -125,9 +182,20 @@ async function apagarId(req, res) {
 // CRIAÇÃO
 async function criarItemHandler(req, res) {
     try {
-        const { usuario_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada } = req.body;
-        const resultado = await criarItem(usuario_id, nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada);
-        res.status(201).json(resultado);
+        const usuarioId = req.body?.usuario_id;
+        const compraId = req.body?.compra_id;
+        if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0 ||
+            !Number.isSafeInteger(compraId) || compraId <= 0) {
+            return res.status(400).json({ erro: 'usuario_id e compra_id devem ser inteiros positivos.' });
+        }
+
+        const erros = validateItem(req.body, 0);
+        if (erros.length > 0) {
+            return res.status(400).json({ error: erros });
+        }
+
+        const resultado = await adicionaItensACompraService(usuarioId, compraId, { itens: [req.body] });
+        res.status(201).json({ compraId: resultado.id });
     } catch (erro) {
         console.error(erro)
         res.status(500).json({

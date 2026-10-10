@@ -340,6 +340,15 @@ describe('validateCreateCompraPayload', () => {
                 expect(validateCreateCompraPayload(payload).isValid).toBe(true);
             }
         );
+
+        test('rejeita fração que o banco arredondaria', () => {
+            expectSingleError(createValidPayload({
+                itens: [createValidItem({ quantidade: 0.001 })]
+            }), {
+                field: 'itens[0].quantidade',
+                message: 'Quantidade deve ter até duas casas decimais e caber no campo do banco.'
+            });
+        });
     });
 
     describe('unidade de medida', () => {
@@ -385,12 +394,13 @@ describe('validateCreateCompraPayload', () => {
             );
         });
 
-        test('deve aceitar unidade de medida com exatamente 20 caracteres', () => {
-            const payload = createValidPayload({
+        test('deve rejeitar unidade de medida não suportada mesmo com 20 caracteres', () => {
+            expectSingleError(createValidPayload({
                 itens: [createValidItem({ unidade_de_medida: 'a'.repeat(20) })]
+            }), {
+                field: 'itens[0].unidade_de_medida',
+                message: 'Item variável deve usar kg, g, L ou mL.'
             });
-
-            expect(validateCreateCompraPayload(payload).isValid).toBe(true);
         });
 
         test('deve rejeitar unidade de medida com mais de 20 caracteres', () => {
