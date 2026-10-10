@@ -4,18 +4,20 @@ const sql = require('./config/database');                 // Importa conexão co
 const userRoutes = require('./routes/userRoutes');        // Importa rotas de operações de usuário
 const items = require('./routes/itemRoutes');             // Importa rotas de manipulação de itens
 const authRoutes = require('./routes/authRoutes');        // Importa rotas de autenticação
-const estoqueRoutes = require('./routes/estoqueRoutes');  //Importa rotas do Estoque
+const estoqueRoutes = require('./routes/estoqueRoutes');  // Importa rotas do Estoque
 const comprasRoutes = require('./routes/compraRoutes');   // Importa rotas de manipulação de compras
+const receitasRoutes = require('./routes/receitaRoutes'); // Importa rotas de manipulação de receitas
 
 const app = express();
 
-app.use(cors());                        // Libera o acesso para o frontend
+app.use(cors());                          // Libera o acesso para o frontend
 app.use(express.json());
-app.use('/api/users', userRoutes);      // Rota para operações de usuário
-app.use('/api/items', items);           // Rota para itens do estoque
-app.use('/api/auth', authRoutes);       // Rota para autenticação de usuário
-app.use('/api/estoque', estoqueRoutes);  //Rota de estoque
-app.use('/api/compras', comprasRoutes); // Rota para operações de compras
+app.use('/api/users', userRoutes);        // Rota para operações de usuário
+app.use('/api/items', items);             // Rota para itens do estoque
+app.use('/api/auth', authRoutes);         // Rota para autenticação de usuário
+app.use('/api/estoque', estoqueRoutes);   // Rota de estoque
+app.use('/api/compras', comprasRoutes);   // Rota para operações de compras
+app.use('/api/receitas', receitasRoutes); // Rota para operações com receitas
 
 app.get('/', (req, res) => {
   res.json({
