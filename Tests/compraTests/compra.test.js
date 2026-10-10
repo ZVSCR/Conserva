@@ -22,13 +22,19 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
         }
     }
 
+    class GranularidadeInvalidaError extends Error {}
+    class ItemCompraConflitoError extends Error {}
+
     return {
         listarComprasUsuario: jest.fn(),
         listarCompraPorId: jest.fn(),
         atualizarCompraPorId: jest.fn(),
         atualizarPorCompraId: jest.fn(),
+        atualizarInstanciasPorCompraId: jest.fn(),
         CompraNaoEncontradaError,
-        ItemCompraNaoEncontradoError
+        ItemCompraNaoEncontradoError,
+        GranularidadeInvalidaError,
+        ItemCompraConflitoError
     };
 });
 
@@ -37,12 +43,16 @@ const {
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,
+    atualizarInstanciasPorCompraId,
     CompraNaoEncontradaError,
-    ItemCompraNaoEncontradoError
+    ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError
 } = require('../../Backend/src/repositories/compraRepository');
 const app = require('../../Backend/src/app');
 
 const endpoint = '/api/compras/2/items/1';
+const bulkEndpoint = '/api/compras/2/items';
 const compraEndpoint = '/api/compras/2';
 const listaComprasEndpoint = '/api/compras';
 
@@ -484,6 +494,18 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         });
     });
 
+    test('retorna 400 para medida incompatível com o tipo do item', async () => {
+        atualizarPorCompraId.mockRejectedValue(new GranularidadeInvalidaError('Medida inválida'));
+        const response = await request(app).patch(endpoint).send({ quantidade: 1.5 });
+        expect(response.status).toBe(400);
+    });
+
+    test('retorna 409 ao tentar corrigir quantidade original após consumo', async () => {
+        atualizarPorCompraId.mockRejectedValue(new ItemCompraConflitoError('Item já consumido'));
+        const response = await request(app).patch(endpoint).send({ quantidade: 4 });
+        expect(response.status).toBe(409);
+    });
+
     test('mantém 500 para outras falhas do repositório', async () => {
         atualizarPorCompraId.mockRejectedValue(
             new Error('Falha de conexão')
@@ -497,6 +519,98 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         expect(response.body).toEqual({
             erro: 'Erro ao atualizar itens da compra no banco'
         });
+    });
+});
+
+describe('PATCH /api/compras/:compraId/items', () => {
+    const itemBusca = {
+        nome_item: 'Produto',
+        quantidade: 0.5,
+        unidade_de_medida: 'kg',
+        valor_unitario: 20,
+        validade_estimada: null
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        ['quantidade', { quantidade: 1 }],
+        ['unidade', { unidade_de_medida: 'g' }],
+        ['tipo de medida', { tipo_medida: 'unitaria' }]
+    ])('rejeita atualização coletiva de %s', async (_field, novosValores) => {
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({ itemBusca, novosValores });
+
+        expect(response.status).toBe(400);
+        expect(atualizarInstanciasPorCompraId).not.toHaveBeenCalled();
+    });
+
+    test('exige unidade de medida no seletor para não misturar embalagens', async () => {
+        const { unidade_de_medida, ...buscaSemUnidade } = itemBusca;
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({ itemBusca: buscaSemUnidade, novosValores: { nome_item: 'Outro' } });
+
+        expect(response.status).toBe(400);
+        expect(atualizarInstanciasPorCompraId).not.toHaveBeenCalled();
+    });
+
+    test('valida os tipos do seletor antes de consultar o repositório', async () => {
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({
+                itemBusca: { ...itemBusca, quantidade: '0.5' },
+                novosValores: { nome_item: 'Outro' }
+            });
+
+        expect(response.status).toBe(400);
+        expect(atualizarInstanciasPorCompraId).not.toHaveBeenCalled();
+    });
+
+    test('aceita apenas metadados compartilhados e permite remover a validade', async () => {
+        const resultado = { itens: [{ id: 1 }, { id: 2 }], compra: { id: 2 } };
+        atualizarInstanciasPorCompraId.mockResolvedValue(resultado);
+
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({
+                itemBusca,
+                novosValores: {
+                    nome_item: 'Outro',
+                    valor_unitario: 18,
+                    validade_estimada: null
+                }
+            });
+
+        expect(response.status).toBe(200);
+        expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(2, itemBusca, {
+            nome_item: 'Outro',
+            valor_unitario: 18,
+            validade_estimada: null
+        });
+        expect(response.body.data).toEqual(resultado);
+    });
+
+    test('retorna 404 se nenhuma instância corresponder ao seletor', async () => {
+        atualizarInstanciasPorCompraId.mockRejectedValue(new ItemCompraNaoEncontradoError());
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({ itemBusca, novosValores: { valor_unitario: 18 } });
+
+        expect(response.status).toBe(404);
+    });
+
+    test('retorna 500 se o repositório falhar inesperadamente', async () => {
+        atualizarInstanciasPorCompraId.mockRejectedValue(new Error('Banco indisponível'));
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({ itemBusca, novosValores: { valor_unitario: 18 } });
+
+        expect(response.status).toBe(500);
+        expect(response.body.erro).toBe('Erro ao atualizar itens da compra no banco');
     });
 });
 // =============================================================================

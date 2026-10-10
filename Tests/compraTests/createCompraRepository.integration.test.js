@@ -67,6 +67,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'Arroz',
                     quantidade: 2,
                     unidade_de_medida: 'kg',
+                    tipo_medida: 'variavel',
                     valor_unitario: 8.5,
                     validade_estimada: '2027-03-01'
                 },
@@ -74,6 +75,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'Feijão',
                     quantidade: 3,
                     unidade_de_medida: 'kg',
+                    tipo_medida: 'variavel',
                     valor_unitario: 4,
                     validade_estimada: null
                 }
@@ -96,7 +98,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
 
         const { rows: lotes } = await pool.query(
             `SELECT i.id AS item_id, i.compra_id, i.nome_item, i.quantidade,
-                    i.unidade_de_medida, i.valor_unitario,
+                    i.unidade_de_medida, i.tipo_medida, i.valor_unitario,
                     i.validade_estimada::text AS validade_estimada,
                     e.id AS estoque_id, e.usuario_id,
                     e.quantidade_disponivel
@@ -125,6 +127,8 @@ describeWithDatabase('createCompraRepo — integração', () => {
         expect(Number(feijao.quantidade)).toBe(3);
         expect(arroz.unidade_de_medida).toBe('kg');
         expect(feijao.unidade_de_medida).toBe('kg');
+        expect(arroz.tipo_medida).toBe('variavel');
+        expect(feijao.tipo_medida).toBe('variavel');
         expect(Number(arroz.valor_unitario)).toBe(8.5);
         expect(Number(feijao.valor_unitario)).toBe(4);
         expect(arroz.validade_estimada).toBe('2027-03-01');
@@ -142,6 +146,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'Arroz',
                     quantidade: 1,
                     unidade_de_medida: 'kg',
+                    tipo_medida: 'variavel',
                     valor_unitario: 6,
                     validade_estimada: '2027-01-01'
                 },
@@ -149,6 +154,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'Arroz',
                     quantidade: 2,
                     unidade_de_medida: 'kg',
+                    tipo_medida: 'variavel',
                     valor_unitario: 4,
                     validade_estimada: '2027-06-01'
                 }
@@ -177,6 +183,37 @@ describeWithDatabase('createCompraRepo — integração', () => {
         expect(Number(segundoLote.quantidade_disponivel)).toBe(2);
     });
 
+    test('mantém duas embalagens iguais com saldos independentes', async () => {
+        const pacote = {
+            nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
+            tipo_medida: 'variavel', valor_unitario: 20, validade_estimada: null
+        };
+        const compra = await createCompraRepo({
+            usuario_id: usuarioId,
+            data_compra: '2026-09-21',
+            estabelecimento: uniqueName('granola'),
+            valor_total: 20,
+            itens: [pacote, pacote]
+        });
+
+        const { rows: pacotes } = await pool.query(
+            `SELECT i.id, e.quantidade_disponivel FROM item i
+             JOIN estoque e ON e.item_id = i.id
+             WHERE i.compra_id = $1 ORDER BY i.id`,
+            [compra.id]
+        );
+        expect(pacotes).toHaveLength(2);
+        expect(pacotes[0].id).not.toBe(pacotes[1].id);
+
+        await pool.query('UPDATE estoque SET quantidade_disponivel = 0.2 WHERE item_id = $1', [pacotes[0].id]);
+        const { rows: saldos } = await pool.query(
+            `SELECT quantidade_disponivel FROM estoque
+             WHERE item_id IN ($1, $2) ORDER BY item_id`,
+            [pacotes[0].id, pacotes[1].id]
+        );
+        expect(saldos.map(saldo => Number(saldo.quantidade_disponivel))).toEqual([0.2, 0.5]);
+    });
+
     test('desfaz toda a compra se a inserção do segundo item falhar', async () => {
         const estabelecimento = uniqueName('compra_rollback');
 
@@ -190,6 +227,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'Primeiro item',
                     quantidade: 1,
                     unidade_de_medida: 'un',
+                    tipo_medida: 'unitaria',
                     valor_unitario: 2,
                     validade_estimada: null
                 },
@@ -198,6 +236,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
                     nome_item: 'X'.repeat(101),
                     quantidade: 1,
                     unidade_de_medida: 'un',
+                    tipo_medida: 'unitaria',
                     valor_unitario: 3,
                     validade_estimada: null
                 }

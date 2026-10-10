@@ -1,4 +1,5 @@
-const sql = require('../config/database')
+const sql = require('../config/database');
+const { atualizarPorCompraId } = require('./compraRepository');
 
 // =============================================================================
 // LISTAGEM  -- Alterei pra ocultar a senha do usuario e mostrar o id dos itens
@@ -9,6 +10,7 @@ async function buscarItens() {
             item.nome_item,
             item.quantidade,
             item.unidade_de_medida,
+            item.tipo_medida,
             item.valor_unitario,
             item.validade_estimada,
             compra.id AS compra_id,
@@ -50,122 +52,30 @@ async function buscarItensPorUsuario(usuarioId) {
 // =============================================================================
 // ATUALIZAÇÃO
 async function atualizarPorId(itemId, fieldsToUpdate) {
-    const updates = {};
+    const [atual] = await sql`SELECT compra_id FROM item WHERE id = ${itemId};`;
+    if (!atual) return undefined;
 
-    if (fieldsToUpdate.quantidade !== undefined) {
-        updates.quantidade = fieldsToUpdate.quantidade;
-    }
-    if (fieldsToUpdate.valor_unitario !== undefined) {
-        updates.valor_unitario = fieldsToUpdate.valor_unitario;
-    }
-    if (fieldsToUpdate.nome_item !== undefined) {
-        updates.nome_item = fieldsToUpdate.nome_item;
-    }
-    if (fieldsToUpdate.unidade_de_medida !== undefined) {
-        updates.unidade_de_medida = fieldsToUpdate.unidade_de_medida;
-    }
-    if (fieldsToUpdate.validade_estimada !== undefined) {
-        updates.validade_estimada = fieldsToUpdate.validade_estimada;
-    }
-
-    const result = await sql`
-        UPDATE item
-        SET 
-        quantidade = COALESCE(${updates.quantidade}, quantidade),
-        valor_unitario = COALESCE(${updates.valor_unitario}, valor_unitario),
-        nome_item = COALESCE(${updates.nome_item}, nome_item),
-        unidade_de_medida = COALESCE(${updates.unidade_de_medida}, unidade_de_medida),
-        validade_estimada = COALESCE(${updates.validade_estimada}, validade_estimada)
-        WHERE id = ${itemId}
-        RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada;
-    `;
-
-    return result[0];
+    const resultado = await atualizarPorCompraId(itemId, atual.compra_id, fieldsToUpdate);
+    return resultado.item;
 }
 // =============================================================================
 // REMOÇÃO
 async function apagarPorId(id) {
-    const query = await sql`
-    DELETE FROM item
-    WHERE id = ${id}
-    RETURNING *;
-    `
-
-    return query[0];
-}
-// =============================================================================
-
-// =============================================================================
-// CRIAÇÃO
-async function criarItem(
-    usuarioId, 
-    nomeItem, 
-    quantidade, 
-    unidadeDeMedida, 
-    valorUnitario, 
-    validadeEstimada, 
-    compraId
-) {
-    // Ao usar uma única operação, garantimos que quaisquer erros nesse pipeline
-    // serão suficientes para impedir toda a operação. Assim, temos a certeza de
-    // que nenhum item é criado caso a compra não exista ou nenhuma atualização
-    // na compra/no estoque ocorre se houver um erro no banco de dados.
     const [resultado] = await sql`
-        WITH compra_atualizada AS (
-            UPDATE compra
-            SET valor_total = COALESCE(valor_total, 0)
-                + ${quantidade}::numeric * ${valorUnitario}::numeric
-            WHERE id = ${compraId}
-              AND usuario_id = ${usuarioId}
-            RETURNING id
-        ),
-        item_criado AS (
-            INSERT INTO item (
-                compra_id,
-                nome_item,
-                quantidade,
-                unidade_de_medida,
-                valor_unitario,
-                validade_estimada
-            )
-            SELECT
-                c.id,
-                ${nomeItem},
-                ${quantidade},
-                ${unidadeDeMedida},
-                ${valorUnitario},
-                ${validadeEstimada}
-            FROM compra_atualizada AS c
-            RETURNING id, compra_id, quantidade
-        ),
-        estoque_criado AS (
-            INSERT INTO estoque (
-                usuario_id,
-                item_id,
-                quantidade_disponivel
-            )
-            SELECT
-                ${usuarioId},
-                i.id,
-                i.quantidade
-            FROM item_criado AS i
-            RETURNING id, item_id
+        WITH item_apagado AS (
+            DELETE FROM item WHERE id = ${id}
+            RETURNING id, compra_id
         )
-        SELECT
-            c.id AS "compraId",
-            i.id AS "idItem",
-            e.id AS "idEstoque"
-        FROM compra_atualizada AS c
-        JOIN item_criado AS i ON i.compra_id = c.id
-        JOIN estoque_criado AS e ON e.item_id = i.id
+        UPDATE compra AS c
+        SET valor_total = (
+            SELECT COALESCE(SUM(i.quantidade * i.valor_unitario), 0)
+            FROM item i WHERE i.compra_id = c.id AND i.id <> ${id}
+        )
+        FROM item_apagado AS apagado
+        WHERE c.id = apagado.compra_id
+        RETURNING apagado.id;
     `;
-
-    if (!resultado) {
-        throw new Error('Compra não encontrada para este usuário');
-    }
-
     return resultado;
 }
-// =============================================================================
 
-module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario};
+module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, buscarItensPorUsuario };
