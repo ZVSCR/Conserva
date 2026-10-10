@@ -5,5 +5,6 @@ create table item (
     quantidade numeric(9, 2) not null,
     unidade_de_medida varchar(20) not null,
     valor_unitario numeric(9, 2) not null,
-    validade_estimada date
+    validade_estimada date,
+    ingrediente_id integer references ingrediente(id) on delete set null
 );  
