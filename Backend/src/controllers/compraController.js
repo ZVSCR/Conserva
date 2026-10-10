@@ -7,6 +7,8 @@ const {
     createCompraVazia,
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
+    GranularidadeInvalidaError,
+    ItemCompraConflitoError,
     apagarCompraPorId
 } = require('../repositories/compraRepository');
 
@@ -19,12 +21,19 @@ const {
     validateCreateCompraPayload,
     validateItensPayload
 } = require('../middleware/compraValidator');
+const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 const allowedFields = [
     'quantidade',
     'valor_unitario',
     'nome_item',
     'unidade_de_medida',
+    'validade_estimada'
+];
+
+const allowedBulkFields = [
+    'valor_unitario',
+    'nome_item',
     'validade_estimada'
 ];
 
@@ -116,6 +125,9 @@ const validateCompraPayload = (body) => {
                 'quantidade deve ser um número maior que zero.'
             );
         }
+        if (!quantidadeRepresentavel(quantidade)) {
+            return invalidResult('quantidade deve ter até duas casas decimais e caber no campo do banco.');
+        }
     }
 
     if (hasField(body, 'valor_unitario')) {
@@ -174,6 +186,24 @@ const validateCompraPayload = (body) => {
     }
 
     return { isValid: true };
+};
+
+const validateBulkCompraPayload = (body) => {
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        return invalidResult('novosValores deve ser um objeto JSON.');
+    }
+
+    const unsupportedFields = Object.keys(body).filter((field) =>
+        !allowedBulkFields.includes(field)
+    );
+
+    if (unsupportedFields.length > 0) {
+        return invalidResult(
+            `Na atualização coletiva, somente nome_item, valor_unitario e validade_estimada são permitidos. Campos recebidos: ${unsupportedFields.join(', ')}.`
+        );
+    }
+
+    return validateCompraPayload(body);
 };
 
 const validateAtualizacaoCompraPayload = (body) => {
@@ -388,6 +418,14 @@ async function atualizarItensPorCompra(req, res) {
             });
         }
 
+        if (erro instanceof GranularidadeInvalidaError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+
+        if (erro instanceof ItemCompraConflitoError) {
+            return res.status(409).json({ erro: erro.message });
+        }
+
         res.status(500).json({
             erro: 'Erro ao atualizar itens da compra no banco'
         });
@@ -404,27 +442,37 @@ async function atualizarInstanciasPorCompra(req, res) {
             });
         }
 
+        if (req.body === null || typeof req.body !== 'object' || Array.isArray(req.body)) {
+            return res.status(400).json({ erro: 'O corpo da requisição deve ser um objeto JSON.' });
+        }
+
         const { itemBusca, novosValores } = req.body;
 
-        if (!itemBusca || typeof itemBusca !== 'object') {
+        if (!itemBusca || typeof itemBusca !== 'object' || Array.isArray(itemBusca)) {
             return res.status(400).json({
-                erro: 'itemBusca é obrigatório e deve conter nome_item, quantidade, valor_unitario e validade_estimada.'
+                erro: 'itemBusca deve conter nome_item, quantidade, unidade_de_medida e valor_unitario.'
             });
         }
 
-        const { nome_item, quantidade, valor_unitario, validade_estimada } = itemBusca;
+        const { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada } = itemBusca;
 
         if (
             nome_item === undefined ||
             quantidade === undefined ||
+            unidade_de_medida === undefined ||
             valor_unitario === undefined
         ) {
             return res.status(400).json({
-                erro: 'itemBusca deve conter nome_item, quantidade e valor_unitario.'
+                erro: 'itemBusca deve conter nome_item, quantidade, unidade_de_medida e valor_unitario.'
             });
         }
 
-        const validation = validateCompraPayload(novosValores);
+        const buscaValidation = validateCompraPayload(itemBusca);
+        if (!buscaValidation.isValid) {
+            return res.status(400).json({ erro: buscaValidation.message });
+        }
+
+        const validation = validateBulkCompraPayload(novosValores);
         if (!validation.isValid) {
             return res.status(400).json({
                 erro: validation.message
@@ -432,21 +480,17 @@ async function atualizarInstanciasPorCompra(req, res) {
         }
 
         const {
-            quantidade: novaQuantidade,
             valor_unitario: novoValorUnitario,
             nome_item: novoNomeItem,
-            unidade_de_medida: novaUnidadeDeMedida,
             validade_estimada: novaValidadeEstimada
         } = novosValores;
 
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
             compraId,
-            { nome_item, quantidade, valor_unitario, validade_estimada },
+            { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
             {
-                quantidade: novaQuantidade,
                 valor_unitario: novoValorUnitario,
                 nome_item: novoNomeItem,
-                unidade_de_medida: novaUnidadeDeMedida,
                 validade_estimada: novaValidadeEstimada
             }
         );
@@ -460,8 +504,16 @@ async function atualizarInstanciasPorCompra(req, res) {
         if (erro instanceof ItemCompraNaoEncontradoError) {
             return res.status(404).json({
                 erro: erro.message
-            })
-        };
+            });
+        }
+
+        if (erro instanceof GranularidadeInvalidaError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+
+        return res.status(500).json({
+            erro: 'Erro ao atualizar itens da compra no banco'
+        });
     }
 }
 // Exemplo de JSON a ser recebido:

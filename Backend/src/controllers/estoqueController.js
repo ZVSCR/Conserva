@@ -1,8 +1,10 @@
 const { buscarEstoque, 
+  buscarDetalheEstoque,
   atualizarQuantidade, 
   buscarValorEstoquePorUsuario, 
   buscarItensEstoquePorUsuario,
   buscarConsumo } = require('../repositories/estoqueRepository');
+const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 async function listarEstoque(req, res) {
     try {
@@ -16,17 +18,35 @@ async function listarEstoque(req, res) {
 
 async function atualizarQuantidadeItem(req, res) {
     try {
-        const { itemId } = req.params;               
-        const { quantidade } = req.body;
+        const itemId = Number(req.params.itemId);
+        const quantidade = req.body?.quantidade;
+        const usuarioId = req.user.id;
 
-        if (typeof quantidade !== 'number' || quantidade < 0) {
-            return res.status(400).json({ erro: 'Informe uma quantidade numérica válida (>= 0).' });
+        if (!Number.isSafeInteger(itemId) || itemId <= 0) {
+            return res.status(400).json({ erro: 'itemId deve ser um inteiro positivo.' });
         }
 
-        const resultado = await atualizarQuantidade(itemId, quantidade);
+        if (typeof quantidade !== 'number' || !Number.isFinite(quantidade) || quantidade < 0) {
+            return res.status(400).json({ erro: 'Informe uma quantidade numérica válida (>= 0).' });
+        }
+        if (!quantidadeRepresentavel(quantidade)) {
+            return res.status(400).json({ erro: 'A quantidade deve ter até duas casas decimais e caber no campo do banco.' });
+        }
+
+        const detalhe = await buscarDetalheEstoque(usuarioId, itemId);
+        if (!detalhe) {
+            return res.status(404).json({ erro: 'Item não encontrado no estoque' });
+        }
+
+        if (quantidade > Number(detalhe.quantidade_original) ||
+            (detalhe.tipo_medida === 'unitaria' && !Number.isSafeInteger(quantidade))) {
+            return res.status(400).json({ erro: 'Quantidade incompatível com o tipo ou a quantidade original do item.' });
+        }
+
+        const resultado = await atualizarQuantidade(usuarioId, itemId, quantidade);
 
         if (!resultado) {
-            return res.status(404).json({ erro: 'Item não encontrado no estoque' });
+            return res.status(409).json({ erro: 'O estoque mudou durante a atualização; tente novamente.' });
         }
 
         res.json(resultado);

@@ -8,6 +8,8 @@ async function buscarEstoque(usuarioId) {
                estoque.quantidade_disponivel,
                estoque.gasto,
                item.nome_item,
+               item.quantidade AS quantidade_original,
+               item.tipo_medida,
                item.unidade_de_medida,
                item.validade_estimada,
                item.quantidade AS quantidade_original
@@ -19,13 +21,30 @@ async function buscarEstoque(usuarioId) {
     return query;
 }
 
-//Atualizar a quantidade de um item no estoque pela id do item
-async function atualizarQuantidade(itemId, novaQuantidade) {
+async function buscarDetalheEstoque(usuarioId, itemId) {
+    const [detalhe] = await sql`
+        SELECT item.quantidade AS quantidade_original,
+               item.tipo_medida,
+               estoque.quantidade_disponivel
+        FROM estoque
+        JOIN item ON item.id = estoque.item_id
+        WHERE estoque.usuario_id = ${usuarioId} AND estoque.item_id = ${itemId};
+    `;
+    return detalhe;
+}
+
+// Atualização protegida: a verificação ocorre no mesmo comando que grava o saldo.
+async function atualizarQuantidade(usuarioId, itemId, novaQuantidade) {
     const query = await sql`
-        UPDATE estoque
+        UPDATE estoque AS e
         SET quantidade_disponivel = ${novaQuantidade}
-        WHERE item_id = ${itemId}
-        RETURNING *;
+        FROM item AS i
+        WHERE e.item_id = i.id
+          AND e.usuario_id = ${usuarioId}
+          AND e.item_id = ${itemId}
+          AND ${novaQuantidade}::numeric BETWEEN 0 AND i.quantidade
+          AND (i.tipo_medida = 'variavel' OR ${novaQuantidade}::numeric = trunc(${novaQuantidade}::numeric))
+        RETURNING e.*;
     `;
 
     return query[0];
@@ -53,6 +72,8 @@ async function buscarItensEstoquePorUsuario(usuarioId) {
             e.id AS estoque_id,
             i.id AS item_id,
             i.nome_item,
+            i.quantidade AS quantidade_original,
+            i.tipo_medida,
             i.unidade_de_medida,
             e.quantidade_disponivel,
             i.valor_unitario,
@@ -75,6 +96,7 @@ async function buscarConsumo(usuarioId) {
                item.quantidade AS quantidade_comprada,
                estoque.quantidade_disponivel,
                item.valor_unitario,
+               item.tipo_medida,
                item.unidade_de_medida,
                (item.quantidade - estoque.quantidade_disponivel) * item.valor_unitario AS valor_gasto
         FROM estoque
@@ -85,4 +107,4 @@ async function buscarConsumo(usuarioId) {
 
     return query;
 }
-module.exports = { buscarEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario, buscarConsumo };
+module.exports = { buscarEstoque, buscarDetalheEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario, buscarConsumo };
