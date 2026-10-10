@@ -1,6 +1,6 @@
 const sql = require('../config/database')
 
-const aliasesToNome = { 
+const aliasesToNome = {
     "req": "requeijao",
     "requeijao": "requeijao",
     "leite": "leite",
@@ -135,6 +135,19 @@ function resolverNomeItem(rawItem, novoItemNome) {
     return { needsName: false, item: itemFinal };
 }
 
+/* EXEMPLO DE CHAMADA DO MAPEAMENTO
+
+    const raw = await ask('Adicione um item:\n');
+        let result = adicionarItem(raw);
+
+    if (result.needsName) {
+        const novoNome = await ask('Item não encontrado, qual o nome do item?\n');
+        result = resolverNomeItem(result.rawItem, novoNome);
+    }
+    console.log(result.item);
+
+*/
+
 // =============================================================================
 // LISTAGEM  -- Alterei pra ocultar a senha do usuario e mostrar o id dos itens
 async function buscarItens() {
@@ -233,12 +246,12 @@ async function apagarPorId(id) {
 // =============================================================================
 // CRIAÇÃO
 async function criarItem(
-    usuarioId, 
-    nomeItem, 
-    quantidade, 
-    unidadeDeMedida, 
-    valorUnitario, 
-    validadeEstimada, 
+    usuarioId,
+    nomeItem,
+    quantidade,
+    unidadeDeMedida,
+    valorUnitario,
+    validadeEstimada,
     compraId
 ) {
     // Ao usar uma única operação, garantimos que quaisquer erros nesse pipeline
@@ -303,4 +316,4 @@ async function criarItem(
 }
 // =============================================================================
 
-module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario};
+module.exports = { buscarItens, buscarPorId, atualizarPorId, apagarPorId, criarItem, buscarItensPorUsuario };
