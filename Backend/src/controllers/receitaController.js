@@ -8,6 +8,11 @@ const {
     createReceitaService
 } = require('../services/receitaService');
 
+const {
+    listReceitasRepo,
+    getReceitaByIdRepo
+} = require('../repositories/receitaRepository')
+
 async function createReceita(req, res) {
 
     // TODO: chamar valida payload
@@ -112,6 +117,55 @@ async function prepararReceita(req, res) {
     }
 }
 
+async function listReceitas(req, res) {
+    try {
+        const receitas = await listReceitasRepo();
+
+        return res.status(200).json({
+            receitas
+        });
+    } catch (error) {
+        console.error('Erro ao listar receitas:', error);
+
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+}
+
+async function getReceitaById(req, res) {
+    try {
+        // Só aceita inteiros positivos
+        if (!/^[1-9]\d*$/.test(req.params.id)) {
+            return res.status(400).json({
+                error: 'id deve ser um inteiro positivo.'
+            });
+        }
+
+        const receita = await getReceitaByIdRepo(Number(req.params.id));
+
+        if (!receita) {
+            return res.status(404).json({
+                error: 'Receita não encontrada.'
+            });
+        }
+
+        return res.status(200).json({
+            receita
+        });
+    } catch (error) {
+        console.error('Erro ao buscar receita:', error);
+
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+}
+
 module.exports = {
-    createReceita, verificarReceita, prepararReceita
+    createReceita, 
+    verificarReceita, 
+    prepararReceita,
+    listReceitas,
+    getReceitaById
 };

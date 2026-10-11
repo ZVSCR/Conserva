@@ -131,7 +131,80 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         client.release();
     }
 }
+// Lista todas as receitas, cada uma com seus ingredientes
+async function listReceitasRepo() {
+    try {
+        const receitas = await sql`
+            SELECT
+                r.id,
+                r.nome,
+                r.descricao,
+                r.modo_preparo,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'nome', i.nome,
+                            'quantidade', ri.quantidade,
+                            'unidade_de_medida', ri.unidade_de_medida
+                        )
+                        ORDER BY i.nome
+                    ) FILTER (WHERE i.id IS NOT NULL),
+                    '[]'
+                ) AS ingredientes
+            FROM receita r
+            LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
+            LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
+            GROUP BY r.id
+            ORDER BY r.nome
+        `;
+
+        return receitas;
+    } catch (error) {
+        console.error('Erro em listReceitasRepo:', error);
+        throw error;
+    }
+}
+
+// Busca uma receita pelo id, com seus ingredientes
+async function getReceitaByIdRepo(id) {
+    try {
+        const [receita] = await sql`
+            SELECT
+                r.id,
+                r.nome,
+                r.descricao,
+                r.modo_preparo,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'nome', i.nome,
+                            'quantidade', ri.quantidade,
+                            'unidade_de_medida', ri.unidade_de_medida
+                        )
+                        ORDER BY i.nome
+                    ) FILTER (WHERE i.id IS NOT NULL),
+                    '[]'
+                ) AS ingredientes
+            FROM receita r
+            LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
+            LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
+            WHERE r.id = ${id}
+            GROUP BY r.id
+        `;
+
+        return receita;
+    } catch (error) {
+        console.error('Erro em getReceitaByIdRepo:', error);
+        throw error;
+    }
+}
 
 module.exports = {
-    createReceitaRepo, prepararReceitaRepo, ReceitaNaoEncontradaError, ReceitaSemIngredientesError, IngredientesInsuficientesError
+    createReceitaRepo, 
+    prepararReceitaRepo, 
+    ReceitaNaoEncontradaError, 
+    ReceitaSemIngredientesError, 
+    IngredientesInsuficientesError,
+    listReceitasRepo,
+    getReceitaByIdRepo
 };
