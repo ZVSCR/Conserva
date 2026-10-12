@@ -1,9 +1,7 @@
 import { useState, useEffect, use } from "react";
 import "./PanelViewReceita.css";
-import { useNavigate } from 'react-router-dom';
-import ExtratoCompras from "../PanelExtratoCompras/PanelExtratoCompras";
 
-function ViewReceita() {
+function PanelViewReceita() {
     const [receitas, setReceitas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
@@ -17,7 +15,6 @@ function ViewReceita() {
         try {
             const response = await fetch(`http://localhost:3000/api/receitas`, {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
             });
 
             const data = await response.json();
@@ -37,6 +34,10 @@ function ViewReceita() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchReceitas();
+    }, []);
 
     // Barra de busca do catálogo de receitas
     const receitasFiltradas = receitas.filter(
@@ -74,8 +75,11 @@ function ViewReceita() {
                         <div key={receita.id} className="receita-card">
                             <div className="receita-info">
                                 <h3>
-                                    {receita.descricao}
+                                    {receita.nome}
                                 </h3>
+                                <p className="receita-descricao">
+                                    {receita.descricao}
+                                </p>
                             </div>
                         </div>
                     ))
@@ -87,4 +91,4 @@ function ViewReceita() {
     );
 }
 
-export default ViewReceita;
+export default PanelViewReceita;
