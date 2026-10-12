@@ -27,6 +27,6 @@ receitaRouter.route('/:receitaId/preparar')
 receitaRouter.route('/:id')
     .get(getReceitaById)
     .delete(deleteReceita)
-    .patch();
+    .patch(patchReceitaById);
 
 module.exports = receitaRouter;
