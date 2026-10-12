@@ -30,7 +30,7 @@
 
 .receitas-list {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 15px;
     max-height: 400px;
     overflow-y: auto;
@@ -45,10 +45,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 90%;
 }
 
 .receita-info h3 {
     font-size: 16px;
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.receita-descricao {
+    font-size: 10px;
     margin: 0 0 5px 0;
     color: #fff;
 }
