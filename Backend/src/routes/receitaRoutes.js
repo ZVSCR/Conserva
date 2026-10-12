@@ -15,8 +15,8 @@ const {
 
 receitaRouter.route('/')
     .post(createReceita)
-    .get(listReceitas);
-// .patch()
+    .get(listReceitas)
+    .patch();
 // .delete();
 // Adicionar somente quando funções forem implementadas
 
