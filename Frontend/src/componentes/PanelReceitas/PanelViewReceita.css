@@ -101,6 +101,7 @@
 }
 
 .error-message {
+    font-size: 12px;
     text-align: center;
     color: #ff0000;
 }
