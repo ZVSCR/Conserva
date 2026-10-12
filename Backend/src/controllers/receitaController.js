@@ -1,3 +1,5 @@
+const SERIAL_UPPER_LIMIT = 2_147_483_647;
+
 // Recebe middleware
 const {
     validateReceitaPayload
@@ -5,7 +7,8 @@ const {
 
 // Recebe service
 const {
-    createReceitaService
+    createReceitaService,
+    updateReceitaService,
 } = require('../services/receitaService');
 
 const {
@@ -192,11 +195,73 @@ async function deleteReceita(req, res) {
     }
 }
 
+// atualiza informacoes basicas da receita
+async function patchReceitaById(req, res) {
+    try {
+        const { id } = req.params;
+        const receitaId = Number(id);
+        if (
+            !/^[1-9]\d*$/.test(id) ||
+            !Number.isSafeInteger(receitaId) ||
+            receitaId > SERIAL_UPPER_LIMIT
+        ) {
+            return res.status(400).json({
+                erro: 'id deve ser um inteiro positivo.'
+            });
+        }
+        // uma vez que todos os campos sempre conterao algo, podemos reutilizar
+        // a validacao da payload de criacao
+        const {
+            isValid,
+            errors
+        } = validateReceitaPayload(req.body);
+        if (!isValid)
+            return res.status(400).json({
+                errors
+            });
+
+        const receitaAtualizada = await updateReceitaService(receitaId, req.body);
+        if (!receitaAtualizada)
+            return res.status(404).json({
+                erro: 'Receita não encontrada'
+            });
+        return res.status(200).json({
+            message: 'Receita atualizada com sucesso',
+            receitaAtualizada
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar receita: ', error);
+
+        return res.status(500).json({
+            erro: 'Erro interno do servidor.'
+        });
+    }
+}
+
+// adiciona um ingrediente na receita
+async function postIngredienteReceitaById(req, res) {
+
+}
+
+// atualiza um ingrediente da receita
+async function patchIngredienteReceitaById(req, res) {
+
+}
+
+// remove um ingrediente da receita
+async function deleteIngredienteReceitaById(req, res) {
+
+}
+
 module.exports = {
     createReceita, 
     verificarReceita, 
     prepararReceita,
     listReceitas,
     getReceitaById,
-    deleteReceita
+    deleteReceita,
+    patchReceitaById,
+    postIngredienteReceitaById,
+    patchIngredienteReceitaById,
+    deleteIngredienteReceitaById,
 };

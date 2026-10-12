@@ -215,6 +215,31 @@ async function deleteReceitaRepo(id) {
     }
 }
 
+async function updateReceitaRepo(receitaId, payload) {
+    const {
+        nome,
+        descricao,
+        modo_preparo
+    } = payload;
+
+    try {
+        const [receitaAtualizada] = await sql`
+            UPDATE receita
+            SET
+                nome = ${nome},
+                descricao = ${descricao},
+                modo_preparo = ${modo_preparo}
+            WHERE id = ${receitaId}
+            RETURNING id, nome, descricao, modo_preparo;
+        `;
+
+        return receitaAtualizada;
+    } catch (error) {
+        console.error('Erro em updateReceitaRepo: ', error);
+        throw error;
+    }
+}
+
 module.exports = {
     createReceitaRepo, 
     prepararReceitaRepo, 
@@ -223,5 +248,6 @@ module.exports = {
     IngredientesInsuficientesError,
     listReceitasRepo,
     getReceitaByIdRepo,
-    deleteReceitaRepo
+    deleteReceitaRepo,
+    updateReceitaRepo,
 };
