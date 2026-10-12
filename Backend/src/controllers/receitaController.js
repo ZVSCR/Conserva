@@ -1,4 +1,4 @@
-const SERIAL_UPPER_LIMIT = 2147483647
+const SERIAL_UPPER_LIMIT = 2_147_483_647;
 
 // Recebe middleware
 const {
@@ -199,10 +199,11 @@ async function deleteReceita(req, res) {
 async function patchReceitaById(req, res) {
     try {
         const { id } = req.params;
+        const receitaId = Number(id);
         if (
             !/^[1-9]\d*$/.test(id) ||
-            !Number.isSafeInteger(Number(id)) || 
-            Number(id) > SERIAL_UPPER_LIMIT
+            !Number.isSafeInteger(receitaId) ||
+            receitaId > SERIAL_UPPER_LIMIT
         ) {
             return res.status(400).json({
                 erro: 'id deve ser um inteiro positivo.'
@@ -219,7 +220,7 @@ async function patchReceitaById(req, res) {
                 errors
             });
 
-        const receitaAtualizada = await updateReceitaService(Number(id), req.body);
+        const receitaAtualizada = await updateReceitaService(receitaId, req.body);
         if (!receitaAtualizada)
             return res.status(404).json({
                 erro: 'Receita não encontrada'

@@ -27,7 +27,7 @@ async function updateReceitaService(receitaId, payload) {
         descricao,
         modo_preparo
     } = payload;
-    
+
     const normalizedNome = nome.trim();
     return updateReceitaRepo(
         receitaId,
