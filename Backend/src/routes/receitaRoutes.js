@@ -10,13 +10,12 @@ const {
     prepararReceita,
     listReceitas,
     getReceitaById,
-    deleteReceita
+    deleteReceita,
 } = require('../controllers/receitaController');
 
 receitaRouter.route('/')
     .post(createReceita)
     .get(listReceitas)
-    .patch();
 // .delete();
 // Adicionar somente quando funções forem implementadas
 
