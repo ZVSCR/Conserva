@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
 
 function PanelViewReceita() {
@@ -7,8 +7,6 @@ function PanelViewReceita() {
     const [errorMsg, setErrorMsg] = useState("");
     const [busca, setBusca] = useState("");
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
-
-    const navigate = useNavigate();
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -39,12 +37,29 @@ function PanelViewReceita() {
         fetchReceitas();
     }, []);
 
+    // Fecha o pop-up com a tecla Esc enquanto ele estiver aberto
+    useEffect(() => {
+        if (receitaExpandidaId === null) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") setReceitaExpandidaId(null);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [receitaExpandidaId]);
+
     // Barra de busca do catálogo de receitas
     const receitasFiltradas = receitas.filter(
         (receita) =>
             (receita.nome && receita.nome.toLowerCase().includes(busca.toLowerCase())) ||
             (receita.descricao && receita.descricao.toLowerCase().includes(busca.toLowerCase()))
     );
+
+    // Receita exibida no pop-up (undefined quando nenhuma está expandida)
+    const receitaExpandida = receitas.find((receita) => receita.id === receitaExpandidaId);
+
+    const fecharPopup = () => setReceitaExpandidaId(null);
 
     if (loading) {
         return (
@@ -60,6 +75,12 @@ function PanelViewReceita() {
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
 
+            {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
+            <div className="receita-actions">
+                <button type="button" className="btn-adicionar">Adicionar receita</button>
+                <button type="button" className="btn-remover">Remover receita</button>
+            </div>
+
             <div className="search-box">
                 <input
                     type="text"
@@ -72,7 +93,19 @@ function PanelViewReceita() {
             <div className="receitas-list">
                 {receitasFiltradas.length > 0 ? (
                     receitasFiltradas.map((receita) => (
-                        <div key={receita.id} className="receita-card">
+                        <div
+                            key={receita.id}
+                            className="receita-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setReceitaExpandidaId(receita.id)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setReceitaExpandidaId(receita.id);
+                                }
+                            }}
+                        >
                             <div className="receita-info">
                                 <h3>
                                     {receita.nome}
@@ -87,6 +120,41 @@ function PanelViewReceita() {
                     <p className="no-results">Nenhuma receita encontrada.</p>
                 )}
             </div>
+
+            {/* Pop-up com os detalhes da receita selecionada */}
+            {receitaExpandida && (
+                <div className="modal-overlay" onClick={fecharPopup}>
+                    <div
+                        className="modal-content"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="modal-receita-titulo"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="modal-close"
+                            aria-label="Fechar"
+                            onClick={fecharPopup}
+                        >
+                            ×
+                        </button>
+
+                        <h2 id="modal-receita-titulo" className="modal-titulo">
+                            {receitaExpandida.nome}
+                        </h2>
+
+                        <p className="modal-descricao">
+                            {receitaExpandida.descricao || "Sem descrição."}
+                        </p>
+
+                        <h3 className="modal-subtitulo">Modo de preparo</h3>
+                        <p className="modal-preparo">
+                            {receitaExpandida.modo_preparo || "Modo de preparo não informado."}
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
