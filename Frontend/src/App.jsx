@@ -7,7 +7,7 @@ import UserData from './pages/UserData/PageUserData';
 import UserPreferences from './pages/UserPreferences/PageUserPreferences';
 import ExtratoCompras from './pages/ExtratoCompras/PageExtratoCompras';
 import NovaCompra from './pages/NovaCompra/PageNovaCompra';
-import ViewReceita from './pages/Receitas/PageViewReceita'
+import ViewReceita from './pages/Receitas/PageViewReceita';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
