@@ -55,7 +55,7 @@ function ViewReceita() {
 
     return (
         <div className="receita-container">
-            <h2 className="receitas-title">Extrato de compras</h2>
+            <h2 className="receita-title">Catálogo de Receitas</h2>
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
 

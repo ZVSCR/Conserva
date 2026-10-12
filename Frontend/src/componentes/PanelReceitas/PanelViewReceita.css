@@ -1,0 +1,64 @@
+.receita-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 20px;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+.receita-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 14px;
+    background-color: #2b2d31;
+    border: 1px solid #424549;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #5865f2;
+}
+
+.receitas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 25px;
+}
+
+.receita-card {
+    background-color: #2b2d31;
+    border: 1px solid #424549;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.receita-info h3 {
+    font-size: 16px;
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.error-message {
+    text-align: center;
+    color: #ff0000;
+}
+
+.no-results {
+    text-align: center;
+    color: #8e9297;
+}
