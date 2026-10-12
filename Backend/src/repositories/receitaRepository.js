@@ -199,6 +199,22 @@ async function getReceitaByIdRepo(id) {
     }
 }
 
+// Remove uma receita pelo id (receita_ingrediente é removida em cascata)
+async function deleteReceitaRepo(id) {
+    try {
+        const [receitaRemovida] = await sql`
+            DELETE FROM receita
+            WHERE id = ${id}
+            RETURNING id, nome
+        `;
+
+        return receitaRemovida;
+    } catch (error) {
+        console.error('Erro em deleteReceitaRepo:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     createReceitaRepo, 
     prepararReceitaRepo, 
@@ -206,5 +222,6 @@ module.exports = {
     ReceitaSemIngredientesError, 
     IngredientesInsuficientesError,
     listReceitasRepo,
-    getReceitaByIdRepo
+    getReceitaByIdRepo,
+    deleteReceitaRepo
 };

@@ -9,7 +9,8 @@ const {
     verificarReceita, 
     prepararReceita,
     listReceitas,
-    getReceitaById
+    getReceitaById,
+    deleteReceita
 } = require('../controllers/receitaController');
 
 receitaRouter.route('/')
@@ -24,8 +25,9 @@ receitaRouter.route('/:receitaId/disponibilidade')
 
 receitaRouter.route('/:receitaId/preparar')
     .post(autenticar, prepararReceita);
-    
+
 receitaRouter.route('/:id')
-    .get(getReceitaById);
+    .get(getReceitaById)
+    .delete(deleteReceita);
 
 module.exports = receitaRouter;
