@@ -10,7 +10,8 @@ const {
 
 const {
     listReceitasRepo,
-    getReceitaByIdRepo
+    getReceitaByIdRepo,
+    deleteReceitaRepo
 } = require('../repositories/receitaRepository')
 
 async function createReceita(req, res) {
@@ -162,10 +163,40 @@ async function getReceitaById(req, res) {
     }
 }
 
+async function deleteReceita(req, res) {
+    try {
+        if (!/^[1-9]\d*$/.test(req.params.id)) {
+            return res.status(400).json({
+                error: 'id deve ser um inteiro positivo.'
+            });
+        }
+
+        const receitaRemovida = await deleteReceitaRepo(Number(req.params.id));
+
+        if (!receitaRemovida) {
+            return res.status(404).json({
+                error: 'Receita não encontrada.'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Receita removida com sucesso.',
+            receita: receitaRemovida
+        });
+    } catch (error) {
+        console.error('Erro ao remover receita:', error);
+
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+}
+
 module.exports = {
     createReceita, 
     verificarReceita, 
     prepararReceita,
     listReceitas,
-    getReceitaById
+    getReceitaById,
+    deleteReceita
 };
