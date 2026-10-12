@@ -1,6 +1,7 @@
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
+const { calcularValorUnitario } = require('../services/precoService');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -57,7 +58,7 @@ async function listarCompraPorId(usuarioId, compraId) {
             item.quantidade,
             item.unidade_de_medida,
             item.tipo_medida,
-            item.valor_unitario,
+            ROUND(item.quantidade * item.valor_unitario, 2) AS valor_unitario,
             item.validade_estimada,
             users.username
         FROM compra
@@ -84,7 +85,7 @@ async function listarComprasUsuarioData(usuarioId, dataInicio, dataFim) {
         FROM compra c
         LEFT JOIN item i ON c.id = i.compra_id
         WHERE c.usuario_id = ${usuarioId}
-          ${dataInicio && dataFim ? sql`AND c.data_compra BETWEEN ${dataInicio} AND${dataFim}` : sql``}
+          ${dataInicio && dataFim ? sql`AND c.data_compra BETWEEN ${dataInicio} AND ${dataFim}` : sql``}
         GROUP BY c.id, c.data_compra, c.valor_total, c.estabelecimento, c.usuario_id
         ORDER BY c.data_compra DESC
     `;
@@ -140,9 +141,9 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         const unidade = fieldsToUpdate.unidade_de_medida ?? atual.unidade_de_medida;
         const medidaValida = atual.tipo_medida === 'unitaria'
             ? unidade === 'un' && Number.isSafeInteger(quantidade) && quantidade > 0 &&
-              quantidadeRepresentavel(quantidade)
+            quantidadeRepresentavel(quantidade)
             : ['kg', 'g', 'L', 'mL'].includes(unidade) &&
-              quantidadeRepresentavel(quantidade) && quantidade > 0;
+            quantidadeRepresentavel(quantidade) && quantidade > 0;
 
         if (!medidaValida) {
             throw new GranularidadeInvalidaError('Quantidade ou unidade incompatível com o tipo do item.');
@@ -160,6 +161,11 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
             throw new ItemCompraConflitoError();
         }
 
+
+        const novoValorUnitario = fieldsToUpdate.valor_unitario !== undefined
+            ? calcularValorUnitario(fieldsToUpdate.valor_unitario, quantidade)
+            : null;
+
         const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(fieldsToUpdate, 'validade_estimada') &&
             fieldsToUpdate.validade_estimada !== undefined;
         const { rows: [item] } = await client.query(`
@@ -172,7 +178,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
             WHERE id = $7 AND compra_id = $8
             RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada
         `, [
-            quantidade, unidade, fieldsToUpdate.valor_unitario ?? null,
+            quantidade, unidade, novoValorUnitario,
             fieldsToUpdate.nome_item ?? null, deveAtualizarValidade,
             fieldsToUpdate.validade_estimada ?? null, itemId, compraId
         ]);
@@ -194,7 +200,7 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         const { rows: [compra] } = await client.query(`
             UPDATE compra
             SET valor_total = (
-                SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
+                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
                 FROM item WHERE compra_id = $1
             )
             WHERE id = $1
@@ -398,7 +404,7 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
         const { rows: [compraAtualizada] } = await client.query(`
             UPDATE compra
             SET valor_total = (
-                SELECT COALESCE(SUM(quantidade * valor_unitario), 0)
+                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
                 FROM item
                 WHERE compra_id = $1
             )
