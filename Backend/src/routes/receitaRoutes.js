@@ -5,12 +5,16 @@ const autenticar = require('../middleware/mockAuth');
 //Quando deixar de usar o mockAuth, basta trocar por require('../middleware/requireAuth');
 
 const {
-    createReceita, verificarReceita, prepararReceita
+    createReceita, 
+    verificarReceita, 
+    prepararReceita,
+    listReceitas,
+    getReceitaById
 } = require('../controllers/receitaController');
 
 receitaRouter.route('/')
-    .post(createReceita);
-// .get()
+    .post(createReceita)
+    .get(listReceitas);
 // .patch()
 // .delete();
 // Adicionar somente quando funções forem implementadas
@@ -20,5 +24,8 @@ receitaRouter.route('/:receitaId/disponibilidade')
 
 receitaRouter.route('/:receitaId/preparar')
     .post(autenticar, prepararReceita);
+    
+receitaRouter.route('/:id')
+    .get(getReceitaById);
 
 module.exports = receitaRouter;
