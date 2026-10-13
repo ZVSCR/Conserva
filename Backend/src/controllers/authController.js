@@ -1,20 +1,18 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 
+const {
+    validateUser
+} = require('../middleware/authValidator');
+
+const {
+    registerService,
+    loginService
+} = require('../services/authService');
+
 // TODO: transferir validação de campos para authValidator
 // TODO: transferir comandos de repositório para authRepository
 // TODO: retirar comentários desnecessários
-
-// Configura o custo computacional do bcrypt
-const SALT_ROUNDS = 12;
-
-// HTTP codes
-// 200: user signed in
-// 201: user registered
-// 400: bad request
-// 401: unauthorized
-// 409: conflict
-// 500: internal server error
 
 // Registro de usuário
 async function register(req, res) {
