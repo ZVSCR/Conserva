@@ -148,7 +148,7 @@ function validateLogin(user) {
     } = user;
 
     // Valida cada campo de req.body
-    errors.push(...validateUsername(identifier));
+    errors.push(...validateIdentifier(identifier));
     errors.push(...validatePassword(password));
 
     return {
