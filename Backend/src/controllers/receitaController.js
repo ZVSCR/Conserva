@@ -355,4 +355,6 @@ module.exports = {
     postIngredienteReceitaById,
     patchIngredienteReceitaById,
     deleteIngredienteReceitaById,
+    getGastoPorReceita,
+    getGastoReceita,
 };
