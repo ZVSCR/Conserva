@@ -54,6 +54,7 @@ async function getGastoReceitaService({ receitaId, usuarioId } = {}) {
         gasto_total: totalCentavos / 100,
         preparos
     };
+}
 async function updateReceitaService(receitaId, payload) {
     const {
         nome,
@@ -75,6 +76,6 @@ async function updateReceitaService(receitaId, payload) {
 module.exports = {
     createReceitaService,
     getGastoPorReceitaService,
-    getGastoReceitaService
+    getGastoReceitaService,
     updateReceitaService,
 };

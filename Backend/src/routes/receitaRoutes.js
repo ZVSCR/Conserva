@@ -6,8 +6,9 @@ const autenticar = require('../middleware/mockAuth');
 
 const {
     createReceita,
+    createReceitaPreparada,
     getGastoPorReceita,
-    getGastoReceita
+    getGastoReceita,
     verificarReceita, 
     prepararReceita,
     listReceitas,

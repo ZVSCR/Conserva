@@ -85,8 +85,9 @@ async function getGastoPorReceitaRepo({ usuarioId } = {}) {
             ORDER BY r.nome
         `;
     } catch (error) {
-
         console.error('Erro em getGastoPorReceitaRepo:', error);
+    }
+}
 // simular = true: Confere e devolve o plano, sem gravar nada ainda. Apenas para ver se é possível fazer a receita
 async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = false } = {}) {
     const client = await pool.connect();
@@ -240,8 +241,10 @@ async function getGastoReceitaRepo({ receitaId, usuarioId } = {}) {
 
         return { receita, preparos };
     } catch (error) {
-
         console.error('Erro em getGastoReceitaRepo:', error);
+    }
+}
+
 // Busca uma receita pelo id, com seus ingredientes
 async function getReceitaByIdRepo(id) {
     try {

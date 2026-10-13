@@ -98,8 +98,9 @@ async function getGastoPorReceita(req, res) {
 
         return res.status(200).json({ receitas });
     } catch (error) {
-
         console.error('Erro ao consultar gasto por receita:', error);
+    }
+}
 const {
     ReceitaNaoEncontradaError,
     ReceitaSemIngredientesError,
@@ -214,6 +215,19 @@ async function getGastoReceita(req, res) {
         const gasto = await getGastoReceitaService({ receitaId, usuarioId });
 
         if (!gasto) {
+            return res.status(404).json({
+                error: 'Receita não encontrada.'
+            });
+        }
+        } catch (error) {
+        console.error('Erro ao buscar receita:', error);
+
+        return res.status(500).json({
+            error: 'Erro interno do servidor.'
+        });
+    }
+}
+
 async function getReceitaById(req, res) {
     try {
         // Só aceita inteiros positivos
