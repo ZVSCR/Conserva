@@ -1,3 +1,7 @@
+.spacer {
+    height: 70px;
+}
+
 .nav {
     position: fixed;
     left: 50%;
