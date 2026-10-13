@@ -9,8 +9,11 @@
     text-align: left;
 }
 
-.refeicoes-container > h1 {
+.refeicoes-container > h2 {
     margin: 0;
+    color: #fff;
+    font-size: 24px;
+    text-align: center;
 }
 
 .refeicoes-container .search-box input {

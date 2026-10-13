@@ -66,7 +66,7 @@ function PanelRefeicoesPreparadas() {
     return (
         <div>
             <main className="refeicoes-container">
-                <h1>Histórico de refeições</h1>
+                <h2>Histórico de refeições</h2>
                 <div className="container-nova-receita">
                     <button
                         type="button"
