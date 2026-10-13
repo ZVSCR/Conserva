@@ -1,5 +1,9 @@
 const bcrypt = require('bcrypt');
-const db = require('../config/database')
+const db = require('../config/database');
+
+// TODO: transferir validação de campos para authValidator
+// TODO: transferir comandos de repositório para authRepository
+// TODO: retirar comentários desnecessários
 
 // Configura o custo computacional do bcrypt
 const SALT_ROUNDS = 12;
