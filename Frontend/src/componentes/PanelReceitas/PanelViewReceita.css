@@ -1,0 +1,176 @@
+.receita-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+.receita-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.receita-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.btn-adicionar,
+.btn-remover {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-adicionar {
+    background-color: #1e6fe0;
+}
+
+.btn-adicionar:hover {
+    background-color: #1858b4;
+}
+
+.btn-remover {
+    background-color: #d83c3e;
+}
+
+.btn-remover:hover {
+    background-color: #b02f31;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 14px;
+    background-color: #2b2d31;
+    border: 1px solid #424549;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #5865f2;
+}
+
+.receitas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 25px;
+}
+
+.receita-card {
+    background-color: #2b2d31;
+    border: 1px solid #424549;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    cursor: pointer;
+}
+
+.receita-card:hover,
+.receita-card:focus {
+    border-color: #5865f2;
+    outline: none;
+}
+
+.receita-info h3 {
+    font-size: 14px;
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.receita-descricao {
+    font-size: 8px;
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.error-message {
+    font-size: 12px;
+    text-align: center;
+    color: #ff0000;
+}
+
+.no-results {
+    text-align: center;
+    color: #8e9297;
+}
+
+/* Pop-up de detalhes da receita */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #2b2d31;
+    border: 1px solid #424549;
+    border-radius: 10px;
+    padding: 28px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    color: #fff;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #8e9297;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-titulo {
+    font-size: 32px;
+    margin: 0 30px 12px 0;
+}
+
+.modal-descricao {
+    font-size: 15px;
+    color: #c4c7cc;
+    margin: 0 0 20px 0;
+}
+
+.modal-subtitulo {
+    font-size: 18px;
+    margin: 0 0 8px 0;
+}
+
+.modal-preparo {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+}
