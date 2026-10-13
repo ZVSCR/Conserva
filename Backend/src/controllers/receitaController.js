@@ -9,6 +9,8 @@ const {
 const {
     createReceitaService,
     updateReceitaService,
+    getGastoPorReceitaService,
+    getGastoReceitaService
 } = require('../services/receitaService');
 
 const {
@@ -16,6 +18,19 @@ const {
     getReceitaByIdRepo,
     deleteReceitaRepo
 } = require('../repositories/receitaRepository')
+
+// Converte valor para inteiro positivo; retorna null se inválido
+function parsePositiveInt(value) {
+
+    if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+        return null;
+    }
+
+    const number = Number(value);
+
+    return Number.isSafeInteger(number) && number > 0 ? number : null;
+}
+
 
 async function createReceita(req, res) {
 
@@ -58,6 +73,33 @@ async function createReceita(req, res) {
     }
 }
 
+// GET /receitas/gastos?usuario_id=
+// Lista o gasto acumulado de cada receita
+async function getGastoPorReceita(req, res) {
+
+    try {
+
+        let usuarioId;
+
+        if (req.query.usuario_id !== undefined) {
+            usuarioId = parsePositiveInt(req.query.usuario_id);
+
+            if (usuarioId === null) {
+                return res.status(400).json({
+                    errors: [{
+                        field: 'usuario_id',
+                        message: 'usuario_id deve ser um inteiro positivo.'
+                    }]
+                });
+            }
+        }
+
+        const receitas = await getGastoPorReceitaService({ usuarioId });
+
+        return res.status(200).json({ receitas });
+    } catch (error) {
+
+        console.error('Erro ao consultar gasto por receita:', error);
 const {
     ReceitaNaoEncontradaError,
     ReceitaSemIngredientesError,
@@ -137,6 +179,41 @@ async function listReceitas(req, res) {
     }
 }
 
+// GET /receitas/:id/gasto?usuario_id=
+// Retorna o gasto de uma receita, detalhado por preparo
+async function getGastoReceita(req, res) {
+
+    try {
+
+        const receitaId = parsePositiveInt(req.params.id);
+
+        if (receitaId === null) {
+            return res.status(400).json({
+                errors: [{
+                    field: 'id',
+                    message: 'id deve ser um inteiro positivo.'
+                }]
+            });
+        }
+
+        let usuarioId;
+
+        if (req.query.usuario_id !== undefined) {
+            usuarioId = parsePositiveInt(req.query.usuario_id);
+
+            if (usuarioId === null) {
+                return res.status(400).json({
+                    errors: [{
+                        field: 'usuario_id',
+                        message: 'usuario_id deve ser um inteiro positivo.'
+                    }]
+                });
+            }
+        }
+
+        const gasto = await getGastoReceitaService({ receitaId, usuarioId });
+
+        if (!gasto) {
 async function getReceitaById(req, res) {
     try {
         // Só aceita inteiros positivos
