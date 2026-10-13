@@ -10,7 +10,7 @@ import IconConfiguracao from '../../assets/IconsEstoque/configuracao.png';
 function NavBar({ onAdicionar }) {
     return (
         <nav className={styles.navBar}>
-            <Link to="/Estoque" className={styles.navItem}>
+            <Link to="/estoque" className={styles.navItem}>
                 <img src={IconReceitas} alt="Receitas" />
             </Link>
 
