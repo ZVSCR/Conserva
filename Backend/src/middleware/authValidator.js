@@ -81,10 +81,80 @@ function validateIdentifier(identifier) {
 
 function validateRegister(user) {
 
+    const errors = [];
+
+    // Verifica integridade de req.body
+    if (
+        user === undefined ||
+        user === null ||
+        Array.isArray(user) ||
+        typeof user !== 'object'
+    ) {
+        errors.push({
+            field: 'req',
+            message: 'A requisição enviada não é um objeto válido.'
+        });
+
+        return {
+            isValid: false,
+            errors
+        };
+    }
+
+    const {
+        username,
+        email,
+        password,
+        tipo
+    } = user;
+
+    // Valida cada campo de req.body
+    errors.push(...validateUsername(username));
+    errors.push(...validateEmail(email));
+    errors.push(...validatePassword(password));
+    errors.push(...validateTipo(tipo));
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
 }
 
 function validateLogin(user) {
 
+    const errors = [];
+
+    // Verifica integridade de req.body
+    if (
+        user === undefined ||
+        user === null ||
+        Array.isArray(user) ||
+        typeof user !== 'object'
+    ) {
+        errors.push({
+            field: 'req',
+            message: 'A requisição enviada não é um objeto válido.'
+        });
+
+        return {
+            isValid: false,
+            errors
+        };
+    }
+
+    const {
+        identifier,
+        password
+    } = user;
+
+    // Valida cada campo de req.body
+    errors.push(...validateUsername(identifier));
+    errors.push(...validatePassword(password));
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
 }
 
 module.exports = {
