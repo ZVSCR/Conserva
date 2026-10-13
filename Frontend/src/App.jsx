@@ -8,6 +8,7 @@ import UserPreferences from './pages/UserPreferences/PageUserPreferences';
 import ExtratoCompras from './pages/ExtratoCompras/PageExtratoCompras';
 import NovaCompra from './pages/NovaCompra/PageNovaCompra';
 import ViewReceita from './pages/Receitas/PageViewReceita';
+import RefeicoesPreparadas from './pages/RefeicoesPreparadas/PageRefeicoesPreparadas';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
@@ -25,6 +26,7 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/nova-compra" element={<NovaCompra />} />
         <Route path='/estoque' element={<Estoque />} />
         <Route path='/receitas' element={<ViewReceita />} />
+        <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
         <Route path="*" element={<h1>Página não encontrada (404)</h1>} />

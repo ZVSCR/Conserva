@@ -1,0 +1,59 @@
+.refeicoes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: min(100% - 40px, 500px);
+    box-sizing: border-box;
+    margin: 40px auto;
+    padding: 20px;
+    text-align: left;
+}
+
+.refeicoes-container > h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 24px;
+    text-align: center;
+}
+
+.refeicoes-container .search-box input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 42px;
+    padding: 10px 14px;
+}
+
+.refeicoes-container ul {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.refeicoes-container li {
+    padding: 15px;
+}
+
+.container-nova-receita .btn-preparar-receita {
+    min-height: 40px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #3ba55d;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.container-nova-receita .btn-preparar-receita:hover {
+    filter: brightness(1.12);
+}
+
+.container-nova-receita .btn-preparar-receita:focus-visible {
+    outline: 2px solid #57f287;
+    outline-offset: 2px;
+}
