@@ -18,13 +18,16 @@ function PanelViewReceita() {
             const data = await response.json();
 
             if (!response.ok) {
-                setErrorMsg(data.message || "Erro ao carregar o catálogo de receitas.");
+                setErrorMsg(data.error || data.message || "Erro ao carregar o catálogo de receitas.");
                 return;
             }
 
-            const listaReceitas = data.data || data;
+            if (!Array.isArray(data.receitas)) {
+                setErrorMsg("Resposta inválida ao carregar o catálogo de receitas.");
+                return;
+            }
 
-            setReceitas(listaReceitas);
+            setReceitas(data.receitas);
         } catch (error) {
             console.error("Erro na requisição:", error);
             setErrorMsg("Não foi possível conectar ao servidor para carregar o catálogo de receitas.");
