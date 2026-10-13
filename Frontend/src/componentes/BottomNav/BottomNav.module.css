@@ -1,0 +1,46 @@
+.nav {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: min(100%, 1126px);
+    height: 70px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, .08);
+}
+
+.item {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: none;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.item:focus-visible {
+    outline: 2px solid #47aa4e;
+    outline-offset: -4px;
+}
+
+.item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.add img {
+    width: 45px;
+    height: 45px;
+}
+
+.item:disabled {
+    cursor: not-allowed;
+}

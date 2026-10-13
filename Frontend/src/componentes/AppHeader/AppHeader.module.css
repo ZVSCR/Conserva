@@ -1,0 +1,31 @@
+.header {
+    min-height: 72px;
+    padding: 12px 24px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #faf3fa;
+    border-bottom: 1px solid #ded8de;
+}
+
+.logo {
+    color: #47aa4e;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile img {
+    display: block;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
