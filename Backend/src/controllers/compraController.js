@@ -23,6 +23,11 @@ const {
 } = require('../middleware/compraValidator');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
+const {
+    calcularValorUnitario,
+    PrecoInvalidoError
+} = require('../services/precoService');
+
 const allowedFields = [
     'quantidade',
     'valor_unitario',
@@ -286,7 +291,7 @@ async function listarComprasData(req, res) {
         const { dataInicio, dataFim } = req.query;
 
         const compras = await listarComprasUsuarioData(usuarioId, dataInicio, dataFim);
-        
+
         return res.status(200).json({
             status: 'success',
             message: 'Acesso bem sucedido.',
@@ -426,6 +431,10 @@ async function atualizarItensPorCompra(req, res) {
             return res.status(409).json({ erro: erro.message });
         }
 
+        if (erro instanceof PrecoInvalidoError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+
         res.status(500).json({
             erro: 'Erro ao atualizar itens da compra no banco'
         });
@@ -485,11 +494,16 @@ async function atualizarInstanciasPorCompra(req, res) {
             validade_estimada: novaValidadeEstimada
         } = novosValores;
 
+        const valorUnitarioBusca = calcularValorUnitario(valor_unitario, quantidade);
+        const valorUnitarioNovo = novoValorUnitario !== undefined
+            ? calcularValorUnitario(novoValorUnitario, quantidade)
+            : undefined;
+
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
             compraId,
-            { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
+            { nome_item, quantidade, unidade_de_medida, valor_unitario: valorUnitarioBusca, validade_estimada },
             {
-                valor_unitario: novoValorUnitario,
+                valor_unitario: valorUnitarioNovo,
                 nome_item: novoNomeItem,
                 validade_estimada: novaValidadeEstimada
             }
@@ -508,6 +522,10 @@ async function atualizarInstanciasPorCompra(req, res) {
         }
 
         if (erro instanceof GranularidadeInvalidaError) {
+            return res.status(400).json({ erro: erro.message });
+        }
+
+        if (erro instanceof PrecoInvalidoError) {
             return res.status(400).json({ erro: erro.message });
         }
 
@@ -582,6 +600,10 @@ async function createCompra(req, res) {
         // Log de descrição do erro encontrado
         console.log('Erro ao registrar compra:', error);
 
+        if (error instanceof PrecoInvalidoError) {
+            return res.status(400).json({ error: error.message });
+        }
+
         // Retorna status 500 de erro
         return res.status(500).json({
             error: 'Erro interno do servidor.'
@@ -637,7 +659,7 @@ async function adicionaItensACompra(req, res) {
 
     // Identificação temporária de IDs de usuário e compra
     const userId = Number(req.body.usuario_id);
-    const compraId = req.params.compraId;
+    const compraId = parsePositiveIntegerParam(req.params.compraId);
     // Valida IDs de usuário
     if (!Number.isSafeInteger(userId) || userId <= 0) {
 
@@ -673,6 +695,10 @@ async function adicionaItensACompra(req, res) {
 
         // Log de descrição do erro encontrado
         console.log('Erro ao adicionar itens:', error);
+
+        if (error instanceof PrecoInvalidoError) {
+            return res.status(400).json({ error: error.message });
+        }
 
         // Retorna status 500 de erro
         return res.status(500).json({

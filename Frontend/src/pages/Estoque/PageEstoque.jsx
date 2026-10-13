@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
 import styles from './Estoque.module.css';
-import Header from './Header';
+import AppHeader from '../../componentes/AppHeader/AppHeader';
 import Produto from './Produto';
-import NavBar from './NavBar';
+import BottomNav from '../../componentes/BottomNav/BottomNav';
 import EditarProduto from './EditarProd';
  // import AdicionarProduto from './AdicionarProd';
 import ConfirmarExclusao from './ConfirmarExclusao';
@@ -131,7 +131,7 @@ function PageEstoque(){
 
     return(
         <div className={styles.paginaEstoque}>
-            <Header />
+            <AppHeader />
             <main>
                 
                 <h1 className={styles.tituloLista}>Lista de produtos</h1>
@@ -148,7 +148,7 @@ function PageEstoque(){
                 </div>
 
             </main>
-            <NavBar /*onAdicionar={() => setAdicionandoProduto(true)}*/ />          {/*Botão de adicionar omitido */}  
+            <BottomNav />
                 
                 {/*Modal de Editar*/}
               {produtoEditando && (

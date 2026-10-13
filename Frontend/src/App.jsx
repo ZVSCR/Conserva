@@ -7,6 +7,8 @@ import UserData from './pages/UserData/PageUserData';
 import UserPreferences from './pages/UserPreferences/PageUserPreferences';
 import ExtratoCompras from './pages/ExtratoCompras/PageExtratoCompras';
 import NovaCompra from './pages/NovaCompra/PageNovaCompra';
+import ViewReceita from './pages/Receitas/PageViewReceita';
+import RefeicoesPreparadas from './pages/RefeicoesPreparadas/PageRefeicoesPreparadas';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
@@ -18,11 +20,13 @@ const router = createBrowserRouter(createRoutesFromElements(
 
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />
-        <Route path="/alterar-dados" element={<UserData/>}/>
+        <Route path="/alterar-dados" element={<UserData />} />
         <Route path="/configuracoes" element={<UserPreferences />} />
-        <Route path="/extrato-compras" element={<ExtratoCompras/>}/>
-        <Route path="/nova-compra" element={<NovaCompra/>}/>
+        <Route path="/extrato-compras" element={<ExtratoCompras />} />
+        <Route path="/nova-compra" element={<NovaCompra />} />
         <Route path='/estoque' element={<Estoque />} />
+        <Route path='/receitas' element={<ViewReceita />} />
+        <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
         <Route path="*" element={<h1>Página não encontrada (404)</h1>} />
@@ -30,7 +34,7 @@ const router = createBrowserRouter(createRoutesFromElements(
 ));
 
 function App() {
-  return <RouterProvider router={router} />;
+    return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -1,7 +1,8 @@
 const {
     createReceitaRepo,
     getGastoPorReceitaRepo,
-    getGastoReceitaRepo
+    getGastoReceitaRepo,
+    updateReceitaRepo
 } = require('../repositories/receitaRepository');
 
 // Recebe o payload validado, normaliza o nome e envia para inserção SQL
@@ -53,10 +54,27 @@ async function getGastoReceitaService({ receitaId, usuarioId } = {}) {
         gasto_total: totalCentavos / 100,
         preparos
     };
+async function updateReceitaService(receitaId, payload) {
+    const {
+        nome,
+        descricao,
+        modo_preparo
+    } = payload;
+
+    const normalizedNome = nome.trim();
+    return updateReceitaRepo(
+        receitaId,
+        {
+            nome: normalizedNome,
+            descricao,
+            modo_preparo
+        },
+    );
 }
 
 module.exports = {
     createReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService
+    updateReceitaService,
 };
