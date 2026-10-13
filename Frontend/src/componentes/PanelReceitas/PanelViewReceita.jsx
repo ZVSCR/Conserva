@@ -7,6 +7,8 @@ function PanelViewReceita() {
     const [errorMsg, setErrorMsg] = useState("");
     const [busca, setBusca] = useState("");
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
+    const [preparando, setPreparando] = useState(false);
+    const [mensagemPreparo, setMensagemPreparo] = useState("");
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -62,7 +64,39 @@ function PanelViewReceita() {
     // Receita exibida no pop-up (undefined quando nenhuma está expandida)
     const receitaExpandida = receitas.find((receita) => receita.id === receitaExpandidaId);
 
-    const fecharPopup = () => setReceitaExpandidaId(null);
+    const fecharPopup = () => {
+        setReceitaExpandidaId(null);
+        setMensagemPreparo("");
+    };
+
+    const abrirReceita = (id) => {
+        setReceitaExpandidaId(id);
+        setMensagemPreparo("");
+    };
+
+    const prepararReceita = async (receitaId) => {
+        setPreparando(true);
+        setMensagemPreparo("");
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/receitas/${receitaId}/preparar`, {
+                method: "POST",
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                setMensagemPreparo(data.erro || data.error || "Não foi possível preparar a receita.");
+                return;
+            }
+
+            setMensagemPreparo("Receita preparada com sucesso. O estoque foi atualizado.");
+        } catch (error) {
+            console.error("Erro ao preparar receita:", error);
+            setMensagemPreparo("Não foi possível conectar ao servidor para preparar a receita.");
+        } finally {
+            setPreparando(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -101,11 +135,11 @@ function PanelViewReceita() {
                             className="receita-card"
                             role="button"
                             tabIndex={0}
-                            onClick={() => setReceitaExpandidaId(receita.id)}
+                            onClick={() => abrirReceita(receita.id)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" || e.key === " ") {
                                     e.preventDefault();
-                                    setReceitaExpandidaId(receita.id);
+                                    abrirReceita(receita.id);
                                 }
                             }}
                         >
@@ -155,6 +189,15 @@ function PanelViewReceita() {
                         <p className="modal-preparo">
                             {receitaExpandida.modo_preparo || "Modo de preparo não informado."}
                         </p>
+
+                        <button
+                            type="button"
+                            disabled={preparando}
+                            onClick={() => prepararReceita(receitaExpandida.id)}
+                        >
+                            {preparando ? "Preparando..." : "Preparar receita e atualizar estoque"}
+                        </button>
+                        {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
                 </div>
             )}
