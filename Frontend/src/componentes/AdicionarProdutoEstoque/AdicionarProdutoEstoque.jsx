@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import styles from './Estoque.module.css';
+import ModalEstoque from '../ModalEstoque/ModalEstoque';
+import CampoEstoque from '../CampoEstoque/CampoEstoque';
 
-function AdicionarProduto({ onSalvar, onCancelar }) {
+function AdicionarProdutoEstoque({ onSalvar, onCancelar }) {
 
     const [nome, setNome] = useState('');
     const [quantidade, setQuantidade] = useState(1);
@@ -56,76 +57,37 @@ function AdicionarProduto({ onSalvar, onCancelar }) {
     }
 
     return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
+         <ModalEstoque titulo="Adicionar produto">
 
-                <h2 className={styles.nomeProduto}>Adicionar produto</h2>
+            <CampoEstoque rotulo="Nome" type="text" value={nome}
+                onChange={(e) => setNome(e.target.value)} erro={erros.nome} />
 
-                <label className={styles.labelNomeQtd}>Nome</label>
-                <input
-                    type="text"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                />
-                {erros.nome && <p className={styles.mensagemErro}>{erros.nome}</p>}
+            <CampoEstoque rotulo="Quantidade" type="number" min="0" step="1" value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)} erro={erros.quantidade} />
 
-                <label className={styles.labelNomeQtd}>Quantidade</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={quantidade}
-                    onChange={(e) => setQuantidade(e.target.value)}
-                />
-                {erros.quantidade && <p className={styles.mensagemErro}>{erros.quantidade}</p>}
+            <CampoEstoque rotulo="Unidade de medida" type="text" placeholder="kg, L, un..." value={unidadeDeMedida}
+                onChange={(e) => setUnidadeDeMedida(e.target.value)} erro={erros.unidadeDeMedida} />
 
-                <label className={styles.labelNomeQtd}>Unidade de medida</label>
-                <input
-                    type="text"
-                    placeholder="kg, L, un..."
-                    value={unidadeDeMedida}
-                    onChange={(e) => setUnidadeDeMedida(e.target.value)}
-                />
-                {erros.unidadeDeMedida && <p className={styles.mensagemErro}>{erros.unidadeDeMedida}</p>}
+            <CampoEstoque rotulo="Valor unitário" type="number" min="0" step="0.01" value={valorUnitario}
+                onChange={(e) => setValorUnitario(e.target.value)} erro={erros.valorUnitario} />
 
-                <label className={styles.labelNomeQtd}>Valor unitário</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={valorUnitario}
-                    onChange={(e) => setValorUnitario(e.target.value)}
-                />
-                {erros.valorUnitario && <p className={styles.mensagemErro}>{erros.valorUnitario}</p>}
+            <CampoEstoque rotulo="Validade estimada" type="date" value={validadeEstimada}
+                onChange={(e) => setValidadeEstimada(e.target.value)} erro={erros.validadeEstimada} />
 
-                <label className={styles.labelNomeQtd}>Validade estimada</label>
-                <input
-                    type="date"
-                    value={validadeEstimada}
-                    onChange={(e) => setValidadeEstimada(e.target.value)}
-                />
-                {erros.validadeEstimada && <p className={styles.mensagemErro}>{erros.validadeEstimada}</p>}
+            <CampoEstoque rotulo="Estabelecimento" type="text" value={estabelecimento}
+                onChange={(e) => setEstabelecimento(e.target.value)} erro={erros.estabelecimento} />
 
-                <label className={styles.labelNomeQtd}>Estabelecimento</label>
-                <input
-                    type="text"
-                    value={estabelecimento}
-                    onChange={(e) => setEstabelecimento(e.target.value)}
-                />
-                {erros.estabelecimento && <p className={styles.mensagemErro}>{erros.estabelecimento}</p>}
-
-                <div className={styles.modalAcoes}>
-                    <button className={styles.botaoCancelar} onClick={onCancelar}>
-                        Cancelar
-                    </button>
-                    <button className={styles.botaoSalvar} onClick={salvar}>
-                        Salvar
-                    </button>
-                </div>
-
+            <div className="estoque-modal-acoes">
+                <button className="estoque-modal-botao-cancelar" onClick={onCancelar}>
+                    Cancelar
+                </button>
+                <button className="estoque-modal-botao-salvar" onClick={salvar}>
+                    Salvar
+                </button>
             </div>
-        </div>
+
+        </ModalEstoque>
     );
 }
 
-export default AdicionarProduto;
+export default AdicionarProdutoEstoque;
