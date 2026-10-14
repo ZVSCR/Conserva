@@ -3,6 +3,10 @@ const {
     loginRepo
 } = require('../repositories/authRepository');
 
+const {
+    AuthError
+} = require('../errors/AuthError');
+
 const bcrypt = require('bcrypt');
 
 // Configura o custo computacional do bcrypt
@@ -59,6 +63,7 @@ async function loginService(user) {
 
         // Busca identificador no repositório
         userSearch = await loginRepo({ identifier: normalizedIdentifier });
+
         // Valida senha para o usuário encontrado
         validPassword = await bcrypt.compare(
             password,
@@ -66,7 +71,7 @@ async function loginService(user) {
         );
 
         if (!validPassword) {
-            throw new Error('Identificador ou senha inválidos.');
+            throw new AuthError("Identificador ou senha inválidos.", 401);
         }
 
         const userFound = ({

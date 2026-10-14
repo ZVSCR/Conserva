@@ -1,4 +1,5 @@
 const sql = require('../config/database');
+const { AuthError } = require('../errors/AuthError');
 
 async function registerRepo(user) {
 
@@ -34,7 +35,7 @@ async function registerRepo(user) {
     } catch (error) {
 
         if (error.code === '23505') {
-            throw new Error('Username ou email já cadastrados.')
+            throw new AuthError("Username ou email já cadastrados.", 409);
         }
 
         console.error('Erro em authRepository.registerRepo:', error);
@@ -58,7 +59,7 @@ async function loginRepo(user) {
         `;
 
         if (buscaUsuario.rows.length === 0) {
-            throw new Error('Identificador ou senha inválidos.');
+            throw new AuthError("Identificador ou senha inválidos.", 401);
         }
 
         const usuarioBuscado = buscaUsuario.rows[0];
