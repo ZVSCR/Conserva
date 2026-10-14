@@ -1,0 +1,28 @@
+/* Barra base (fundo) */
+.estoque-barra-base {
+    width: 150px; /* tamanho FIXO, não depende do nome do produto */
+    height: 14px;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    background-color: #FAE1FA;
+    overflow: hidden; /* garante que o preenchimento não vaze dos cantos arredondados */
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .estoque-barra-base {
+        width: 90px;
+        height: 10px;
+    }
+}
+
+/* Barra de preenchimento */
+.estoque-barra-preenchimento {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.estoque-barra-verde { background-color: #47AA4E; }
+.estoque-barra-amarela { background-color: #EEE711; }
+.estoque-barra-vermelha { background-color: #D5272A; }
