@@ -12,7 +12,8 @@ async function registerRepo(user) {
 
     try {
 
-        const usuarioCriado = await sql`
+        // Retorna um array de linhas
+        const [usuarioCriado] = await sql`
         INSERT INTO users (
             username, email, tipo, password_hash
         )
@@ -38,7 +39,6 @@ async function registerRepo(user) {
             throw new AuthError("Username ou email já cadastrados.", 409);
         }
 
-        console.error('Erro em authRepository.registerRepo:', error);
         throw error;
     }
 }
@@ -47,30 +47,17 @@ async function loginRepo(user) {
 
     const { identifier } = user;
 
-    try {
+    const [usuarioBuscado] = await sql`
+        SELECT
+            id, username, email, tipo, password_hash
+        FROM users
+        WHERE LOWER(username) = ${identifier}
+            OR LOWER(email) = ${identifier}
+        LIMIT 1
+    `;
 
-        const buscaUsuario = await sql`
-            SELECT
-                id, username, email, tipo, password_hash
-            FROM users
-            WHERE LOWER(username) = ${identifier}
-                OR LOWER(email) = ${identifier}
-            LIMIT 1
-        `;
-
-        if (buscaUsuario.rows.length === 0) {
-            throw new AuthError("Identificador ou senha inválidos.", 401);
-        }
-
-        const usuarioBuscado = buscaUsuario.rows[0];
-
-        return usuarioBuscado;
-
-    } catch (error) {
-
-        console.error('Erro em authRepository.loginRepo:', error);
-        throw error;
-    }
+    // Retorna null se não houver usuário, erro fica com o serviço
+    return usuarioBuscado || null;
 }
 
 module.exports = {

@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 const {
     registerRepo,
     loginRepo
@@ -6,11 +8,12 @@ const {
 const {
     AuthError
 } = require('../errors/AuthError');
-
-const bcrypt = require('bcrypt');
+const authController = require('../controllers/authController');
 
 // Configura o custo computacional do bcrypt
 const SALT_ROUNDS = 12;
+
+const MSG_INVALID_CREDENTIALS = 'Identificador ou senha inválidos.';
 
 async function registerService(user) {
 
@@ -25,21 +28,14 @@ async function registerService(user) {
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedTipo = tipo.trim();
-    let passwordHash;
 
-    try {
+    // Aplica hash na senha
+    const passwordHash = await bcrypt.hash(
+        password,
+        SALT_ROUNDS
+    );
 
-        // Aplica hash na senha
-        passwordHash = await bcrypt.hash(
-            password,
-            SALT_ROUNDS
-        );
-    } catch (error) {
-
-        console.error('Erro em authService.registerService:', error);
-        throw error;
-    }
-
+    // Retorna o resultado da inserção dos dados no repositório
     return registerRepo({
         username: normalizedUsername,
         email: normalizedEmail,
@@ -56,38 +52,31 @@ async function loginService(user) {
     } = user;
 
     const normalizedIdentifier = identifier.trim().toLowerCase();
-    let userSearch;
-    let validPassword
 
-    try {
+    // Busca identificador no repositório
+    const userSearch = await loginRepo({ identifier: normalizedIdentifier });
 
-        // Busca identificador no repositório
-        userSearch = await loginRepo({ identifier: normalizedIdentifier });
-
-        // Valida senha para o usuário encontrado
-        validPassword = await bcrypt.compare(
-            password,
-            userSearch.password_hash
-        );
-
-        if (!validPassword) {
-            throw new AuthError("Identificador ou senha inválidos.", 401);
-        }
-
-        const userFound = ({
-            id: userFound.id,
-            username: userFound.username,
-            email: userFound.email,
-            tipo: userFound.tipo
-        });
-
-        return userFound;
-
-    } catch (error) {
-
-        console.error('Erro em authService.loginService:', error);
-        throw error;
+    if (!userSearch) {
+        throw new AuthError(MSG_INVALID_CREDENTIALS, 401);
     }
+
+    // Valida senha para o usuário encontrado
+    const validPassword = await bcrypt.compare(
+        password,
+        userSearch.password_hash
+    );
+
+    if (!validPassword) {
+        throw new AuthError(MSG_INVALID_CREDENTIALS, 401);
+    }
+
+    // Retorna apenas dados públicos, sem o hash da senha
+    return {
+        id: userSearch.id,
+        username: userSearch.username,
+        email: userSearch.email,
+        tipo: userSearch.tipo
+    };
 }
 
 module.exports = {

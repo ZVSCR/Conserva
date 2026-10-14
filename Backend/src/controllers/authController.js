@@ -1,6 +1,3 @@
-const bcrypt = require('bcrypt');
-const db = require('../config/database');
-
 const {
     validateRegister,
     validateLogin
@@ -10,6 +7,8 @@ const {
     registerService,
     loginService
 } = require('../services/authService');
+
+const { AuthError } = require('../errors/AuthError');
 
 async function register(req, res) {
 
@@ -34,15 +33,15 @@ async function register(req, res) {
         // Retorna status 201 se registro foi bem sucedido
         return res.status(201).json({
             message: 'Usuário registrado com sucesso.',
-            user: usuarioCriado[0]
+            user: usuarioCriado
         });
 
     } catch (error) {
 
-        // Violação de unicidade de identificadores
-        if (error.code === '409') {
-            return res.status(409).json({
-                error: 'Username ou email já cadastrados.'
+        // Erros de negócio previstos (ex.: 409 por violação de unicidade)
+        if (error instanceof AuthError) {
+            return res.status(error.statusCode).json({
+                error: error.message
             });
         }
 
@@ -80,9 +79,10 @@ async function login(req, res) {
 
     } catch (error) {
 
-        if (error.code === '401') {
-            return res.status(401).json({
-                error: 'Identificador ou senha inválidos.'
+        // Erros de negócio previstos (ex.: 401 por credenciais inválidas)
+        if (error instanceof AuthError) {
+            return res.status(error.statusCode).json({
+                error: error.message
             });
         }
 
