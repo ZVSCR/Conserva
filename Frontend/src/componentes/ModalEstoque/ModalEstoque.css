@@ -1,0 +1,71 @@
+/* Base dos modais do estoque (editar, adicionar e confirmar exclusão) */
+.estoque-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.estoque-modal-caixa {
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.estoque-modal-titulo {
+    margin-top: 0;
+    font-size: 22px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: #000000;
+}
+
+.estoque-modal-texto {
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: #454444;
+}
+
+.estoque-modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.estoque-modal-botao-salvar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #47AA4E; /* verde da marca */
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.estoque-modal-botao-cancelar {
+    padding: 10px 20px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    color: #333333;
+    cursor: pointer;
+}
+
+.estoque-modal-botao-excluir {
+    padding: 10px 20px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    background-color: #c81919;
+    color: #f0f0f0;
+    cursor: pointer;
+}
