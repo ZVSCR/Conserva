@@ -11,107 +11,42 @@ const {
     loginService
 } = require('../services/authService');
 
-// TODO: transferir validação de campos para authValidator
-// TODO: transferir comandos de repositório para authRepository
-// TODO: retirar comentários desnecessários
-
-// Registro de usuário
 async function register(req, res) {
-    // Variáveis de registro
-    const { username, email, tipo, password } = req.body;
-
-    // 1. Valida existência de variáveis
-    if (!username || !email || !tipo || !password) {
-        return res.status(400).json({
-            error: 'Username, e-mail, tipo e senha são obrigatórios para registro.'
-        });
-    }
-
-    if (
-        typeof username !== 'string' ||
-        typeof email !== 'string' ||
-        typeof tipo !== 'string' ||
-        typeof password !== 'string'
-    ) {
-        return res.status(400).json({
-            error: 'Os campos enviados possuem formato inválido.'
-        });
-    }
-
-    // Normaliza registros para enviar ao DB
-    const normalizedUsername = username.trim().toLowerCase(); // Unicidade depende de caixa alta/baixa
-    const normalizedEmail = email.trim().toLowerCase();        // ^^
-    const normalizedTipo = tipo.trim();
-
-    if (!normalizedUsername || !normalizedEmail || !normalizedTipo) {
-        return res.status(400).json({
-            error: 'Username, e-mail e tipo não podem conter apenas espaços.'
-        });
-    }
-
-    // 2. Valida segundo os limites de caractere definidos
-    // Username
-    if (normalizedUsername.length > 50) {
-        return res.status(400).json({
-            error: 'Username deve possuir no máximo 50 caracteres.'
-        });
-    }
-    // Email
-    if (normalizedEmail.length > 100) {
-        return res.status(400).json({
-            error: 'Email deve possuir no máximo 100 caracteres.'
-        });
-    }
-    // Tipo
-    if (normalizedTipo.length > 11) {
-        return res.status(400).json({
-            error: 'Tipo deve possuir no máximo 11 caracteres.'
-        });
-    }
 
     try {
-        // 3. Gera hash de senha para o usuário
-        const passwordHash = await bcrypt.hash(
-            password,
-            SALT_ROUNDS
-        );
 
-        // 4. Insere usuário
-        const result = await db`
-            INSERT INTO users (
-                username,
-                email,
-                tipo,
-                password_hash
-            )
-            VALUES (
-                ${normalizedUsername},
-                ${normalizedEmail},
-                ${normalizedTipo},
-                ${passwordHash}
-            )
-            RETURNING
-                id,
-                username,
-                email,
-                tipo,
-                created_at;
-            `;
-        // 5. Retorna o usuário criado
-        return res.status(201).json({
-            message: 'Usuário criado com sucesso.',
-            user: result[0]
-        });
-    } catch (error) {
+        // Valida campos de usuário preenchidos
+        const {
+            isValid,
+            errors
+        } = validateRegister(req.body);
 
-        // PostgreSQL: unique_violation -  garante unicidade de identificadores
-        if (error.code === '23505') {
-            return res.status(409).json({
-                error: 'Username ou email já cadastrado.'
+        // Retorna status 400 em caso de invalidez
+        if (!isValid) {
+            return res.status(400).json({
+                errors
             });
         }
-        // Descrição de quaisquer outro tipo de erro
-        console.log('Erro ao registrar usuário: ', error);
+
+        // Chama serviço para registrar novo usuário
+        const usuarioCriado = await registerService(req.body);
+
+        // Retorna status 201 se registro foi bem sucedido
+        return res.status(201).json({
+            message: 'Usuário registrado com sucesso.',
+            user: usuarioCriado[0]
+        });
+
+    } catch (error) {
+
+        // Violação de unicidade de identificadores
+        if (error.code === '409') {
+            return res.status(409).json({
+                error: 'Username ou email já cadastrados.'
+            });
+        }
+
+        console.error('Erro em authController.register:', error);
 
         return res.status(500).json({
             error: 'Erro interno do servidor.'
@@ -119,99 +54,43 @@ async function register(req, res) {
     }
 }
 
-// Login de usuário
 async function login(req, res) {
-    // Variáveis de login
-    const { identifier, password } = req.body;
-
-    // 1. Valida existência de variáveis
-    if (!identifier || !password) {
-        return res.status(400).json({
-            error: 'Identificador e senha são obrigatórios para login.'
-        });
-    }
-
-    if (
-        typeof identifier !== 'string' ||
-        typeof password !== 'string'
-    ) {
-        return res.status(400).json({
-            error: 'Identificador e senha possuem formato inválido.'
-        });
-    }
-
-    // Normaliza identificador
-    const normalizedIdentifier = identifier.trim().toLowerCase();
-
-    // Verifica viabilidade de tamanho (máx. é email, <100)
-    if (normalizedIdentifier.length > 100) {
-        return res.status(400).json({
-            error: 'Identificador deve possuir no máximo 100 caracteres.'
-        })
-    }
-
-    if (!normalizedIdentifier) {
-        return res.status(400).json({
-            error: 'Identificador não pode conter apenas espaços.'
-        });
-    }
 
     try {
-        // 2. Busca identificador em usernames/email
-        const result = await db.query(
-            `
-            SELECT
-                id,
-                username,
-                email,
-                tipo,
-                password_hash
-            FROM users
-            WHERE LOWER(username) = $1
-                OR LOWER(email) = $1
-            LIMIT 1
-            `,
-            [normalizedIdentifier]
-        );
 
-        // 3. Verifica existência de usuário
-        // Triplo = significa estritamente igual (tipo de dado e valor)
-        if (result.rows.length === 0) {
-            return res.status(401).json({
-                error: 'Identificador ou senha inválidos.'
+        const {
+            isValid,
+            errors
+        } = validateLogin(req.body);
+
+        if (!isValid) {
+            return res.status(400).json({
+                errors
             });
         }
 
-        const user = result.rows[0];
+        // Chama serviço para efetuar login
+        const userFound = await loginService(req.body);
 
-        // 4. Valida senha
-        const senhaValida = await bcrypt.compare(
-            password,
-            user.password_hash
-        );
-
-        if (!senhaValida) {
-            return res.status(401).json({
-                error: 'Identificador ou senha inválidos.'
-            });
-        }
-
-        // 5. Login válido e retorno de usuário
+        // Retorna status 200 se registro foi bem sucedido
         return res.status(200).json({
-            message: 'Login efetuado. Seja bem-vindo!',
-            user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                tipo: user.tipo,
-            }
+            message: 'Login efetuado! Seja bem vindo!',
+            user: userFound
         });
-    } catch (error) {
-        console.log('Não foi possível efetuar login: ', error);
 
+    } catch (error) {
+
+        if (error.code === '401') {
+            return res.status(401).json({
+                error: 'Identificador ou senha inválidos.'
+            });
+        }
+
+        console.error('Erro em authController.login:', error);
         return res.status(500).json({
-            error: 'Erro interno do Servidor.'
-        })
+            error: 'Erro interno do servidor.'
+        });
+
     }
 }
 
@@ -219,3 +98,6 @@ module.exports = {
     register,
     login
 };
+
+// Primeiro controller: ~240 LOC
+// Novo controller: 100 LOC
