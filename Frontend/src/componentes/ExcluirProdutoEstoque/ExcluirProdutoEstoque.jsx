@@ -1,35 +1,25 @@
-import styles from './Estoque.module.css';
+import ModalEstoque from '../ModalEstoque/ModalEstoque';
 
-function ConfirmarExclusao({ produto, onConfirmar, onCancelar }) {
+function ExcluirProdutoEstoque({ produto, onConfirmar, onCancelar }) {
 
     return (
-        <div className={styles.overlay}>
+        <ModalEstoque titulo="Excluir produto">
 
-            <div className={styles.modal}>
+            <p className="estoque-modal-texto">
+                Tem certeza que deseja excluir "{produto.nome}"?
+            </p>
 
-                <h2>Excluir produto</h2>
-
-                <p className={styles.labelNomeQtd}>
-                    Tem certeza que deseja excluir
-                    "{produto.nome}"?
-                </p>
-
-                <div className={styles.modalAcoes}>
-
-                    <button className={styles.botaoCancelar} onClick={onCancelar}>
-                        Cancelar
-                    </button>
-
-                    <button className={styles.botaoExcluir} onClick={onConfirmar}>
-                        Excluir
-                    </button>
-
-                </div>
-
+            <div className="estoque-modal-acoes">
+                <button className="estoque-modal-botao-cancelar" onClick={onCancelar}>
+                    Cancelar
+                </button>
+                <button className="estoque-modal-botao-excluir" onClick={onConfirmar}>
+                    Excluir
+                </button>
             </div>
 
-        </div>
+        </ModalEstoque>
     );
 }
 
-export default ConfirmarExclusao;
+export default ExcluirProdutoEstoque;
