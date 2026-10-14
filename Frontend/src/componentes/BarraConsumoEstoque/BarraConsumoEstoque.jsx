@@ -1,25 +1,25 @@
-import styles from './Estoque.module.css';
+import './EstoqueBarraConsumo.css';
 
-function BarraEstoque({ quantidadeAtual, quantidadeMaxima }) {
+function BarraConsumoEstoque({ quantidadeAtual, quantidadeMaxima }) {
     const percentual = quantidadeMaxima > 0
         ? Math.min(100, Math.max(0, (quantidadeAtual / quantidadeMaxima) * 100))
         : 0;
 
-    let corClasse = styles.barraVerde;
+    let corClasse = 'estoque-barra-verde';
     if (percentual <= 25) {
-        corClasse = styles.barraVermelha;
+        corClasse = 'estoque-barra-vermelha';
     } else if (percentual <= 75) {
-        corClasse = styles.barraAmarela;
+        corClasse = 'estoque-barra-amarela';
     }
 
     return (
-        <div className={styles.barraBase}>
+        <div className="estoque-barra-base">
             <div
-                className={`${styles.barraPreenchimento} ${corClasse}`}
+                className={`estoque-barra-preenchimento ${corClasse}`}
                 style={{ width: `${percentual}%` }}
             />
         </div>
     );
 }
 
-export default BarraEstoque;
+export default BarraConsumoEstoque;
