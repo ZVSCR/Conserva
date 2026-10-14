@@ -1,4 +1,4 @@
-import './EstoqueBarraConsumo.css';
+import './BarraConsumo.css';
 
 function BarraConsumoEstoque({ quantidadeAtual, quantidadeMaxima }) {
     const percentual = quantidadeMaxima > 0

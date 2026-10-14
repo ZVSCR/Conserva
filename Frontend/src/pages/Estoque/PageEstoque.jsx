@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 
-import styles from './Estoque.module.css';
+import './Estoque.css';
 import AppHeader from '../../componentes/AppHeader/AppHeader';
-import Produto from './Produto';
 import BottomNav from '../../componentes/BottomNav/BottomNav';
-import EditarProduto from './EditarProd';
- // import AdicionarProduto from './AdicionarProd';
-import ConfirmarExclusao from './ConfirmarExclusao';
+import EstoqueProduto from '../../componentes/ProdutoEstoque/ProdutoEstoque';
+import EditarProdutoEstoque from '../../componentes/EditarProdutoEstoque/EditarProdutoEstoque';
+import ExcluirProdutoEstoque from '../../componentes/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
+// import EstoqueAdicionarProduto from '../../componentes/EstoqueAdicionarProduto/EstoqueAdicionarProduto';
 
 
 function PageEstoque(){
@@ -97,16 +97,15 @@ function PageEstoque(){
     setProdutoExcluindo(null);
 }
 
-    return(
-        <div className={styles.paginaEstoque}>
+        return (
+        <div className="estoque-pagina">
             <AppHeader />
             <main>
-                
-                <h1 className={styles.tituloLista}>Lista de produtos</h1>
-        
-                <div className={styles.listaProdutosContainer}>
+                <h1 className="estoque-titulo">Lista de produtos</h1>
+
+                <div className="estoque-lista">
                     {produtos.map((produto) => (
-                        <Produto
+                        <EstoqueProduto
                             key={produto.id}
                             produto={produto}
                             onEditar={editarProduto}
@@ -114,21 +113,21 @@ function PageEstoque(){
                         />
                     ))}
                 </div>
-
             </main>
             <BottomNav />
-                
-                {/*Modal de Editar*/}
-              {produtoEditando && (
-                <EditarProduto
+
+            {/*Modal de editar*/}
+            {produtoEditando && (
+                <EditarProdutoEstoque
                     produto={produtoEditando}
                     onSalvar={salvarEdicao}
                     onCancelar={() => setProdutoEditando(null)}
                 />
             )}
-            {/*Modal de Adicionar
+
+            {/*Modal de adicionar (em espera)
             {adicionandoProduto && (
-                <AdicionarProduto
+                <EstoqueAdicionarProduto
                     onSalvar={adicionarProduto}
                     onCancelar={() => setAdicionandoProduto(false)}
                 />
@@ -137,16 +136,12 @@ function PageEstoque(){
 
             {/*Modal de excluir*/}
             {produtoExcluindo && (
-                <ConfirmarExclusao
+                <ExcluirProdutoEstoque
                     produto={produtoExcluindo}
                     onConfirmar={confirmarExclusao}
                     onCancelar={() => setProdutoExcluindo(null)}
                 />
-            )}  
-
-
-
-
+            )}
         </div>
     );
 }

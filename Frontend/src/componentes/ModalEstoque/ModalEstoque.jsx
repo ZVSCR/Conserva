@@ -1,4 +1,4 @@
-import './EstoqueModal.css';
+import './ModalEstoque.css';
 
 //base dos modais do estoque: fundo + caixa + título.
 // Os campos e os botões de cada modal entram como "children".
