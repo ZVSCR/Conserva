@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import styles from './Estoque.module.css';
+import ModalEstoque from '../ModalEstoque/ModalEstoque';
+import CampoEstoque from '../CampoEstoque/CampoEstoque';
 
-function EditarProduto({ produto, onSalvar, onCancelar }) {
+function EditarProdutoEstoque({ produto, onSalvar, onCancelar }) {
 
     const [nome, setNome] = useState(produto.nome); //Mostra o nome do produto associado
     const [quantidade, setQuantidade] = useState(produto.quantidade); // Quantidade 
@@ -21,57 +22,39 @@ function EditarProduto({ produto, onSalvar, onCancelar }) {
     }
 
     return (
-        <div className={styles.overlay}>
+        <ModalEstoque titulo="Editar produto">
 
-            <div className={styles.modal}>
+            <CampoEstoque
+                rotulo="Nome"
+                type="text"
+                value={nome}
+                erro={erroNome}
+                onChange={(e) => {
+                    setNome(e.target.value);
+                    if (erroNome) setErroNome(''); // limpa o erro assim que a pessoa começa a corrigir
+                }}
+            />
 
-                {/* Apenas editar */}
-                <h2 className={styles.nomeProduto}>Editar produto</h2>
+            <CampoEstoque
+                rotulo="Quantidade"
+                type="number"
+                min="0"
+                step="0.1"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
+            />
 
-                <label className={styles.labelNomeQtd}>
-                    Nome
-                </label>
-
-                <input
-                    type="text"
-                    value={nome}
-                    onChange={(e) => {
-                        setNome(e.target.value);
-                        if (erroNome) setErroNome(''); // limpa o erro assim que a pessoa começa a corrigir
-                    }}
-                />
-                {erroNome && (
-                    <p className={styles.mensagemErro}>{erroNome}</p>
-                )}
-
-                <label className={styles.labelNomeQtd}>
-                    Quantidade
-                </label>
-
-                <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={quantidade}
-                    onChange={(e) => setQuantidade(e.target.value)}
-                />
-
-                <div className={styles.modalAcoes}>
-
-                    <button className={styles.botaoCancelar} onClick={onCancelar}>
-                        Cancelar
-                    </button>
-
-                    <button className={styles.botaoSalvar} onClick={salvar}>
-                        Salvar
-                    </button>
-
-                </div>
-
+            <div className="estoque-modal-acoes">
+                <button className="estoque-modal-botao-cancelar" onClick={onCancelar}>
+                    Cancelar
+                </button>
+                <button className="estoque-modal-botao-salvar" onClick={salvar}>
+                    Salvar
+                </button>
             </div>
 
-        </div>
+        </ModalEstoque>
     );
 }
 
-export default EditarProduto;
+export default EditarProdutoEstoque;
