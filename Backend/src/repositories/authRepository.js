@@ -37,7 +37,7 @@ async function registerRepo(user) {
             throw new Error('Username ou email já cadastrados.')
         }
 
-        console.error('Erro em registerRepo:', error);
+        console.error('Erro em authRepository.registerRepo:', error);
         throw error;
     }
 }
@@ -67,7 +67,7 @@ async function loginRepo(user) {
 
     } catch (error) {
 
-        console.error('Erro em loginRepo:', error);
+        console.error('Erro em authRepository.loginRepo:', error);
         throw error;
     }
 }

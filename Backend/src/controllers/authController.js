@@ -2,7 +2,8 @@ const bcrypt = require('bcrypt');
 const db = require('../config/database');
 
 const {
-    validateUser
+    validateRegister,
+    validateLogin
 } = require('../middleware/authValidator');
 
 const {
