@@ -1,16 +1,16 @@
-import styles from './Estoque.module.css';
+import './ProdutoEstoque.css';
 import IconEditar from '../../assets/IconsEstoque/editar.png';
 import IconDeletar from '../../assets/IconsEstoque/delete.png';
-import BarraConsumo from './BarraConsumo';
+import BarraConsumo from './BarraConsumoEstoque/BarraConsumoEstoque';
 
-function Produto({ produto, onEditar, onExcluir }) {
+function ProdutoEstoque({ produto, onEditar, onExcluir }) {
     return (
-        <div className={styles.produto}>
+         <div className="estoque-produto">
 
-            <div className={styles.informacoes}>
-                {/* nome do produto e barra de consumo na mesma coluna*/}
-                <div className={styles.informacoesProduto}>
-                    <span className={styles.nomeProduto}>
+            <div className="estoque-produto-informacoes">
+                {/* nome do produto e barra de consumo na mesma coluna */}
+                <div className="estoque-produto-nome-e-barra">
+                    <span className="estoque-produto-nome">
                         {produto.nome}
                     </span>
                     <BarraConsumo
@@ -19,37 +19,26 @@ function Produto({ produto, onEditar, onExcluir }) {
                     />
                 </div>
 
-                <span className={styles.nomeProduto}>
+                <span className="estoque-produto-quantidade">
                     {Number.isInteger(produto.quantidade) // Se for inteiro mostra apenas o valor
-                    ? produto.quantidade
-                    : produto.quantidade.toFixed(1)   //Caso seja um valor quebrado, deixa apenas 1 casa decimal
-                    }  
+                        ? produto.quantidade
+                        : produto.quantidade.toFixed(1)   // Caso seja quebrado, deixa 1 casa decimal
+                    }
                 </span>
             </div>
 
-            <div className={styles.acoes}>
-
-                <button
-                    className={styles.botaoEditar}
-                    onClick={() => onEditar(produto)}
-                >
-                    <img
-                        src={IconEditar}
-                        alt="Editar produto"
-                    />
+            <div className="estoque-produto-acoes">
+                <button className="estoque-produto-botao-acao" onClick={() => onEditar(produto)}>
+                    <img className="estoque-produto-icone-editar" src={IconEditar} alt="Editar produto" />
                 </button>
 
-                <button
-                    className={styles.botaoExcluir}
-                    onClick={() => onExcluir(produto)}
-                >
-                    <img src={IconDeletar} className={styles.iconDeletar} alt="Deletar produto"  />
+                <button className="estoque-produto-botao-acao" onClick={() => onExcluir(produto)}>
+                    <img className="estoque-produto-icone-excluir" src={IconDeletar} alt="Deletar produto" />
                 </button>
-
             </div>
 
         </div>
     );
 }
 
-export default Produto;
+export default ProdutoEstoque;
