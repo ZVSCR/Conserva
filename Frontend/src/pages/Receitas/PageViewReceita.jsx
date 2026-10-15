@@ -1,4 +1,4 @@
-import PanelViewReceita from "../../componentes/PanelReceitas/PanelViewReceita";
+import PanelViewReceita from "../../components/receitas/PanelReceitas/PanelViewReceita";
 
 function ViewReceita() {
     return (

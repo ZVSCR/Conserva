@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 
 import './Estoque.css';
-import AppHeader from '../../componentes/AppHeader/AppHeader';
-import BottomNav from '../../componentes/BottomNav/BottomNav';
-import EstoqueProduto from '../../componentes/ProdutoEstoque/ProdutoEstoque';
-import EditarProdutoEstoque from '../../componentes/EditarProdutoEstoque/EditarProdutoEstoque';
-import ExcluirProdutoEstoque from '../../componentes/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
-// import EstoqueAdicionarProduto from '../../componentes/EstoqueAdicionarProduto/EstoqueAdicionarProduto';
+import AppHeader from '../../components/shared/AppHeader/AppHeader';
+import BottomNav from '../../components/shared/BottomNav/BottomNav';
+import EstoqueProduto from '../../components/estoque/ProdutoEstoque/ProdutoEstoque';
+import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/EditarProdutoEstoque';
+import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
+// import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
 
 
 function PageEstoque(){

@@ -1,4 +1,4 @@
-import BtnLogin from "../../componentes/btnLogin/BtnLogin";
+import BtnLogin from "../../components/usuario/btnLogin/BtnLogin";
 
 function Home() {
   return (

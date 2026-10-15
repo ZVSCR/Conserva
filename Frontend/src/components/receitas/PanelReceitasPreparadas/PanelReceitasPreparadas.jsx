@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import IconReceitas from '../../assets/IconsEstoque/livro-de-receitas.png';
+import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import './PanelReceitasPreparadas.css';
 
 const API_URL = 'http://localhost:3000/api/receitas/preparadas';
