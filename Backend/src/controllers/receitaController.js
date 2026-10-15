@@ -34,10 +34,6 @@ function parsePositiveInt(value) {
 
 async function createReceita(req, res) {
 
-    // TODO: chamar valida payload
-    // TODO: chamar serviço cria receita
-    // TODO: Definição de status e mensagens de resposta
-
     try {
 
         // Valida payload
@@ -219,7 +215,7 @@ async function getGastoReceita(req, res) {
                 error: 'Receita não encontrada.'
             });
         }
-        } catch (error) {
+    } catch (error) {
         console.error('Erro ao buscar receita:', error);
 
         return res.status(500).json({
@@ -345,8 +341,8 @@ async function deleteIngredienteReceitaById(req, res) {
 }
 
 module.exports = {
-    createReceita, 
-    verificarReceita, 
+    createReceita,
+    verificarReceita,
     prepararReceita,
     listReceitas,
     getReceitaById,
