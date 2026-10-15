@@ -1,6 +1,6 @@
-import PanelRegister from "../../componentes/PanelRegister/PanelRegister";
-import Footer from '../../componentes/Footer/Footer';
-import Header from '../../componentes/Header/Header';
+import PanelRegister from "../../components/usuario/PanelRegister/PanelRegister";
+import Footer from '../../components/shared/Footer/Footer';
+import Header from '../../components/shared/Header/Header';
 
 import './Register.css';
 function Register() {

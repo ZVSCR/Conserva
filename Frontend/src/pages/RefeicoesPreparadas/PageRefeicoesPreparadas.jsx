@@ -1,6 +1,6 @@
-import PanelRefeicoesPreparadas from "../../componentes/PanelReceitasPreparadas/PanelReceitasPreparadas";
-import AppHeader from "../../componentes/AppHeader/AppHeader";
-import BottomNav from "../../componentes/BottomNav/BottomNav";
+import PanelRefeicoesPreparadas from "../../components/receitas/PanelReceitasPreparadas/PanelReceitasPreparadas";
+import AppHeader from "../../components/shared/AppHeader/AppHeader";
+import BottomNav from "../../components/shared/BottomNav/BottomNav";
 
 function RefeicoesPreparadas() {
     return(

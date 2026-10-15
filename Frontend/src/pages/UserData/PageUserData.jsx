@@ -1,4 +1,4 @@
-import PanelUserData from "../../componentes/PanelUserData/PanelUserData";
+import PanelUserData from "../../components/usuario/PanelUserData/PanelUserData";
 
 function UserData(){
     return(

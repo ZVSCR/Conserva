@@ -1,5 +1,5 @@
-import PanelNovaCompra from "../../componentes/PanelNovaCompra/PanelNovaCompra";
-import Header from "../../componentes/Header/Header";
+import PanelNovaCompra from "../../components/compras/PanelNovaCompra/PanelNovaCompra";
+import Header from "../../components/shared/Header/Header";
 
 import './NovaCompra.css';
 function NovaCompra() {
