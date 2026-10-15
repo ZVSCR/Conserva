@@ -139,8 +139,7 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         for (const uso of plano.usos) {
             await client.query(`
                 UPDATE estoque
-                SET quantidade_disponivel = quantidade_disponivel - $1,
-                    gasto = TRUE
+                SET quantidade_disponivel = quantidade_disponivel - $1
                 WHERE id = $2
             `, [uso.quantidade_gasta, uso.estoque_id]);
 

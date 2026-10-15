@@ -1,0 +1,70 @@
+.estoque-produto {
+    width: 100%;
+    max-width: 500px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    margin-bottom: 10px;
+    background-color: white;
+    border: 1px solid #d0d0d0;
+    border-radius: 10px;
+}
+
+.estoque-produto-informacoes {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+    min-width: 0;
+}
+
+@media (max-width: 480px) {
+    .estoque-produto-informacoes {
+        gap: 16px;
+    }
+}
+
+.estoque-produto-nome-e-barra {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.estoque-produto-nome,
+.estoque-produto-quantidade {
+    font-size: 22px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: #000000;
+}
+
+.estoque-produto-acoes {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 20px;
+}
+
+.estoque-produto-botao-acao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.estoque-produto-icone-editar {
+    width: 28px;
+    height: 28px;
+}
+
+.estoque-produto-icone-excluir {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+}

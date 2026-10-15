@@ -1,0 +1,25 @@
+.estoque-campo-rotulo {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: #454444;
+}
+
+.estoque-campo-input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.estoque-campo-erro {
+    margin: 5px 0 0;
+    color: #d32f2f;
+    font-size: 14px;
+}

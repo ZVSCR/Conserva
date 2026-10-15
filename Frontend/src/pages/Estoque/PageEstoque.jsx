@@ -1,26 +1,14 @@
 import { useState, useEffect } from 'react';
 
-import styles from './Estoque.module.css';
+import './Estoque.css';
 import AppHeader from '../../componentes/AppHeader/AppHeader';
-import Produto from './Produto';
 import BottomNav from '../../componentes/BottomNav/BottomNav';
-import EditarProduto from './EditarProd';
- // import AdicionarProduto from './AdicionarProd';
-import ConfirmarExclusao from './ConfirmarExclusao';
+import EstoqueProduto from '../../componentes/ProdutoEstoque/ProdutoEstoque';
+import EditarProdutoEstoque from '../../componentes/EditarProdutoEstoque/EditarProdutoEstoque';
+import ExcluirProdutoEstoque from '../../componentes/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
+// import EstoqueAdicionarProduto from '../../componentes/EstoqueAdicionarProduto/EstoqueAdicionarProduto';
 
-// ---------- A ser modificado !!!!!---------------------------
-/*async function criarProdutoNoBackend(dadosCompra) {
-    return {
-        idItem: Date.now(),
-        nome_item: dadosCompra.itens[0].nome_item,
-        quantidade: dadosCompra.itens[0].quantidade,
-        unidade_de_medida: dadosCompra.itens[0].unidade_de_medida,
-        valor_unitario: dadosCompra.itens[0].valor_unitario,
-        validade_estimada: dadosCompra.itens[0].validade_estimada
-    };
-}
-    */
-// -------------------------------------------------------
+
 function PageEstoque(){
     
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
@@ -53,26 +41,6 @@ function PageEstoque(){
         setProdutoEditando(produto);
     }
     
-    // ------------- Parte a ser modificada, apenas para manutenção do front no momento! --------
-    /*async function adicionarProduto(dadosCompra) {
-    const criado = await criarProdutoNoBackend(dadosCompra);
-
-    setProdutos([
-        ...produtos,
-        {
-            id: criado.idItem,
-            nome: criado.nome_item,
-            quantidade: criado.quantidade,
-            unidadeDeMedida: criado.unidade_de_medida,
-            valorUnitario: criado.valor_unitario,
-            validadeEstimada: criado.validade_estimada
-        }
-    ]);
-
-    setAdicionandoProduto(false);
-}*/
-// -----------------------------------------------------------------------------------
-
     //atualizar as edições no BD
  async function salvarEdicao(produtoAtualizado) {
     try {
@@ -129,16 +97,15 @@ function PageEstoque(){
     setProdutoExcluindo(null);
 }
 
-    return(
-        <div className={styles.paginaEstoque}>
+        return (
+        <div className="estoque-pagina">
             <AppHeader />
             <main>
-                
-                <h1 className={styles.tituloLista}>Lista de produtos</h1>
-        
-                <div className={styles.listaProdutosContainer}>
+                <h1 className="estoque-titulo">Lista de produtos</h1>
+
+                <div className="estoque-lista">
                     {produtos.map((produto) => (
-                        <Produto
+                        <EstoqueProduto
                             key={produto.id}
                             produto={produto}
                             onEditar={editarProduto}
@@ -146,21 +113,21 @@ function PageEstoque(){
                         />
                     ))}
                 </div>
-
             </main>
             <BottomNav />
-                
-                {/*Modal de Editar*/}
-              {produtoEditando && (
-                <EditarProduto
+
+            {/*Modal de editar*/}
+            {produtoEditando && (
+                <EditarProdutoEstoque
                     produto={produtoEditando}
                     onSalvar={salvarEdicao}
                     onCancelar={() => setProdutoEditando(null)}
                 />
             )}
-            {/*Modal de Adicionar
+
+            {/*Modal de adicionar (em espera)
             {adicionandoProduto && (
-                <AdicionarProduto
+                <EstoqueAdicionarProduto
                     onSalvar={adicionarProduto}
                     onCancelar={() => setAdicionandoProduto(false)}
                 />
@@ -169,16 +136,12 @@ function PageEstoque(){
 
             {/*Modal de excluir*/}
             {produtoExcluindo && (
-                <ConfirmarExclusao
+                <ExcluirProdutoEstoque
                     produto={produtoExcluindo}
                     onConfirmar={confirmarExclusao}
                     onCancelar={() => setProdutoExcluindo(null)}
                 />
-            )}  
-
-
-
-
+            )}
         </div>
     );
 }
