@@ -39,3 +39,6 @@ venv/
 
 # Testes
 Backend/src/server.js
+
+# Agentes
+AGENTS.md
