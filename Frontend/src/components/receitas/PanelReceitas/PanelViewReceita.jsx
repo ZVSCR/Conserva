@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
+import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 
 function PanelViewReceita() {
     const [receitas, setReceitas] = useState([]);
@@ -178,7 +179,7 @@ function PanelViewReceita() {
                             aria-label="Fechar"
                             onClick={fecharPopup}
                         >
-                            ×
+                            
                         </button>
 
                         <h2 id="modal-receita-titulo" className="modal-titulo">
