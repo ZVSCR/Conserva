@@ -187,7 +187,7 @@ function PanelViewReceita() {
                             aria-label="Fechar"
                             onClick={fecharPopup}
                         >
-                            
+                            ×
                         </button>
 
                         <h2 id="modal-receita-titulo" className="modal-titulo">
