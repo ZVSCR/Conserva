@@ -82,6 +82,10 @@ function PanelViewReceita() {
     const abrirModalNovaReceita = () => {
         setModalNovaReceitaAberto(true);
     };
+    
+    const fecharModalNovaReceita = () => {
+        setModalNovaReceitaAberto(false);
+    }
 
     const prepararReceita = async (receitaId) => {
         setPreparando(true);
@@ -220,8 +224,8 @@ function PanelViewReceita() {
             )}
 
             {modalNovaReceitaAberto && (
-                <div>
-                    <ModalAdicionarReceita />
+                <div className="modal-nova-receita">
+                    <ModalAdicionarReceita onClose={fecharModalNovaReceita}/>
                 </div>
             )}
         </div>
