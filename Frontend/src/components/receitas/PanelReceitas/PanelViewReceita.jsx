@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
+import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 
 function PanelViewReceita() {
     const [receitas, setReceitas] = useState([]);
@@ -9,6 +10,8 @@ function PanelViewReceita() {
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
     const [preparando, setPreparando] = useState(false);
     const [mensagemPreparo, setMensagemPreparo] = useState("");
+    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    //const [receitaRegistrada, setReceitaRegistrada] = useState(false);
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -74,6 +77,14 @@ function PanelViewReceita() {
         setMensagemPreparo("");
     };
 
+    const abrirModalNovaReceita = () => {
+        setModalNovaReceitaAberto(true);
+    };
+    
+    const fecharModalNovaReceita = () => {
+        setModalNovaReceitaAberto(false);
+    }
+
     const prepararReceita = async (receitaId) => {
         setPreparando(true);
         setMensagemPreparo("");
@@ -114,7 +125,13 @@ function PanelViewReceita() {
 
             {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
             <div className="receita-actions">
-                <button type="button" className="btn-adicionar">Adicionar receita</button>
+                <button 
+                    type="button" 
+                    className="btn-adicionar"
+                    onClick={abrirModalNovaReceita}
+                    disabled={loading /*|| receitaRegistrada*/}>
+                        Adicionar receita
+                </button>
                 <button type="button" className="btn-remover">Remover receita</button>
             </div>
 
@@ -199,6 +216,12 @@ function PanelViewReceita() {
                         </button>
                         {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
+                </div>
+            )}
+
+            {modalNovaReceitaAberto && (
+                <div className="modal-nova-receita">
+                    <ModalAdicionarReceita onClose={fecharModalNovaReceita}/>
                 </div>
             )}
         </div>
