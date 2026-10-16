@@ -1,4 +1,4 @@
-import PanelExtratoCompras from "../../componentes/PanelExtratoCompras/PanelExtratoCompras";
+import PanelExtratoCompras from "../../components/compras/PanelExtratoCompras/PanelExtratoCompras";
 
 function ExtratoCompras(){
     return(
