@@ -130,7 +130,7 @@ async function verificarReceita(req, res) {
             return res.status(400).json({ erro: 'receitaId deve ser um inteiro positivo.' });
         }
 
-        const plano = await verificarReceitaService(req.user.id, receitaId);
+        const plano = await verificarReceitaService(req.receitaUsuarioId, receitaId);
 
         return res.status(200).json({
             status: 'success',
@@ -148,7 +148,7 @@ async function prepararReceita(req, res) {
             return res.status(400).json({ erro: 'receitaId deve ser um inteiro positivo.' });
         }
 
-        const resultado = await prepararReceitaService(req.user.id, receitaId);
+        const resultado = await prepararReceitaService(req.receitaUsuarioId, receitaId);
 
         return res.status(201).json({
             status: 'success',
