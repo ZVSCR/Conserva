@@ -1,6 +1,6 @@
 import './ProdutoEstoque.css';
-import IconEditar from '../../assets/IconsEstoque/editar.png';
-import IconDeletar from '../../assets/IconsEstoque/delete.png';
+import IconEditar from '../../../assets/IconsEstoque/editar.png';
+import IconDeletar from '../../../assets/IconsEstoque/delete.png';
 import BarraConsumo from '../BarraConsumoEstoque/BarraConsumoEstoque';
 
 function ProdutoEstoque({ produto, onEditar, onExcluir }) {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import perfil from '../../assets/IconsEstoque/perfil.png';
+import perfil from '../../../assets/IconsEstoque/perfil.png';
 import styles from './AppHeader.module.css';
 
 function AppHeader() {

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import IconReceitas from '../../assets/IconsEstoque/livro-de-receitas.png';
-import IconCompras from '../../assets/IconsEstoque/carrinho.png';
-import IconAdicionar from '../../assets/IconsEstoque/adicionar.png';
-import IconEstoque from '../../assets/IconsEstoque/estoque.png';
-import IconConfiguracao from '../../assets/IconsEstoque/configuracao.png';
+import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
+import IconCompras from '../../../assets/IconsEstoque/carrinho.png';
+import IconAdicionar from '../../../assets/IconsEstoque/adicionar.png';
+import IconEstoque from '../../../assets/IconsEstoque/estoque.png';
+import IconConfiguracao from '../../../assets/IconsEstoque/configuracao.png';
 import styles from './BottomNav.module.css';
 
 function BottomNav() {
