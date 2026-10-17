@@ -1,3 +1,4 @@
+const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
 
 const aliasesToNome = {
     "req": "requeijao",
@@ -81,6 +82,8 @@ const aliasesToNome = {
     "água": "agua",
     "cerveja": "cerveja",
     "cerv": "cerveja",
+    "ovo" : "ovo",
+    "ovos": "ovo",
 };
 
 function normalizar(str) {
@@ -147,7 +150,13 @@ function resolverNomeItem(rawItem, novoItemNome) {
 
 */
 
+async function createIngredienteService({ nome }) {
+    return createIngredienteRepo(normalizar(nome));
+}
+
 module.exports = {
     adicionarItem,
-    resolverNomeItem
+    resolverNomeItem,
+    createIngredienteService,
+    aliasesToNome,
 };
