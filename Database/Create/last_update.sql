@@ -46,5 +46,12 @@ CREATE TABLE receita_ingrediente (
         CHECK (unidade_de_medida IN ('un', 'kg', 'g', 'L', 'mL'))
 );
 
+-- 5. Dono da receita (obrigatório). As receitas do sistema pertencem ao usuário administrador.
+--    ATENÇÃO: apaga todas as receitas existentes e, em cascata, os ingredientes delas e o histórico de preparo. Depois, cadastre as receitas de novo com o usuário correto.
+DELETE FROM receita;
+
+ALTER TABLE receita
+ADD COLUMN usuario_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+
 COMMIT;
 

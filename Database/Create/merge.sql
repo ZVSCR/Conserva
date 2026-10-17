@@ -55,6 +55,7 @@ CREATE TABLE estoque (
 -- 6. Tabela de Receitas
 CREATE TABLE receita (
     id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- dono da receita; as receitas do sistema pertencem ao user adm
     nome VARCHAR(100) NOT NULL,
     descricao TEXT,
     modo_preparo TEXT,
