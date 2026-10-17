@@ -1,5 +1,8 @@
 const express = require('express');
 const compraRouter = express.Router();
+const compraUser = require('../middleware/compraUser');
+
+compraRouter.use(compraUser);
 const {
     listarCompras,
     listarItensPorCompra,
