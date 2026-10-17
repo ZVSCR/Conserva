@@ -69,13 +69,13 @@ describe('GET /api/compras', () => {
         );
 
         const response = await request(app)
-            .get(listaComprasEndpoint);
+            .get(listaComprasEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
             erro: 'Erro ao buscar compras no banco de dados'
         });
-        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
+        expect(listarComprasUsuario).toHaveBeenCalledWith(7);
     });
 
     test('retorna 200 para lista vazia de compras', async () => {
@@ -83,11 +83,11 @@ describe('GET /api/compras', () => {
         listarComprasUsuario.mockResolvedValue(compras);
 
         const response = await request(app)
-            .get(listaComprasEndpoint);
+            .get(listaComprasEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compras);
-        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
+        expect(listarComprasUsuario).toHaveBeenCalledWith(7);
     });
 
     test('retorna 200 para lista com todas as linhas das compras e itens', async () => {
@@ -132,11 +132,11 @@ describe('GET /api/compras', () => {
         listarComprasUsuario.mockResolvedValue(compras);
 
         const response = await request(app)
-            .get(listaComprasEndpoint);
+            .get(listaComprasEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compras);
-        expect(listarComprasUsuario).toHaveBeenCalledWith(1);
+        expect(listarComprasUsuario).toHaveBeenCalledWith(7);
     });
 });
 
@@ -151,19 +151,19 @@ describe('GET /api/compras/:compraId', () => {
         );
 
         const response = await request(app)
-            .get(compraEndpoint);
+            .get(compraEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
             erro: 'Erro ao buscar itens da compra'
         });
-        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
+        expect(listarCompraPorId).toHaveBeenCalledWith(7, 2);
     });
     
     test.each(['/api/compras/abc', '/api/compras/0'])(
         'retorna 400 para ID inválido em %s',
         async (url) => {
-            const response = await request(app).get(url);
+            const response = await request(app).get(url).query({ usuario_id: 7 });
 
             expect(response.status).toBe(400);
             expect(response.body).toEqual({
@@ -179,13 +179,13 @@ describe('GET /api/compras/:compraId', () => {
         );
 
         const response = await request(app)
-            .get(compraEndpoint);
+            .get(compraEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({
             erro: 'Compra não encontrada'
         });
-        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
+        expect(listarCompraPorId).toHaveBeenCalledWith(7, 2);
     });
     
     test('retorna 200 para compra existente', async () => {
@@ -218,11 +218,11 @@ describe('GET /api/compras/:compraId', () => {
         listarCompraPorId.mockResolvedValue(compra);
 
         const response = await request(app)
-            .get(compraEndpoint);
+            .get(compraEndpoint).query({ usuario_id: 7 });
 
         expect(response.status).toBe(200);
         expect(response.body.data).toEqual(compra);
-        expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
+        expect(listarCompraPorId).toHaveBeenCalledWith(7, 2);
     });
 });
 // =============================================================================
@@ -236,7 +236,7 @@ describe('PATCH /api/compras/:compraId', () => {
 
     test('retorna 400 para compraId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/abc')
+            .patch('/api/compras/abc').query({ usuario_id: 7 })
             .send({ estabelecimento: 'Mercado Central' });
 
         expect(response.status).toBe(400);
@@ -248,7 +248,7 @@ describe('PATCH /api/compras/:compraId', () => {
 
     test('retorna 400 quando nenhum campo é enviado', async () => {
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({});
 
         expect(response.status).toBe(400);
@@ -257,7 +257,7 @@ describe('PATCH /api/compras/:compraId', () => {
 
     test('retorna 400 para campos desconhecidos', async () => {
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({ valor_total: 100 });
 
         expect(response.status).toBe(400);
@@ -277,7 +277,7 @@ describe('PATCH /api/compras/:compraId', () => {
         ['estabelecimento acima do limite', { estabelecimento: 'a'.repeat(51) }]
     ])('rejeita %s antes de consultar o repositório', async (_caseName, body) => {
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send(body);
 
         expect(response.status).toBe(400);
@@ -293,14 +293,14 @@ describe('PATCH /api/compras/:compraId', () => {
         atualizarCompraPorId.mockResolvedValue(compra);
 
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({
                 data_compra: '2026-09-19T14:30:00.000Z',
                 estabelecimento: 'Mercado Central'
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(7, 2, {
             data_compra: '2026-09-19T14:30:00.000Z',
             estabelecimento: 'Mercado Central'
         });
@@ -315,14 +315,14 @@ describe('PATCH /api/compras/:compraId', () => {
         });
 
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({
                 data_compra: '2026-09-19',
                 estabelecimento: null
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(7, 2, {
             data_compra: '2026-09-19',
             estabelecimento: null
         });
@@ -334,7 +334,7 @@ describe('PATCH /api/compras/:compraId', () => {
         );
 
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({ estabelecimento: 'Mercado Central' });
 
         expect(response.status).toBe(404);
@@ -349,7 +349,7 @@ describe('PATCH /api/compras/:compraId', () => {
         );
 
         const response = await request(app)
-            .patch(compraEndpoint)
+            .patch(compraEndpoint).query({ usuario_id: 7 })
             .send({ estabelecimento: 'Mercado Central' });
 
         expect(response.status).toBe(500);
@@ -366,7 +366,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 para compraId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/0/items/1')
+            .patch('/api/compras/0/items/1').query({ usuario_id: 7 })
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(400);
@@ -378,7 +378,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 para itemId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/2/items/abc')
+            .patch('/api/compras/2/items/abc').query({ usuario_id: 7 })
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(400);
@@ -390,7 +390,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 quando nenhum campo de atualização é enviado', async () => {
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({});
 
         expect(response.status).toBe(400);
@@ -399,7 +399,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 quando um campo desconhecido é enviado', async () => {
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({ preco: 10 });
 
         expect(response.status).toBe(400);
@@ -424,7 +424,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         ['validade fora do formato ISO', { validade_estimada: '19/09/2026' }]
     ])('rejeita %s antes de consultar o repositório', async (_caseName, body) => {
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send(body);
 
         expect(response.status).toBe(400);
@@ -439,7 +439,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         atualizarPorCompraId.mockResolvedValue(resultado);
 
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({
                 quantidade: 2.5,
                 valor_unitario: 10,
@@ -449,7 +449,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 2, {
+        expect(atualizarPorCompraId).toHaveBeenCalledWith(7, 1, 2, {
             quantidade: 2.5,
             valor_unitario: 10,
             nome_item: 'Arroz',
@@ -466,11 +466,11 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         });
 
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({ validade_estimada: null });
 
         expect(response.status).toBe(200);
-        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 2, {
+        expect(atualizarPorCompraId).toHaveBeenCalledWith(7, 1, 2, {
             quantidade: undefined,
             valor_unitario: undefined,
             nome_item: undefined,
@@ -485,7 +485,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         );
 
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(404);
@@ -496,13 +496,13 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 para medida incompatível com o tipo do item', async () => {
         atualizarPorCompraId.mockRejectedValue(new GranularidadeInvalidaError('Medida inválida'));
-        const response = await request(app).patch(endpoint).send({ quantidade: 1.5 });
+        const response = await request(app).patch(endpoint).send({ quantidade: 1.5 }).query({ usuario_id: 7 });
         expect(response.status).toBe(400);
     });
 
     test('retorna 409 ao tentar corrigir quantidade original após consumo', async () => {
         atualizarPorCompraId.mockRejectedValue(new ItemCompraConflitoError('Item já consumido'));
-        const response = await request(app).patch(endpoint).send({ quantidade: 4 });
+        const response = await request(app).patch(endpoint).send({ quantidade: 4 }).query({ usuario_id: 7 });
         expect(response.status).toBe(409);
     });
 
@@ -512,7 +512,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         );
 
         const response = await request(app)
-            .patch(endpoint)
+            .patch(endpoint).query({ usuario_id: 7 })
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(500);
@@ -541,7 +541,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
         ['tipo de medida', { tipo_medida: 'unitaria' }]
     ])('rejeita atualização coletiva de %s', async (_field, novosValores) => {
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({ itemBusca, novosValores });
 
         expect(response.status).toBe(400);
@@ -551,7 +551,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
     test('exige unidade de medida no seletor para não misturar embalagens', async () => {
         const { unidade_de_medida, ...buscaSemUnidade } = itemBusca;
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({ itemBusca: buscaSemUnidade, novosValores: { nome_item: 'Outro' } });
 
         expect(response.status).toBe(400);
@@ -560,7 +560,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
 
     test('valida os tipos do seletor antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({
                 itemBusca: { ...itemBusca, quantidade: '0.5' },
                 novosValores: { nome_item: 'Outro' }
@@ -575,7 +575,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
         atualizarInstanciasPorCompraId.mockResolvedValue(resultado);
 
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({
                 itemBusca,
                 novosValores: {
@@ -586,7 +586,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(2, itemBusca, {
+        expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(7, 2, itemBusca, {
             nome_item: 'Outro',
             valor_unitario: 18,
             validade_estimada: null
@@ -597,7 +597,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
     test('retorna 404 se nenhuma instância corresponder ao seletor', async () => {
         atualizarInstanciasPorCompraId.mockRejectedValue(new ItemCompraNaoEncontradoError());
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({ itemBusca, novosValores: { valor_unitario: 18 } });
 
         expect(response.status).toBe(404);
@@ -606,7 +606,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
     test('retorna 500 se o repositório falhar inesperadamente', async () => {
         atualizarInstanciasPorCompraId.mockRejectedValue(new Error('Banco indisponível'));
         const response = await request(app)
-            .patch(bulkEndpoint)
+            .patch(bulkEndpoint).query({ usuario_id: 7 })
             .send({ itemBusca, novosValores: { valor_unitario: 18 } });
 
         expect(response.status).toBe(500);
@@ -614,3 +614,22 @@ describe('PATCH /api/compras/:compraId/items', () => {
     });
 });
 // =============================================================================
+
+// No default user: missing or malformed IDs must not reach persistence.
+describe('Compra user identification', () => {
+    beforeEach(() => jest.clearAllMocks());
+    test.each([undefined, '', '0', '-1', '1.5', 'abc', '9007199254740992'])(
+        'rejects invalid usuario_id %s', async (usuario_id) => {
+            const response = await request(app).get('/api/compras')
+                .query(usuario_id === undefined ? {} : { usuario_id });
+            expect(response.status).toBe(400);
+            expect(listarComprasUsuario).not.toHaveBeenCalled();
+        }
+    );
+    test.each([7, 42])('lists purchases for supplied user %s', async (usuario_id) => {
+        listarComprasUsuario.mockResolvedValue([]);
+        const response = await request(app).get('/api/compras').query({ usuario_id });
+        expect(response.status).toBe(200);
+        expect(listarComprasUsuario).toHaveBeenCalledWith(usuario_id);
+    });
+});
