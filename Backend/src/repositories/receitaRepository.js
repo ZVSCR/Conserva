@@ -167,8 +167,8 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         client.release();
     }
 }
-// Lista todas as receitas, cada uma com seus ingredientes
-async function listReceitasRepo() {
+// Lista receitas do sistema (por enquanto NULL) e do usuário, cada uma com seus ingredientes
+async function listReceitasRepo(usuarioId) {
     try {
         const receitas = await sql`
             SELECT
@@ -190,6 +190,7 @@ async function listReceitasRepo() {
             FROM receita r
             LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
             LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
+            WHERE r.usuario_id IS NULL OR r.usuario_id = ${usuarioId}
             GROUP BY r.id
             ORDER BY r.nome
         `;

@@ -18,7 +18,7 @@ const {
 
 receitaRouter.route('/')
     .post(receitaUser, createReceita)
-    .get(listReceitas)
+    .get(receitaUser, listReceitas)
 
 receitaRouter.route('/:receitaId/disponibilidade')
     .get(receitaUser, verificarReceita);

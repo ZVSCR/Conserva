@@ -162,7 +162,7 @@ async function prepararReceita(req, res) {
 
 async function listReceitas(req, res) {
     try {
-        const receitas = await listReceitasRepo();
+        const receitas = await listReceitasRepo(req.receitaUsuarioId);
 
         return res.status(200).json({
             receitas
