@@ -64,6 +64,7 @@ validarCatalogoIngredientes();
 const map = new Map(
     Object.entries(aliasesToNome).map(([alias, nome]) => [normalizar(alias), nome])
 );
+const nomesPadrao = new Set(Object.values(listaIngredientes));
 
 function parseItem(inputStr) {
     return normalizar(
@@ -94,6 +95,11 @@ function adicionarItem(inputStr) {
     return { needsName: false, item: nome };
 }
 
+function identificarIngredientePadrao(nomeBruto) {
+    const { item } = adicionarItem(nomeBruto);
+    return nomesPadrao.has(item) ? item : null;
+}
+
 function resolverNomeItem(rawItem, novoItemNome) {
     let itemFinal = parseItem(novoItemNome);
     itemFinal = buscarNome(itemFinal) ?? itemFinal;                     // Usa nome padrão se o informado for um alias conhecido
@@ -118,6 +124,7 @@ function resolverNomeItem(rawItem, novoItemNome) {
 
 module.exports = {
     adicionarItem,
+    identificarIngredientePadrao,
     resolverNomeItem,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao

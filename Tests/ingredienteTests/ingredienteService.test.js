@@ -6,6 +6,7 @@ const { listaIngredientes, aliasesToNome } = require('../../Backend/src/data/ing
 const { inserirIngredientesPadrao } = require('../../Backend/src/repositories/ingredienteRepository');
 const {
     adicionarItem,
+    identificarIngredientePadrao,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao
 } = require('../../Backend/src/services/ingredienteService');
@@ -41,6 +42,8 @@ test('preserva a resolução existente e deixa nomes desconhecidos pendentes', (
         needsName: true,
         rawItem: 'produto sem alias'
     });
+    expect(identificarIngredientePadrao('Leite marca A 1L')).toBe('leite');
+    expect(identificarIngredientePadrao('Produto sem alias')).toBeNull();
 });
 
 test('valida o catálogo antes de enviar nomes únicos à rotina de inserção', async () => {

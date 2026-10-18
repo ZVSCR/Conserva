@@ -2,6 +2,8 @@ const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 const { calcularValorUnitario } = require('../services/precoService');
+const { identificarIngredientePadrao } = require('../services/ingredienteService');
+const { buscarIdsIngredientes } = require('./ingredienteRepository');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -243,6 +245,13 @@ async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
     return resultado;
 }
 
+async function resolverIngredientesDaCompra(client, itens) {
+    const nomes = itens.map((item) => identificarIngredientePadrao(item.nome_item));
+    const nomesUnicos = [...new Set(nomes.filter(Boolean))];
+    const idsPorNome = await buscarIdsIngredientes(client, nomesUnicos);
+    return nomes.map((nome) => nome === null ? null : idsPorNome.get(nome));
+}
+
 async function createCompraRepo(dadosCompra) {
     const {
         usuario_id,
@@ -257,6 +266,7 @@ async function createCompraRepo(dadosCompra) {
     try {
 
         await client.query('BEGIN');
+        const ingredienteIds = await resolverIngredientesDaCompra(client, itens);
 
         // Cria registro de compra
         let compraId;
@@ -297,14 +307,14 @@ async function createCompraRepo(dadosCompra) {
             compraId = compraIdBranch;
         }
 
-        for (const item of itens) {
+        for (const [indice, item] of itens.entries()) {
 
             // Cria lotes para cada item
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada, ingrediente_id)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                     RETURNING id
                 `,
                 [
@@ -314,7 +324,8 @@ async function createCompraRepo(dadosCompra) {
                     item.unidade_de_medida,
                     item.tipo_medida,
                     item.valor_unitario,
-                    item.validade_estimada
+                    item.validade_estimada,
+                    ingredienteIds[indice]
                 ]
             );
 
@@ -474,15 +485,16 @@ async function adicionaItensACompraRepo(novosItens) {
         }
 
         const compraId = rows[0].id;
+        const ingredienteIds = await resolverIngredientesDaCompra(client, itens);
 
-        for (const item of itens) {
+        for (const [indice, item] of itens.entries()) {
 
             // Cria lotes para cada novo item
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada, ingrediente_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING id              
                 `,
                 [
@@ -492,7 +504,8 @@ async function adicionaItensACompraRepo(novosItens) {
                     item.unidade_de_medida,
                     item.tipo_medida,
                     item.valor_unitario,
-                    item.validade_estimada
+                    item.validade_estimada,
+                    ingredienteIds[indice]
                 ]
             );
 
