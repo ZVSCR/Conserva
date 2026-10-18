@@ -55,6 +55,8 @@ CREATE TABLE estoque (
 -- 6. Tabela de Receitas
 CREATE TABLE receita (
     id SERIAL PRIMARY KEY,
+    -- Talvez alterar depois para not null
+    usuario_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     nome VARCHAR(100) NOT NULL,
     descricao TEXT,
     modo_preparo TEXT,
