@@ -10,12 +10,12 @@ const { atualizarPorId, apagarPorId } = require('../../Backend/src/repositories/
 beforeEach(() => jest.clearAllMocks());
 
 test('edição direta reutiliza a atualização transacional da compra', async () => {
-    sql.mockResolvedValue([{ compra_id: 42 }]);
+    sql.mockResolvedValue([{ compra_id: 42, usuario_id: 7 }]);
     atualizarPorCompraId.mockResolvedValue({ item: { id: 10, nome_item: 'Produto' } });
 
     await expect(atualizarPorId(10, { nome_item: 'Produto' }))
         .resolves.toEqual({ id: 10, nome_item: 'Produto' });
-    expect(atualizarPorCompraId).toHaveBeenCalledWith(10, 42, { nome_item: 'Produto' });
+    expect(atualizarPorCompraId).toHaveBeenCalledWith(7, 10, 42, { nome_item: 'Produto' });
 });
 
 test('não tenta atualizar item inexistente', async () => {
