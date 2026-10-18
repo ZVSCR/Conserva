@@ -170,8 +170,10 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
             throw new ItemCompraConflitoError();
         }
 
-        if (fieldsToUpdate.nome_item !== undefined &&
-            fieldsToUpdate.nome_item !== atual.nome_item) {
+        const deveRenomear = fieldsToUpdate.nome_item !== undefined &&
+            fieldsToUpdate.nome_item !== atual.nome_item;
+        let ingredienteId = null;
+        if (deveRenomear) {
             const { rows: [usoEmReceita] } = await client.query(`
                 SELECT 1
                 FROM receita_preparada_estoque
@@ -180,6 +182,9 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
             `, [atual.estoque_id]);
 
             if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
+            [ingredienteId] = await resolverIngredientesDaCompra(client, [
+                { nome_item: fieldsToUpdate.nome_item }
+            ]);
         }
 
 
@@ -195,13 +200,16 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
                 unidade_de_medida = $2,
                 valor_unitario = COALESCE($3, valor_unitario),
                 nome_item = COALESCE($4, nome_item),
-                validade_estimada = CASE WHEN $5 THEN $6 ELSE validade_estimada END
+                validade_estimada = CASE WHEN $5 THEN $6 ELSE validade_estimada END,
+                ingrediente_id = CASE WHEN $9 THEN $10 ELSE ingrediente_id END
             WHERE id = $7 AND compra_id = $8
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida,
+                      validade_estimada, ingrediente_id
         `, [
             quantidade, unidade, novoValorUnitario,
             fieldsToUpdate.nome_item ?? null, deveAtualizarValidade,
-            fieldsToUpdate.validade_estimada ?? null, itemId, compraId
+            fieldsToUpdate.validade_estimada ?? null, itemId, compraId,
+            deveRenomear, ingredienteId
         ]);
 
         let estoque = {
@@ -399,8 +407,11 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
     try {
         await client.query('BEGIN');
         let idsParaRenomear = null;
+        let ingredienteId = null;
+        const deveRenomear = updates.nome_item !== undefined &&
+            updates.nome_item !== itemBusca.nome_item;
 
-        if (updates.nome_item !== undefined && updates.nome_item !== itemBusca.nome_item) {
+        if (deveRenomear) {
             const { rows: itensSelecionados } = await client.query(`
                 SELECT i.id, e.id AS estoque_id
                 FROM item i
@@ -432,6 +443,9 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
 
             if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
             idsParaRenomear = itensSelecionados.map((item) => item.id);
+            [ingredienteId] = await resolverIngredientesDaCompra(client, [
+                { nome_item: updates.nome_item }
+            ]);
         }
 
         const { rows: itensAtualizados } = await client.query(`
@@ -442,7 +456,8 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
                 validade_estimada = CASE
                     WHEN $3 THEN $4
                     ELSE validade_estimada
-                END
+                END,
+                ingrediente_id = CASE WHEN $12 THEN $13 ELSE ingrediente_id END
             WHERE compra_id = $5
               AND nome_item = $6
               AND quantidade = $7
@@ -450,7 +465,8 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
               AND valor_unitario = $9
               AND validade_estimada IS NOT DISTINCT FROM $10
               AND ($11::int[] IS NULL OR id = ANY($11::int[]))
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada;
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida,
+                      validade_estimada, ingrediente_id;
         `, [
             updates.valor_unitario ?? null,
             updates.nome_item ?? null,
@@ -462,7 +478,9 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
             itemBusca.unidade_de_medida,
             itemBusca.valor_unitario,
             itemBusca.validade_estimada ?? null,
-            idsParaRenomear
+            idsParaRenomear,
+            deveRenomear,
+            ingredienteId
         ]);
 
         if (itensAtualizados.length === 0) {

@@ -319,7 +319,8 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         expect(consultas[3][0]).not.toMatch(/UPDATE estoque/i);
         expect(consultas[3][1]).toContain('kg');
         expect(consultas[3][1]).toContain(false);
-        expect(consultas[3][1].at(-1)).toEqual([1, 2]);
+        expect(consultas[3][1][10]).toEqual([1, 2]);
+        expect(consultas[3][1].slice(-2)).toEqual([true, null]);
         expect(consultas[4][0]).toMatch(/SUM\(quantidade \* valor_unitario\)/);
         expect(consultas[5][0]).toBe('COMMIT');
         expect(client.release).toHaveBeenCalledTimes(1);
