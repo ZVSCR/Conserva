@@ -33,6 +33,13 @@ class ItemCompraConflitoError extends Error {
     }
 }
 
+class ItemJaUsadoEmReceitaError extends Error {
+    constructor() {
+        super('O nome do item não pode ser alterado após seu uso em uma receita.');
+        this.name = 'ItemJaUsadoEmReceitaError';
+    }
+}
+
 // =============================================================================
 // LISTAGEM
 async function listarComprasUsuario(usuarioId) {
@@ -161,6 +168,18 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
         const alterouMedida = quantidade !== Number(atual.quantidade) || unidade !== atual.unidade_de_medida;
         if (alterouMedida && Number(atual.quantidade_disponivel) !== Number(atual.quantidade)) {
             throw new ItemCompraConflitoError();
+        }
+
+        if (fieldsToUpdate.nome_item !== undefined &&
+            fieldsToUpdate.nome_item !== atual.nome_item) {
+            const { rows: [usoEmReceita] } = await client.query(`
+                SELECT 1
+                FROM receita_preparada_estoque
+                WHERE estoque_id = $1
+                LIMIT 1
+            `, [atual.estoque_id]);
+
+            if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
         }
 
 
@@ -379,6 +398,42 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
 
     try {
         await client.query('BEGIN');
+        let idsParaRenomear = null;
+
+        if (updates.nome_item !== undefined && updates.nome_item !== itemBusca.nome_item) {
+            const { rows: itensSelecionados } = await client.query(`
+                SELECT i.id, e.id AS estoque_id
+                FROM item i
+                JOIN estoque e ON e.item_id = i.id
+                WHERE i.compra_id = $1
+                  AND i.nome_item = $2
+                  AND i.quantidade = $3
+                  AND i.unidade_de_medida = $4
+                  AND i.valor_unitario = $5
+                  AND i.validade_estimada IS NOT DISTINCT FROM $6
+                ORDER BY i.id
+                FOR UPDATE OF i, e
+            `, [
+                compraId, itemBusca.nome_item, itemBusca.quantidade,
+                itemBusca.unidade_de_medida, itemBusca.valor_unitario,
+                itemBusca.validade_estimada ?? null
+            ]);
+
+            if (itensSelecionados.length === 0) {
+                throw new ItemCompraNaoEncontradoError();
+            }
+
+            const { rows: [usoEmReceita] } = await client.query(`
+                SELECT 1
+                FROM receita_preparada_estoque
+                WHERE estoque_id = ANY($1::int[])
+                LIMIT 1
+            `, [itensSelecionados.map((item) => item.estoque_id)]);
+
+            if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
+            idsParaRenomear = itensSelecionados.map((item) => item.id);
+        }
+
         const { rows: itensAtualizados } = await client.query(`
             UPDATE item
             SET
@@ -394,6 +449,7 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
               AND unidade_de_medida = $8
               AND valor_unitario = $9
               AND validade_estimada IS NOT DISTINCT FROM $10
+              AND ($11::int[] IS NULL OR id = ANY($11::int[]))
             RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada;
         `, [
             updates.valor_unitario ?? null,
@@ -405,7 +461,8 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
             itemBusca.quantidade,
             itemBusca.unidade_de_medida,
             itemBusca.valor_unitario,
-            itemBusca.validade_estimada ?? null
+            itemBusca.validade_estimada ?? null,
+            idsParaRenomear
         ]);
 
         if (itensAtualizados.length === 0) {
@@ -554,6 +611,7 @@ module.exports = {
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
     ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError,
     apagarCompraPorId,
     adicionaItensACompraRepo
 };

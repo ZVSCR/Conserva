@@ -24,6 +24,7 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
 
     class GranularidadeInvalidaError extends Error {}
     class ItemCompraConflitoError extends Error {}
+    class ItemJaUsadoEmReceitaError extends Error {}
 
     return {
         listarComprasUsuario: jest.fn(),
@@ -34,7 +35,8 @@ jest.mock('../../Backend/src/repositories/compraRepository.js', () => {
         CompraNaoEncontradaError,
         ItemCompraNaoEncontradoError,
         GranularidadeInvalidaError,
-        ItemCompraConflitoError
+        ItemCompraConflitoError,
+        ItemJaUsadoEmReceitaError
     };
 });
 
@@ -47,7 +49,8 @@ const {
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
-    ItemCompraConflitoError
+    ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError
 } = require('../../Backend/src/repositories/compraRepository');
 const app = require('../../Backend/src/app');
 
@@ -506,6 +509,15 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         expect(response.status).toBe(409);
     });
 
+    test('retorna 409 ao tentar renomear item usado em receita', async () => {
+        atualizarPorCompraId.mockRejectedValue(
+            new ItemJaUsadoEmReceitaError('O nome do item não pode ser alterado após seu uso em uma receita.')
+        );
+        const response = await request(app).patch(endpoint).send({ nome_item: 'Outro' });
+        expect(response.status).toBe(409);
+        expect(response.body.erro).toMatch(/uso em uma receita/);
+    });
+
     test('mantém 500 para outras falhas do repositório', async () => {
         atualizarPorCompraId.mockRejectedValue(
             new Error('Falha de conexão')
@@ -601,6 +613,18 @@ describe('PATCH /api/compras/:compraId/items', () => {
             .send({ itemBusca, novosValores: { valor_unitario: 18 } });
 
         expect(response.status).toBe(404);
+    });
+
+    test('retorna 409 sem renomear o grupo quando há item usado em receita', async () => {
+        atualizarInstanciasPorCompraId.mockRejectedValue(
+            new ItemJaUsadoEmReceitaError('O nome do item não pode ser alterado após seu uso em uma receita.')
+        );
+        const response = await request(app)
+            .patch(bulkEndpoint)
+            .send({ itemBusca, novosValores: { nome_item: 'Outro' } });
+
+        expect(response.status).toBe(409);
+        expect(response.body.erro).toMatch(/uso em uma receita/);
     });
 
     test('retorna 500 se o repositório falhar inesperadamente', async () => {

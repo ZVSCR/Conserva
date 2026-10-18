@@ -6,6 +6,7 @@ const { quantidadeRepresentavel } = require('../services/granularidadeService');
 const {
   GranularidadeInvalidaError,
   ItemCompraConflitoError,
+  ItemJaUsadoEmReceitaError,
   ItemCompraNaoEncontradoError
 } = require('../repositories/compraRepository');
 
@@ -149,6 +150,9 @@ async function atualizarItem(req, res) {
             return res.status(400).json({ erro: erro.message });
         }
         if (erro instanceof ItemCompraConflitoError) {
+            return res.status(409).json({ erro: erro.message });
+        }
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
             return res.status(409).json({ erro: erro.message });
         }
         if (erro instanceof ItemCompraNaoEncontradoError) {

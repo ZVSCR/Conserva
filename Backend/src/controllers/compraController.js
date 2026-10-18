@@ -9,6 +9,7 @@ const {
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
     ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError,
     apagarCompraPorId
 } = require('../repositories/compraRepository');
 
@@ -431,6 +432,10 @@ async function atualizarItensPorCompra(req, res) {
             return res.status(409).json({ erro: erro.message });
         }
 
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
+            return res.status(409).json({ erro: erro.message });
+        }
+
         if (erro instanceof PrecoInvalidoError) {
             return res.status(400).json({ erro: erro.message });
         }
@@ -523,6 +528,10 @@ async function atualizarInstanciasPorCompra(req, res) {
 
         if (erro instanceof GranularidadeInvalidaError) {
             return res.status(400).json({ erro: erro.message });
+        }
+
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
+            return res.status(409).json({ erro: erro.message });
         }
 
         if (erro instanceof PrecoInvalidoError) {
