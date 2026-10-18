@@ -1,0 +1,52 @@
+jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
+    inserirIngredientesPadrao: jest.fn()
+}));
+
+const { listaIngredientes, aliasesToNome } = require('../../Backend/src/data/ingredientes');
+const { inserirIngredientesPadrao } = require('../../Backend/src/repositories/ingredienteRepository');
+const {
+    adicionarItem,
+    validarCatalogoIngredientes,
+    garantirIngredientesPadrao
+} = require('../../Backend/src/services/ingredienteService');
+
+beforeEach(() => jest.clearAllMocks());
+
+test('todos os aliases apontam para um ingrediente canônico sem duplicatas', () => {
+    const nomes = validarCatalogoIngredientes();
+    expect(new Set(nomes).size).toBe(nomes.length);
+    expect(nomes).toContain('leite');
+    expect(aliasesToNome['leite integral']).toBe('leite');
+});
+
+test('rejeita ingrediente repetido e alias sem destino', () => {
+    expect(() => validarCatalogoIngredientes(
+        { leite: 'leite', outro: 'leite' }, { leite: 'leite' }
+    )).toThrow('Ingrediente duplicado');
+    expect(() => validarCatalogoIngredientes(
+        { leite: 'leite' }, { leite: 'iogurte' }
+    )).toThrow('Alias inválido');
+});
+
+test('rejeita aliases equivalentes que apontam para ingredientes diferentes', () => {
+    expect(() => validarCatalogoIngredientes(
+        { leite: 'leite', iogurte: 'iogurte' },
+        { cafe: 'leite', 'café': 'iogurte' }
+    )).toThrow('ingredientes distintos');
+});
+
+test('preserva a resolução existente e deixa nomes desconhecidos pendentes', () => {
+    expect(adicionarItem('Leite integral A 1L')).toEqual({ needsName: false, item: 'leite' });
+    expect(adicionarItem('Produto sem alias')).toEqual({
+        needsName: true,
+        rawItem: 'produto sem alias'
+    });
+});
+
+test('valida o catálogo antes de enviar nomes únicos à rotina de inserção', async () => {
+    inserirIngredientesPadrao.mockResolvedValue(3);
+
+    await expect(garantirIngredientesPadrao()).resolves.toBe(3);
+    expect(inserirIngredientesPadrao).toHaveBeenCalledTimes(1);
+    expect(inserirIngredientesPadrao).toHaveBeenCalledWith(Object.values(listaIngredientes));
+});
