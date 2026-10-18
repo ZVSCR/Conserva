@@ -27,6 +27,7 @@ class IngredientesInsuficientesError extends Error {
 async function createReceitaRepo(payload) {
 
     const {
+        usuario_id,
         nome,
         descricao,
         modo_preparo
@@ -35,8 +36,8 @@ async function createReceitaRepo(payload) {
     try {
 
         const [receitaCriada] = await sql`
-            INSERT INTO receita(nome, descricao, modo_preparo)
-            VALUES (${nome}, ${descricao}, ${modo_preparo})
+            INSERT INTO receita(usuario_id, nome, descricao, modo_preparo)
+            VALUES (${usuario_id}, ${nome}, ${descricao}, ${modo_preparo})
             RETURNING id
         `;
 
@@ -279,19 +280,18 @@ async function getReceitaByIdRepo(id) {
 }
 
 // Remove uma receita pelo id (receita_ingrediente é removida em cascata)
-async function deleteReceitaRepo(id) {
-    try {
-        const [receitaRemovida] = await sql`
-            DELETE FROM receita
-            WHERE id = ${id}
-            RETURNING id, nome
-        `;
+async function apagarReceitaPorId(usuarioId, receitaId) {
+    const [receitaRemovida] = await sql`
+        DELETE FROM receita
+        WHERE id = ${receitaId} AND usuario_id = ${usuarioId}
+        RETURNING id, nome;
+    `;
 
-        return receitaRemovida;
-    } catch (error) {
-        console.error('Erro em deleteReceitaRepo:', error);
-        throw error;
+    if (!receitaRemovida) {
+        throw new ReceitaNaoEncontradaError();
     }
+
+    return receitaRemovida;
 }
 
 async function updateReceitaRepo(receitaId, payload) {
@@ -327,6 +327,6 @@ module.exports = {
     IngredientesInsuficientesError,
     listReceitasRepo,
     getReceitaByIdRepo,
-    deleteReceitaRepo,
+    apagarReceitaPorId,
     updateReceitaRepo,
 };

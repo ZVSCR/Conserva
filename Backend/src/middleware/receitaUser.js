@@ -1,5 +1,5 @@
 // Identificação temporária fornecida pelo cliente; não substitui autenticação.
-// Disponibilidade: ?usuario_id=ID. Preparo: usuario_id numérico no JSON.
+// POST: usuario_id no JSON. GET/PATCH/DELETE: ?usuario_id=ID.
 module.exports = function receitaUser(req, res, next) {
     const value = req.method === 'POST' ? req.body?.usuario_id : req.query.usuario_id;
     const usuarioId = req.method === 'POST'

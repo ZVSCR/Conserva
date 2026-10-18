@@ -16,7 +16,7 @@ const {
 const {
     listReceitasRepo,
     getReceitaByIdRepo,
-    deleteReceitaRepo
+    apagarReceitaPorId
 } = require('../repositories/receitaRepository')
 
 // Converte valor para inteiro positivo; retorna null se inválido
@@ -50,7 +50,7 @@ async function createReceita(req, res) {
         }
 
         // Chama serviço para criar a receita
-        const receita = await createReceitaService(req.body);
+        const receita = await createReceitaService(req.receitaUsuarioId, req.body);
 
         // Retorna mensagem de criação status 201 se receita foi inserida no BD
         return res.status(201).json({
@@ -253,31 +253,42 @@ async function getReceitaById(req, res) {
     }
 }
 
-async function deleteReceita(req, res) {
+const parsePositiveIntegerParam = (value) => {
+    if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value)) {
+        return null;
+    }
+
+    const parsedValue = Number(value);
+
+    return Number.isSafeInteger(parsedValue) ? parsedValue : null;
+};
+
+async function apagarReceita(req, res) {
     try {
-        if (!/^[1-9]\d*$/.test(req.params.id)) {
+        const receitaId = parsePositiveIntegerParam(req.params.receitaId);
+
+        if (receitaId === null) {
             return res.status(400).json({
-                error: 'id deve ser um inteiro positivo.'
+                erro: 'receitaId deve ser um inteiro positivo.'
             });
         }
 
-        const receitaRemovida = await deleteReceitaRepo(Number(req.params.id));
-
-        if (!receitaRemovida) {
-            return res.status(404).json({
-                error: 'Receita não encontrada.'
-            });
-        }
+        const receitaRemovida = await apagarReceitaPorId(req.receitaUsuarioId, receitaId);
 
         return res.status(200).json({
+            status: 'success',
             message: 'Receita removida com sucesso.',
-            receita: receitaRemovida
+            data: receitaRemovida
         });
-    } catch (error) {
-        console.error('Erro ao remover receita:', error);
+    } catch (erro) {
+        if (erro instanceof ReceitaNaoEncontradaError) {
+            return res.status(404).json({
+                erro: erro.message
+            });
+        }
 
         return res.status(500).json({
-            error: 'Erro interno do servidor.'
+            erro: 'Erro ao remover receita no banco'
         });
     }
 }
@@ -346,7 +357,7 @@ module.exports = {
     prepararReceita,
     listReceitas,
     getReceitaById,
-    deleteReceita,
+    apagarReceita,
     patchReceitaById,
     postIngredienteReceitaById,
     patchIngredienteReceitaById,
