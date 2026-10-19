@@ -83,7 +83,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
 
             {errorMsg && <p className="receita-feedback receita-erro" role="alert">{errorMsg}</p>}
 
-            <form className="form-modal-nova-reeita" onSubmit={handleSubmit}>
+            <form className="form-modal-nova-receita" onSubmit={handleSubmit}>
                 <label htmlFor="nome-receita">Nome</label>
                 <input
                     id="nome-receita"
@@ -91,6 +91,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                     type="text"
                     onChange={atualizarCampo}
                     maxLength={100}
+                    autoFocus
                     required
                 />
 
