@@ -226,7 +226,7 @@ function PanelViewReceita() {
 
             {modalNovaReceitaAberto && (
                 <div className="modal-nova-receita">
-                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas}/>
+                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas} usuarioId={USUARIO_MOCK_ID}/>
                 </div>
             )}
         </div>

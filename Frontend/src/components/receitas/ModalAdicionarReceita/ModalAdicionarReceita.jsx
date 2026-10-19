@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./ModalAdicionarReceita.css";
 
-function ModalAdicionarReceita({ onClose, onCreated }) {
+function ModalAdicionarReceita({ onClose, onCreated, usuarioId }) {
     const [receita, setReceita] = useState({
         nome: "",
         descricao: "",
@@ -39,6 +39,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    usuario_id: usuarioId,
                     nome: receita.nome,
                     descricao: receita.descricao,
                     modo_preparo: receita.modo_preparo,
