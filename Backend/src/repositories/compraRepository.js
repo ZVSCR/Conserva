@@ -95,7 +95,7 @@ async function listarComprasUsuarioData(usuarioId, dataInicio, dataFim) {
 
 // =============================================================================
 
-async function atualizarCompraPorId(compraId, fieldsToUpdate) {
+async function atualizarCompraPorId(usuarioId, compraId, fieldsToUpdate) {
     const deveAtualizarData = fieldsToUpdate.data_compra !== undefined;
     const deveAtualizarEstabelecimento =
         fieldsToUpdate.estabelecimento !== undefined;
@@ -111,7 +111,7 @@ async function atualizarCompraPorId(compraId, fieldsToUpdate) {
                 WHEN ${deveAtualizarEstabelecimento} THEN ${fieldsToUpdate.estabelecimento ?? null}
                 ELSE estabelecimento
             END
-        WHERE id = ${compraId}
+        WHERE id = ${compraId} AND usuario_id = ${usuarioId}
         RETURNING id, usuario_id, data_compra, valor_total, estabelecimento;
     `;
 
@@ -122,7 +122,7 @@ async function atualizarCompraPorId(compraId, fieldsToUpdate) {
     return compraAtualizada;
 }
 
-async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
+async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate) {
     const client = await pool.connect();
 
     try {
@@ -131,9 +131,11 @@ async function atualizarPorCompraId(itemId, compraId, fieldsToUpdate) {
             SELECT i.*, e.id AS estoque_id, e.quantidade_disponivel
             FROM item i
             JOIN estoque e ON e.item_id = i.id
+            JOIN compra c ON c.id = i.compra_id
             WHERE i.id = $1 AND i.compra_id = $2
+              AND c.usuario_id = $3 AND e.usuario_id = $3
             FOR UPDATE OF i, e
-        `, [itemId, compraId]);
+        `, [itemId, compraId, usuarioId]);
 
         if (!atual) throw new ItemCompraNaoEncontradoError();
 
@@ -347,7 +349,7 @@ async function createCompraRepo(dadosCompra) {
     }
 }
 
-async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdate) {
+async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fieldsToUpdate) {
     // Cada embalagem pode ter um saldo próprio; a edição coletiva altera só dados compartilhados.
     const allowedBulkFields = ['nome_item', 'valor_unitario', 'validade_estimada'];
     const unsupportedFields = Object.keys(fieldsToUpdate).filter((field) =>
@@ -383,6 +385,10 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
               AND unidade_de_medida = $8
               AND valor_unitario = $9
               AND validade_estimada IS NOT DISTINCT FROM $10
+              AND EXISTS (
+                  SELECT 1 FROM compra c
+                  WHERE c.id = item.compra_id AND c.usuario_id = $11
+              )
             RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada;
         `, [
             updates.valor_unitario ?? null,
@@ -394,7 +400,8 @@ async function atualizarInstanciasPorCompraId(compraId, itemBusca, fieldsToUpdat
             itemBusca.quantidade,
             itemBusca.unidade_de_medida,
             itemBusca.valor_unitario,
-            itemBusca.validade_estimada ?? null
+            itemBusca.validade_estimada ?? null,
+            usuarioId
         ]);
 
         if (itensAtualizados.length === 0) {
@@ -470,7 +477,7 @@ async function adicionaItensACompraRepo(novosItens) {
 
         // Compra não encontrada para o usuário
         if (rows.length === 0) {
-            throw new Error('Compra não encontrada para este usuário');
+            throw new CompraNaoEncontradaError();
         }
 
         const compraId = rows[0].id;

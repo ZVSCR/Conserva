@@ -46,5 +46,10 @@ CREATE TABLE receita_ingrediente (
         CHECK (unidade_de_medida IN ('un', 'kg', 'g', 'L', 'mL'))
 );
 
+-- 5. Adicionar o usuário dono da receita
+-- Talvez alterar depois para not null
+ALTER TABLE receita
+ADD COLUMN usuario_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+
 COMMIT;
 
