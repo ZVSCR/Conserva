@@ -12,6 +12,8 @@ function PanelViewReceita() {
     const [mensagemPreparo, setMensagemPreparo] = useState("");
     // Identificação temporária, seguindo o mesmo padrão de Compras.
     const USUARIO_MOCK_ID = 1;
+    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    //const [receitaRegistrada, setReceitaRegistrada] = useState(false);
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -77,6 +79,10 @@ function PanelViewReceita() {
         setMensagemPreparo("");
     };
 
+    const abrirModalNovaReceita = () => {
+        setModalNovaReceitaAberto(true);
+    };
+
     const prepararReceita = async (receitaId) => {
         setPreparando(true);
         setMensagemPreparo("");
@@ -119,7 +125,13 @@ function PanelViewReceita() {
 
             {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
             <div className="receita-actions">
-                <button type="button" className="btn-adicionar">Adicionar receita</button>
+                <button 
+                    type="button" 
+                    className="btn-adicionar"
+                    onClick={abrirModalNovaReceita}
+                    disabled={loading /*|| receitaRegistrada*/}>
+                        Adicionar receita
+                </button>
                 <button type="button" className="btn-remover">Remover receita</button>
             </div>
 
@@ -204,6 +216,12 @@ function PanelViewReceita() {
                         </button>
                         {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
+                </div>
+            )}
+
+            {modalNovaReceitaAberto && (
+                <div>
+                    <ModalAdicionarReceita />
                 </div>
             )}
         </div>
