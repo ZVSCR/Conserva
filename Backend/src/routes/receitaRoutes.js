@@ -1,8 +1,7 @@
 const express = require('express');
 const receitaRouter = express.Router();
 
-const autenticar = require('../middleware/mockAuth');
-//Quando deixar de usar o mockAuth, basta trocar por require('../middleware/requireAuth');
+const receitaUser = require('../middleware/receitaUser');
 
 const {
     createReceita,
@@ -22,10 +21,10 @@ receitaRouter.route('/')
     .get(listReceitas)
 
 receitaRouter.route('/:receitaId/disponibilidade')
-    .get(autenticar, verificarReceita);
+    .get(receitaUser, verificarReceita);
 
 receitaRouter.route('/:receitaId/preparar')
-    .post(autenticar, prepararReceita);
+    .post(receitaUser, prepararReceita);
 
 receitaRouter.route('/:id')
     .get(getReceitaById)

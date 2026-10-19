@@ -9,6 +9,8 @@ function PanelViewReceita() {
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
     const [preparando, setPreparando] = useState(false);
     const [mensagemPreparo, setMensagemPreparo] = useState("");
+    // Identificação temporária, seguindo o mesmo padrão de Compras.
+    const USUARIO_MOCK_ID = 1;
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -81,6 +83,8 @@ function PanelViewReceita() {
         try {
             const response = await fetch(`http://localhost:3000/api/receitas/${receitaId}/preparar`, {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario_id: USUARIO_MOCK_ID }),
             });
             const data = await response.json();
 
