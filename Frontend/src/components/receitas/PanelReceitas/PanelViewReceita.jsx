@@ -15,7 +15,7 @@ function PanelViewReceita() {
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas`, {
+            const response = await fetch(`http://localhost:3000/api/receitas?usuario_id=${USUARIO_MOCK_ID}`, {
                 method: "GET",
             });
 
