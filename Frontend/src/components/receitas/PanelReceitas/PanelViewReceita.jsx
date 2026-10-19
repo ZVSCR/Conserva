@@ -34,6 +34,7 @@ function PanelViewReceita() {
                 return;
             }
 
+            setErrorMsg("");
             setReceitas(data.receitas);
         } catch (error) {
             console.error("Erro na requisição:", error);
@@ -225,7 +226,7 @@ function PanelViewReceita() {
 
             {modalNovaReceitaAberto && (
                 <div className="modal-nova-receita">
-                    <ModalAdicionarReceita onClose={fecharModalNovaReceita}/>
+                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas}/>
                 </div>
             )}
         </div>
