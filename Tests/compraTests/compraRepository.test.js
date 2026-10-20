@@ -317,19 +317,20 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         })).resolves.toEqual({ itens, compra: compra[0] });
 
         const consultas = client.query.mock.calls;
-        expect(consultas).toHaveLength(6);
-        const setClause = consultas[3][0].split('SET')[1].split('WHERE')[0];
+        expect(consultas).toHaveLength(7);
+        expect(consultas[3][1]).toEqual([['outro']]);
+        const setClause = consultas[4][0].split('SET')[1].split('WHERE')[0];
         expect(setClause).not.toMatch(/\bquantidade\s*=/i);
         expect(setClause).not.toMatch(/\bunidade_de_medida\s*=/i);
-        expect(consultas[3][0]).not.toMatch(/UPDATE estoque/i);
-        expect(consultas[3][1]).toContain('kg');
-        expect(consultas[3][1]).toContain(false);
-        expect(consultas[3][1][10]).toEqual([1, 2]);
-        expect(consultas[3][1].slice(-3)).toEqual([true, null, 1]);
-        expect(consultas[3][0]).toMatch(/c\.usuario_id = \$14/);
+        expect(consultas[4][0]).not.toMatch(/UPDATE estoque/i);
+        expect(consultas[4][1]).toContain('kg');
+        expect(consultas[4][1]).toContain(false);
+        expect(consultas[4][1][10]).toEqual([1, 2]);
+        expect(consultas[4][1].slice(-3)).toEqual([true, null, 1]);
+        expect(consultas[4][0]).toMatch(/c\.usuario_id = \$14/);
         expect(consultas[1][0]).toMatch(/c\.usuario_id = \$7 AND e\.usuario_id = \$7/);
-        expect(consultas[4][0]).toMatch(/SUM\(quantidade \* valor_unitario\)/);
-        expect(consultas[5][0]).toBe('COMMIT');
+        expect(consultas[5][0]).toMatch(/SUM\(quantidade \* valor_unitario\)/);
+        expect(consultas[6][0]).toBe('COMMIT');
         expect(client.release).toHaveBeenCalledTimes(1);
     });
 

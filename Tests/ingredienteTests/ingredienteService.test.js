@@ -8,6 +8,7 @@ const { inserirIngredientesPadrao, createIngredienteRepo } = require('../../Back
 const {
     adicionarItem,
     identificarIngredientePadrao,
+    identificarIngredienteCandidato,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
     createIngredienteService
@@ -48,6 +49,12 @@ test('preserva a resolução existente e deixa nomes desconhecidos pendentes', (
     });
     expect(identificarIngredientePadrao('Leite marca A 1L')).toBe('leite');
     expect(identificarIngredientePadrao('Produto sem alias')).toBeNull();
+    expect(identificarIngredienteCandidato('Leite marca A 1L'))
+        .toEqual({ nome: 'leite', obrigatorio: true });
+    expect(identificarIngredienteCandidato('Coco Ralado'))
+        .toEqual({ nome: 'coco ralado', obrigatorio: false });
+    expect(identificarIngredienteCandidato('!!!'))
+        .toEqual({ nome: null, obrigatorio: false });
 });
 
 test('valida o catálogo antes de enviar nomes únicos à rotina de inserção', async () => {

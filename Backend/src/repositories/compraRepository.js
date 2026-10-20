@@ -2,7 +2,7 @@ const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 const { calcularValorUnitario } = require('../services/precoService');
-const { identificarIngredientePadrao } = require('../services/ingredienteService');
+const { identificarIngredienteCandidato } = require('../services/ingredienteService');
 const { buscarIdsIngredientes } = require('./ingredienteRepository');
 
 class ItemCompraNaoEncontradoError extends Error {
@@ -275,10 +275,13 @@ async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
 }
 
 async function resolverIngredientesDaCompra(client, itens) {
-    const nomes = itens.map((item) => identificarIngredientePadrao(item.nome_item));
-    const nomesUnicos = [...new Set(nomes.filter(Boolean))];
-    const idsPorNome = await buscarIdsIngredientes(client, nomesUnicos);
-    return nomes.map((nome) => nome === null ? null : idsPorNome.get(nome));
+    const candidatos = itens.map((item) => identificarIngredienteCandidato(item.nome_item));
+    const nomesUnicos = [...new Set(candidatos.map(({ nome }) => nome).filter(Boolean))];
+    const nomesObrigatorios = [...new Set(candidatos
+        .filter(({ obrigatorio }) => obrigatorio)
+        .map(({ nome }) => nome))];
+    const idsPorNome = await buscarIdsIngredientes(client, nomesUnicos, nomesObrigatorios);
+    return candidatos.map(({ nome }) => idsPorNome.get(nome) ?? null);
 }
 
 async function createCompraRepo(dadosCompra) {

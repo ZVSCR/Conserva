@@ -65,7 +65,7 @@ test('dois nomes comerciais compartilham o mesmo ingrediente sem fundir seus est
     const insercoes = consultas.filter(([query]) => /INSERT INTO item/.test(query));
     const estoques = consultas.filter(([query]) => /INSERT INTO estoque/.test(query));
     expect(consultas[0][0]).toBe('BEGIN');
-    expect(busca[1]).toEqual([['leite']]);
+    expect(busca[1]).toEqual([['leite', 'produto desconhecido']]);
     expect(insercoes).toHaveLength(3);
     expect(insercoes.map(([, valores]) => valores[1])).toEqual([
         'Leite A', 'Leite B', 'Produto desconhecido'
@@ -85,7 +85,7 @@ test('adicionar itens a uma compra usa a mesma classificação transacional', as
     });
 
     const consultas = client.query.mock.calls;
-    expect(consultas.find(([query]) => /FROM ingrediente/.test(query))[1]).toEqual([['maca']]);
+    expect(consultas.find(([query]) => /FROM ingrediente/.test(query))[1]).toEqual([['maca', 'granola']]);
     const insercoes = consultas.filter(([query]) => /INSERT INTO item/.test(query));
     expect(insercoes.map(([, valores]) => valores[7])).toEqual([9, null]);
     expect(consultas.at(-1)[0]).toBe('COMMIT');
@@ -103,15 +103,42 @@ test('um ingrediente conhecido mas ausente do banco desfaz a compra', async () =
     expect(client.release).toHaveBeenCalledTimes(1);
 });
 
-test('uma compra só com itens desconhecidos não consulta o catálogo', async () => {
+test('uma compra só com nomes não cadastrados consulta o banco e fica pendente', async () => {
     const client = criarCliente();
     await createCompraRepo({
         usuario_id: 1, valor_total: 4, estabelecimento: 'Mercado', itens: [item('Granola')]
     });
 
-    expect(client.query.mock.calls.some(([query]) => /FROM ingrediente/.test(query))).toBe(false);
+    expect(client.query.mock.calls.find(([query]) => /FROM ingrediente/.test(query))[1])
+        .toEqual([['granola']]);
     const insercao = client.query.mock.calls.find(([query]) => /INSERT INTO item/.test(query));
     expect(insercao[1][7]).toBeNull();
+});
+
+test('compra vincula pelo nome exato normalizado um ingrediente criado pela API', async () => {
+    const client = criarCliente({ 'coco ralado': 21 });
+    await createCompraRepo({
+        usuario_id: 1, valor_total: 8, estabelecimento: 'Mercado',
+        itens: [item('Coco Ralado'), item('Coco Ralado Premium')]
+    });
+
+    const busca = client.query.mock.calls.find(([query]) => /FROM ingrediente/.test(query));
+    const insercoes = client.query.mock.calls.filter(([query]) => /INSERT INTO item/.test(query));
+    expect(busca[1]).toEqual([['coco ralado', 'coco ralado premium']]);
+    expect(insercoes.map(([, valores]) => valores[7])).toEqual([21, null]);
+    expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
+});
+
+test('adicionar item a compra existente também resolve nome criado pela API', async () => {
+    const client = criarCliente({ 'coco ralado': 21 });
+    await adicionaItensACompraRepo({
+        usuario_id: 1, compra_id: 42, valor_itens_novos: '4.00',
+        itens: [item('Coco Ralado')]
+    });
+
+    const insercao = client.query.mock.calls.find(([query]) => /INSERT INTO item/.test(query));
+    expect(insercao[1][7]).toBe(21);
+    expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
 });
 
 test('renomear um item conhecido atualiza nome e ingrediente na mesma transação', async () => {
@@ -129,15 +156,25 @@ test('renomear um item conhecido atualiza nome e ingrediente na mesma transaçã
     expect(consultas.at(-1)[0]).toBe('COMMIT');
 });
 
-test('renomear para nome desconhecido remove a classificação sem consultar ingrediente', async () => {
+test('renomear para nome não cadastrado remove a classificação', async () => {
     const client = criarCliente();
     await atualizarPorCompraId(1, 100, 42, { nome_item: 'Granola' });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
-    expect(consultas.some(([query]) => /FROM ingrediente/.test(query))).toBe(false);
+    expect(consultas.find(([query]) => /FROM ingrediente/.test(query))[1])
+        .toEqual([['granola']]);
     expect(atualizacao[1].slice(-2)).toEqual([true, null]);
     expect(consultas.at(-1)[0]).toBe('COMMIT');
+});
+
+test('renomear item usa o mesmo vínculo exato para ingrediente criado pela API', async () => {
+    const client = criarCliente({ 'coco ralado': 21 });
+    await atualizarPorCompraId(1, 100, 42, { nome_item: 'Coco Ralado' });
+
+    const atualizacao = client.query.mock.calls.find(([query]) => /UPDATE item/.test(query));
+    expect(atualizacao[1].slice(-2)).toEqual([true, 21]);
+    expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
 });
 
 test('edição sem renomeação preserva o ingrediente atual', async () => {
@@ -181,15 +218,25 @@ test('renomeação coletiva resolve uma vez e aplica o mesmo ingrediente ao grup
     expect(consultas.at(-1)[0]).toBe('COMMIT');
 });
 
-test('renomeação coletiva desconhecida deixa as instâncias sem ingrediente', async () => {
+test('renomeação coletiva não cadastrada deixa as instâncias sem ingrediente', async () => {
     const client = criarCliente();
     await atualizarInstanciasPorCompraId(1, 42, itemBusca, { nome_item: 'Granola' });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
-    expect(consultas.some(([query]) => /FROM ingrediente/.test(query))).toBe(false);
+    expect(consultas.find(([query]) => /FROM ingrediente/.test(query))[1])
+        .toEqual([['granola']]);
     expect(atualizacao[1].slice(-3)).toEqual([true, null, 1]);
     expect(consultas.at(-1)[0]).toBe('COMMIT');
+});
+
+test('renomeação coletiva usa o ingrediente criado pela API', async () => {
+    const client = criarCliente({ 'coco ralado': 21 });
+    await atualizarInstanciasPorCompraId(1, 42, itemBusca, { nome_item: 'Coco Ralado' });
+
+    const atualizacao = client.query.mock.calls.find(([query]) => /UPDATE item/.test(query));
+    expect(atualizacao[1].slice(-3)).toEqual([true, 21, 1]);
+    expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
 });
 
 test('edição coletiva sem renomeação preserva ingrediente e dispensa o catálogo', async () => {

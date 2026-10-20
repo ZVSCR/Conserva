@@ -101,6 +101,16 @@ function identificarIngredientePadrao(nomeBruto) {
     return nomesPadrao.has(item) ? item : null;
 }
 
+function identificarIngredienteCandidato(nomeBruto) {
+    const nomePadrao = identificarIngredientePadrao(nomeBruto);
+    const nomeExato = normalizar(nomeBruto);
+
+    return {
+        nome: nomePadrao ?? (nomeExato || null),
+        obrigatorio: nomePadrao !== null
+    };
+}
+
 function resolverNomeItem(rawItem, novoItemNome) {
     let itemFinal = parseItem(novoItemNome);
     itemFinal = buscarNome(itemFinal) ?? itemFinal;                     // Usa nome padrão se o informado for um alias conhecido
@@ -133,6 +143,7 @@ async function createIngredienteService({ nome }) {
 module.exports = {
     adicionarItem,
     identificarIngredientePadrao,
+    identificarIngredienteCandidato,
     resolverNomeItem,
     createIngredienteService,
     validarCatalogoIngredientes,

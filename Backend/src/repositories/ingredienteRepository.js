@@ -28,7 +28,7 @@ async function inserirIngredientesPadrao(nomes) {
     return rows.length;
 }
 
-async function buscarIdsIngredientes(client, nomes) {
+async function buscarIdsIngredientes(client, nomes, nomesObrigatorios = nomes) {
     if (nomes.length === 0) return new Map();
 
     const { rows } = await client.query(`
@@ -38,7 +38,7 @@ async function buscarIdsIngredientes(client, nomes) {
     `, [nomes]);
 
     const idsPorNome = new Map(rows.map(({ nome, id }) => [nome, id]));
-    const ausente = nomes.find((nome) => !idsPorNome.has(nome));
+    const ausente = nomesObrigatorios.find((nome) => !idsPorNome.has(nome));
     if (ausente) {
         throw new Error(`Ingrediente padrão ausente no banco: ${ausente}.`);
     }

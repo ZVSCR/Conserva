@@ -2,7 +2,7 @@ jest.mock('../../Backend/src/config/transactionDatabase', () => ({ query: jest.f
 jest.mock('../../Backend/src/config/database', () => jest.fn());
 
 const pool = require('../../Backend/src/config/transactionDatabase');
-const { inserirIngredientesPadrao } = require('../../Backend/src/repositories/ingredienteRepository');
+const { inserirIngredientesPadrao, buscarIdsIngredientes } = require('../../Backend/src/repositories/ingredienteRepository');
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -34,4 +34,20 @@ test('rejeita lista vazia sem consultar o banco e propaga erro de conexão', asy
     const erro = new Error('Banco indisponível');
     pool.query.mockRejectedValue(erro);
     await expect(inserirIngredientesPadrao(['leite'])).rejects.toBe(erro);
+});
+
+test('busca IDs em lote e deixa opcionais ausentes sem classificação', async () => {
+    const client = { query: jest.fn().mockResolvedValue({ rows: [{ id: 7, nome: 'leite' }] }) };
+
+    await expect(buscarIdsIngredientes(client, ['leite', 'coco ralado'], ['leite']))
+        .resolves.toEqual(new Map([['leite', 7]]));
+    expect(client.query).toHaveBeenCalledTimes(1);
+    expect(client.query.mock.calls[0][1]).toEqual([['leite', 'coco ralado']]);
+});
+
+test('ingrediente padrão ausente continua sendo erro', async () => {
+    const client = { query: jest.fn().mockResolvedValue({ rows: [] }) };
+
+    await expect(buscarIdsIngredientes(client, ['leite', 'coco ralado'], ['leite']))
+        .rejects.toThrow('Ingrediente padrão ausente no banco: leite');
 });
