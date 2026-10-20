@@ -1,8 +1,7 @@
 const express = require('express');
 const receitaRouter = express.Router();
 
-const autenticar = require('../middleware/mockAuth');
-//Quando deixar de usar o mockAuth, basta trocar por require('../middleware/requireAuth');
+const receitaUser = require('../middleware/receitaUser');
 
 const {
     createReceita,
@@ -13,24 +12,26 @@ const {
     prepararReceita,
     listReceitas,
     getReceitaById,
-    deleteReceita,
+    apagarReceita,
     patchReceitaById,
 } = require('../controllers/receitaController');
 
 receitaRouter.route('/')
-    .post(createReceita)
-    .get(listReceitas)
+    .post(receitaUser, createReceita)
+    .get(receitaUser, listReceitas)
 
 receitaRouter.route('/:receitaId/disponibilidade')
-    .get(autenticar, verificarReceita);
+    .get(receitaUser, verificarReceita);
 
 receitaRouter.route('/:receitaId/preparar')
-    .post(autenticar, prepararReceita);
+    .post(receitaUser, prepararReceita);
 
 receitaRouter.route('/:id')
     .get(getReceitaById)
-    .delete(deleteReceita)
     .patch(patchReceitaById);
+
+receitaRouter.route('/:receitaId')
+    .delete(receitaUser, apagarReceita);
 
 // Gasto acumulado de todas as receitas (rota fixa antes das rotas com :id)
 receitaRouter.route('/gastos')
