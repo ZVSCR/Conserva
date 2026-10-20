@@ -186,6 +186,9 @@ describe('compraRepository.atualizarPorCompraId', () => {
         expect(client.query.mock.calls.some(([query, values]) =>
             query.includes('UPDATE estoque') && values[0] === 3
         )).toBe(true);
+        const [query, values] = client.query.mock.calls[1];
+        expect(query).toContain('c.usuario_id = $3');
+        expect(values).toEqual([1, 2, 1]);
         expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 

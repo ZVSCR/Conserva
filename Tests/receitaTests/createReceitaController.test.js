@@ -19,6 +19,7 @@ const { createReceitaService } = require('../../Backend/src/services/receitaServ
 const endpoint = '/api/receitas';
 
 const receitaValida = {
+    usuario_id: 7,
     nome: 'Bolo de Fubá',
     descricao: 'Bolo simples e gostoso. Tempo de preparo: 60min',
     modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.'
@@ -39,7 +40,7 @@ test('cria receita e responde 201 com o id da receita criada', async () => {
     expect(response.body.message).toBe('Receita registrada com sucesso.');
     expect(response.body.receita).toEqual({ id: 123 });
     expect(createReceitaService).toHaveBeenCalledTimes(1);
-    expect(createReceitaService).toHaveBeenCalledWith(receitaValida);
+    expect(createReceitaService).toHaveBeenCalledWith(7, receitaValida);
 });
 
 test.each([
@@ -65,7 +66,7 @@ test.each([
 test('retorna todos os erros de validação de uma vez', async () => {
     const response = await request(app)
         .post(endpoint)
-        .send({});
+        .send({ usuario_id: 7 });
 
     expect(response.status).toBe(400);
     expect(response.body.errors.map(erro => erro.field)).toEqual([
@@ -76,14 +77,15 @@ test('retorna todos os erros de validação de uma vez', async () => {
     expect(createReceitaService).not.toHaveBeenCalled();
 });
 
-test('rejeita payload que não seja um objeto', async () => {
+test('rejeita payload sem identificador de usuário', async () => {
     const response = await request(app)
         .post(endpoint)
-        .send([]);
+        .send([])
+        .set('Content-Type', 'application/json');
 
     expect(response.status).toBe(400);
-    expect(response.body.errors).toEqual([
-        expect.objectContaining({ field: 'payload' })
+    expect(response.body.error).toEqual([
+        expect.objectContaining({ field: 'usuario_id' })
     ]);
     expect(createReceitaService).not.toHaveBeenCalled();
 });

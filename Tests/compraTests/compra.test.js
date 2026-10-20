@@ -641,3 +641,22 @@ describe('PATCH /api/compras/:compraId/items', () => {
     });
 });
 // =============================================================================
+
+// No default user: missing or malformed IDs must not reach persistence.
+describe('Compra user identification', () => {
+    beforeEach(() => jest.clearAllMocks());
+    test.each([undefined, '', '0', '-1', '1.5', 'abc', '9007199254740992'])(
+        'rejects invalid usuario_id %s', async (usuario_id) => {
+            const response = await request(app).get('/api/compras')
+                .query(usuario_id === undefined ? {} : { usuario_id });
+            expect(response.status).toBe(400);
+            expect(listarComprasUsuario).not.toHaveBeenCalled();
+        }
+    );
+    test.each([7, 42])('lists purchases for supplied user %s', async (usuario_id) => {
+        listarComprasUsuario.mockResolvedValue([]);
+        const response = await request(app).get('/api/compras').query({ usuario_id });
+        expect(response.status).toBe(200);
+        expect(listarComprasUsuario).toHaveBeenCalledWith(usuario_id);
+    });
+});

@@ -1,5 +1,6 @@
 const {
     listarComprasUsuario,
+    listarComprasUsuarioData,
     listarCompraPorId,
     atualizarCompraPorId,
     atualizarPorCompraId,

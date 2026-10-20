@@ -1,4 +1,4 @@
-
+const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
 function normalizar(str) {
@@ -147,5 +147,6 @@ module.exports = {
     resolverNomeItem,
     createIngredienteService,
     validarCatalogoIngredientes,
-    garantirIngredientesPadrao
+    garantirIngredientesPadrao,
+    aliasesToNome,
 };

@@ -6,7 +6,7 @@ const {
 } = require('../repositories/receitaRepository');
 
 // Recebe o payload validado, normaliza o nome e envia para inserção SQL
-async function createReceitaService(payload) {
+async function createReceitaService(usuarioId, payload) {
 
     const {
         nome,
@@ -17,6 +17,7 @@ async function createReceitaService(payload) {
     const normalizedNome = nome.trim();
 
     return createReceitaRepo({
+        usuario_id: usuarioId,
         nome: normalizedNome,
         descricao,
         modo_preparo
