@@ -5,6 +5,8 @@ jest.mock('../../Backend/src/controllers/receitaController.js', () => ({
     listReceitas: (_req, res) => res.sendStatus(501),
     getReceitaById: (_req, res) => res.sendStatus(501),
     deleteReceita: (_req, res) => res.sendStatus(501),
+    getGastoPorReceita: (_req, res) => res.sendStatus(501),
+    getGastoReceita: (_req, res) => res.sendStatus(501),
     patchReceitaById: jest.fn()
 }));
 
