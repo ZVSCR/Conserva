@@ -41,6 +41,8 @@ O usuário fotografa a nota fiscal de uma compra; o sistema reconhece os itens, 
 
 ## 4. Arquitetura Proposta
 
+![Diagrama de Arquitetura em Camadas](./Diagrama_arquitetura.png)
+
 ### 4.1 Frontend
 - **React + JavaScript**
 - **HTML + CSS + Bootstrap** para estilização e responsividade
@@ -101,16 +103,33 @@ ReceitaPreparadaEstoque
 5. Usuário escolhe uma receita e marca os itens/quantidades usados.
 6. Sistema baixa o estoque e calcula o custo da refeição.
 
-## 8. Questões em Aberto
+## 8. Escopo do MVP
+
+Para concluir como MVP deve se atender:
+
+1. Público alvo: Domicílios
+2. Autenticação de usuário
+3. O MVP deve focar exclusivamente no fluxo que resolve o problema do usuário.
+
+- - Leitura da nota fiscal manualmente
+
+- - Visualização do estoque disponível.
+
+- - Aplicação e utilização de Receitas.
+
+- - Baixa no estoque ao selecionar "preparar receita".
+
+4. Interface limpa para a jornada central
+
+## 9. Questões em Aberto
 
 - [ ] Serviço de OCR: qual usar, considerando custo e precisão?
 - [ ] Modelo de sugestão de receitas: regras simples, API externa ou LLM?
 - [ ] Autenticação de usuários: solução própria ou serviço (ex: Firebase Auth, Supabase Auth)?
-- [ ] Escopo do MVP: atender domicílios e restaurantes simultaneamente ou focar em um público primeiro?
+- [ X ] Escopo do MVP: atender domicílios e restaurantes simultaneamente ou focar em um público primeiro?
 - [ ] Hospedagem gratuita do frontend/backend (ex: Vercel, Render, Railway)?
 
-## 9. Próximos Passos
+## 10. Próximos Passos
 
-1. Definir escopo do MVP (funcionalidades mínimas viáveis).
-2. Prototipar o fluxo de OCR com poucas notas de teste.
-3. Escolher fonte de receitas (API externa) para o modelo de sugestão inicial.
+1. Prototipar o fluxo de OCR com poucas notas de teste.
+2. Escolher fonte de receitas (API externa) para o modelo de sugestão inicial.
