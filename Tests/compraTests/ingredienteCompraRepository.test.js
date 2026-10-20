@@ -116,7 +116,7 @@ test('uma compra só com itens desconhecidos não consulta o catálogo', async (
 
 test('renomear um item conhecido atualiza nome e ingrediente na mesma transação', async () => {
     const client = criarCliente();
-    const resultado = await atualizarPorCompraId(100, 42, { nome_item: 'Leite A' });
+    const resultado = await atualizarPorCompraId(1, 100, 42, { nome_item: 'Leite A' });
     const consultas = client.query.mock.calls;
     const busca = consultas.find(([query]) => /FROM ingrediente/.test(query));
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
@@ -131,7 +131,7 @@ test('renomear um item conhecido atualiza nome e ingrediente na mesma transaçã
 
 test('renomear para nome desconhecido remove a classificação sem consultar ingrediente', async () => {
     const client = criarCliente();
-    await atualizarPorCompraId(100, 42, { nome_item: 'Granola' });
+    await atualizarPorCompraId(1, 100, 42, { nome_item: 'Granola' });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
@@ -142,7 +142,7 @@ test('renomear para nome desconhecido remove a classificação sem consultar ing
 
 test('edição sem renomeação preserva o ingrediente atual', async () => {
     const client = criarCliente();
-    await atualizarPorCompraId(100, 42, { validade_estimada: null });
+    await atualizarPorCompraId(1, 100, 42, { validade_estimada: null });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
@@ -153,7 +153,7 @@ test('edição sem renomeação preserva o ingrediente atual', async () => {
 
 test('ingrediente conhecido ausente no banco desfaz a renomeação individual', async () => {
     const client = criarCliente({});
-    await expect(atualizarPorCompraId(100, 42, { nome_item: 'Leite A' }))
+    await expect(atualizarPorCompraId(1, 100, 42, { nome_item: 'Leite A' }))
         .rejects.toThrow('Ingrediente padrão ausente no banco: leite');
 
     expect(client.query.mock.calls.some(([query]) => /UPDATE item/.test(query))).toBe(false);
@@ -167,7 +167,7 @@ const itemBusca = {
 
 test('renomeação coletiva resolve uma vez e aplica o mesmo ingrediente ao grupo', async () => {
     const client = criarCliente();
-    await atualizarInstanciasPorCompraId(42, itemBusca, { nome_item: 'Leite B' });
+    await atualizarInstanciasPorCompraId(1, 42, itemBusca, { nome_item: 'Leite B' });
     const consultas = client.query.mock.calls;
     const buscas = consultas.filter(([query]) => /FROM ingrediente/.test(query));
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
@@ -175,7 +175,7 @@ test('renomeação coletiva resolve uma vez e aplica o mesmo ingrediente ao grup
     expect(buscas).toHaveLength(1);
     expect(buscas[0][1]).toEqual([['leite']]);
     expect(atualizacao[1][1]).toBe('Leite B');
-    expect(atualizacao[1].slice(-2)).toEqual([true, 7]);
+    expect(atualizacao[1].slice(-3)).toEqual([true, 7, 1]);
     expect(atualizacao[1][10]).toEqual([100, 101]);
     expect(atualizacao[0]).toMatch(/ingrediente_id = CASE WHEN \$12 THEN \$13 ELSE ingrediente_id END/);
     expect(consultas.at(-1)[0]).toBe('COMMIT');
@@ -183,29 +183,29 @@ test('renomeação coletiva resolve uma vez e aplica o mesmo ingrediente ao grup
 
 test('renomeação coletiva desconhecida deixa as instâncias sem ingrediente', async () => {
     const client = criarCliente();
-    await atualizarInstanciasPorCompraId(42, itemBusca, { nome_item: 'Granola' });
+    await atualizarInstanciasPorCompraId(1, 42, itemBusca, { nome_item: 'Granola' });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
     expect(consultas.some(([query]) => /FROM ingrediente/.test(query))).toBe(false);
-    expect(atualizacao[1].slice(-2)).toEqual([true, null]);
+    expect(atualizacao[1].slice(-3)).toEqual([true, null, 1]);
     expect(consultas.at(-1)[0]).toBe('COMMIT');
 });
 
 test('edição coletiva sem renomeação preserva ingrediente e dispensa o catálogo', async () => {
     const client = criarCliente();
-    await atualizarInstanciasPorCompraId(42, itemBusca, { validade_estimada: null });
+    await atualizarInstanciasPorCompraId(1, 42, itemBusca, { validade_estimada: null });
     const consultas = client.query.mock.calls;
     const atualizacao = consultas.find(([query]) => /UPDATE item/.test(query));
 
     expect(consultas.some(([query]) => /FROM ingrediente/.test(query))).toBe(false);
-    expect(atualizacao[1].slice(-2)).toEqual([false, null]);
+    expect(atualizacao[1].slice(-3)).toEqual([false, null, 1]);
     expect(atualizacao[0]).toMatch(/ELSE ingrediente_id END/);
 });
 
 test('ingrediente conhecido ausente no banco desfaz a renomeação coletiva', async () => {
     const client = criarCliente({});
-    await expect(atualizarInstanciasPorCompraId(42, itemBusca, { nome_item: 'Leite A' }))
+    await expect(atualizarInstanciasPorCompraId(1, 42, itemBusca, { nome_item: 'Leite A' }))
         .rejects.toThrow('Ingrediente padrão ausente no banco: leite');
 
     expect(client.query.mock.calls.some(([query]) => /UPDATE item/.test(query))).toBe(false);

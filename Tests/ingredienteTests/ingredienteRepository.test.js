@@ -1,4 +1,5 @@
 jest.mock('../../Backend/src/config/transactionDatabase', () => ({ query: jest.fn() }));
+jest.mock('../../Backend/src/config/database', () => jest.fn());
 
 const pool = require('../../Backend/src/config/transactionDatabase');
 const { inserirIngredientesPadrao } = require('../../Backend/src/repositories/ingredienteRepository');

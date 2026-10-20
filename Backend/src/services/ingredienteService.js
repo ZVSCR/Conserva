@@ -61,9 +61,10 @@ async function garantirIngredientesPadrao() {
 
 validarCatalogoIngredientes();
 
-const map = new Map(
+const aliasesCanonicos = new Map(
     Object.entries(aliasesToNome).map(([alias, nome]) => [normalizar(alias), nome])
 );
+const map = new Map(aliasesCanonicos);
 const nomesPadrao = new Set(Object.values(listaIngredientes));
 
 function parseItem(inputStr) {
@@ -109,6 +110,13 @@ function resolverNomeItem(rawItem, novoItemNome) {
     return { needsName: false, item: itemFinal };
 }
 
+async function createIngredienteService({ nome }) {
+    const nomeNormalizado = normalizar(nome);
+    const nomeCanonico = aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
+    const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
+    return createIngredienteRepo(nomeCanonico);
+}
+
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
 
     const raw = await ask('Adicione um item:\n');
@@ -126,6 +134,7 @@ module.exports = {
     adicionarItem,
     identificarIngredientePadrao,
     resolverNomeItem,
+    createIngredienteService,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao
 };

@@ -54,10 +54,10 @@ const {
 } = require('../../Backend/src/repositories/compraRepository');
 const app = require('../../Backend/src/app');
 
-const endpoint = '/api/compras/2/items/1';
-const bulkEndpoint = '/api/compras/2/items';
-const compraEndpoint = '/api/compras/2';
-const listaComprasEndpoint = '/api/compras';
+const endpoint = '/api/compras/2/items/1?usuario_id=1';
+const bulkEndpoint = '/api/compras/2/items?usuario_id=1';
+const compraEndpoint = '/api/compras/2?usuario_id=1';
+const listaComprasEndpoint = '/api/compras?usuario_id=1';
 
 // =============================================================================
 // READ
@@ -166,7 +166,7 @@ describe('GET /api/compras/:compraId', () => {
     test.each(['/api/compras/abc', '/api/compras/0'])(
         'retorna 400 para ID inválido em %s',
         async (url) => {
-            const response = await request(app).get(url);
+            const response = await request(app).get(`${url}?usuario_id=1`);
 
             expect(response.status).toBe(400);
             expect(response.body).toEqual({
@@ -239,7 +239,7 @@ describe('PATCH /api/compras/:compraId', () => {
 
     test('retorna 400 para compraId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/abc')
+            .patch('/api/compras/abc?usuario_id=1')
             .send({ estabelecimento: 'Mercado Central' });
 
         expect(response.status).toBe(400);
@@ -303,7 +303,7 @@ describe('PATCH /api/compras/:compraId', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(1, 2, {
             data_compra: '2026-09-19T14:30:00.000Z',
             estabelecimento: 'Mercado Central'
         });
@@ -325,7 +325,7 @@ describe('PATCH /api/compras/:compraId', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarCompraPorId).toHaveBeenCalledWith(2, {
+        expect(atualizarCompraPorId).toHaveBeenCalledWith(1, 2, {
             data_compra: '2026-09-19',
             estabelecimento: null
         });
@@ -369,7 +369,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 para compraId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/0/items/1')
+            .patch('/api/compras/0/items/1?usuario_id=1')
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(400);
@@ -381,7 +381,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
 
     test('retorna 400 para itemId inválido antes de consultar o repositório', async () => {
         const response = await request(app)
-            .patch('/api/compras/2/items/abc')
+            .patch('/api/compras/2/items/abc?usuario_id=1')
             .send({ quantidade: 2 });
 
         expect(response.status).toBe(400);
@@ -452,7 +452,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 2, {
+        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 1, 2, {
             quantidade: 2.5,
             valor_unitario: 10,
             nome_item: 'Arroz',
@@ -473,7 +473,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
             .send({ validade_estimada: null });
 
         expect(response.status).toBe(200);
-        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 2, {
+        expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 1, 2, {
             quantidade: undefined,
             valor_unitario: undefined,
             nome_item: undefined,
@@ -598,9 +598,12 @@ describe('PATCH /api/compras/:compraId/items', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(2, itemBusca, {
+        expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(1, 2, {
+            ...itemBusca,
+            valor_unitario: 40
+        }, {
             nome_item: 'Outro',
-            valor_unitario: 18,
+            valor_unitario: 36,
             validade_estimada: null
         });
         expect(response.body.data).toEqual(resultado);

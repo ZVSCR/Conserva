@@ -267,12 +267,9 @@ const validateAtualizacaoCompraPayload = (body) => {
     return { isValid: true };
 };
 
-const USUARIO_ID_TEMP = 1;
 async function listarCompras(req, res) {
     try {
-        //const usuarioId = req.params.id;
-
-        const compras = await listarComprasUsuario(USUARIO_ID_TEMP);
+        const compras = await listarComprasUsuario(req.compraUsuarioId);
         return res.status(200).json({
             status: 'success',
             message: 'Acesso bem sucedido.',
@@ -287,8 +284,7 @@ async function listarCompras(req, res) {
 
 async function listarComprasData(req, res) {
     try {
-        // Usa o ID do token JWT se existir; caso contrário, usa o ID temporário
-        const usuarioId = req.user?.id || USUARIO_ID_TEMP;
+        const usuarioId = req.compraUsuarioId;
         const { dataInicio, dataFim } = req.query;
 
         const compras = await listarComprasUsuarioData(usuarioId, dataInicio, dataFim);
@@ -308,8 +304,7 @@ async function listarComprasData(req, res) {
 
 async function listarItensPorCompra(req, res) {
     try {
-        //const usuarioId = req.params.id;
-        const usuarioId = USUARIO_ID_TEMP;
+        const usuarioId = req.compraUsuarioId;
         const compraId = parsePositiveIntegerParam(req.params.compraId)
 
         if (compraId === null) {
@@ -355,7 +350,7 @@ async function atualizarCompra(req, res) {
         }
 
         const { data_compra, estabelecimento } = req.body;
-        const compraAtualizada = await atualizarCompraPorId(compraId, {
+        const compraAtualizada = await atualizarCompraPorId(req.compraUsuarioId, compraId, {
             data_compra,
             estabelecimento
         });
@@ -404,7 +399,7 @@ async function atualizarItensPorCompra(req, res) {
 
         const { quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada } = req.body;
 
-        const resultadoAtualizacao = await atualizarPorCompraId(itemId, compraId, {
+        const resultadoAtualizacao = await atualizarPorCompraId(req.compraUsuarioId, itemId, compraId, {
             quantidade,
             valor_unitario,
             nome_item,
@@ -505,6 +500,7 @@ async function atualizarInstanciasPorCompra(req, res) {
             : undefined;
 
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
+            req.compraUsuarioId,
             compraId,
             { nome_item, quantidade, unidade_de_medida, valor_unitario: valorUnitarioBusca, validade_estimada },
             {
@@ -561,8 +557,8 @@ async function atualizarInstanciasPorCompra(req, res) {
 
 async function createCompraVaziaController(req, res) {
     try {
-        const { usuarioId, data_compra, estabelecimento } = req.body;
-        const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
+        const { data_compra, estabelecimento } = req.body;
+        const resultado = await createCompraVazia(req.compraUsuarioId, data_compra, estabelecimento);
         res.status(201).json(resultado);
     } catch (erro) {
         console.error(erro)
@@ -583,17 +579,7 @@ async function createCompra(req, res) {
         });
     }
 
-    // Identificação temporária para testar funcionalidade; não autentica o usuário.
-    const userId = req.body.usuario_id;
-    if (!Number.isSafeInteger(userId) || userId <= 0) {
-
-        return res.status(400).json({
-            error: [{
-                field: 'usuario_id',
-                message: 'Informe um ID de usuário inteiro e positivo.'
-            }]
-        });
-    }
+    const userId = req.compraUsuarioId;
 
     try {
 
@@ -631,7 +617,7 @@ async function apagarCompra(req, res) {
             });
         }
 
-        const compraRemovida = await apagarCompraPorId(USUARIO_ID_TEMP, compraId);
+        const compraRemovida = await apagarCompraPorId(req.compraUsuarioId, compraId);
 
         return res.status(200).json({
             status: 'success',
@@ -666,19 +652,8 @@ async function adicionaItensACompra(req, res) {
         });
     }
 
-    // Identificação temporária de IDs de usuário e compra
-    const userId = Number(req.body.usuario_id);
+    const userId = req.compraUsuarioId;
     const compraId = parsePositiveIntegerParam(req.params.compraId);
-    // Valida IDs de usuário
-    if (!Number.isSafeInteger(userId) || userId <= 0) {
-
-        return res.status(400).json({
-            error: [{
-                field: 'usuario_id',
-                message: 'Informe um ID de usuário inteiro e positivo.'
-            }]
-        });
-    }
     // Valida ID de compra
     if (!Number.isSafeInteger(compraId) || compraId <= 0) {
 
@@ -704,6 +679,10 @@ async function adicionaItensACompra(req, res) {
 
         // Log de descrição do erro encontrado
         console.log('Erro ao adicionar itens:', error);
+
+        if (error instanceof CompraNaoEncontradaError) {
+            return res.status(404).json({ error: error.message });
+        }
 
         if (error instanceof PrecoInvalidoError) {
             return res.status(400).json({ error: error.message });

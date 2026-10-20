@@ -1,14 +1,16 @@
 jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
-    inserirIngredientesPadrao: jest.fn()
+    inserirIngredientesPadrao: jest.fn(),
+    createIngredienteRepo: jest.fn()
 }));
 
 const { listaIngredientes, aliasesToNome } = require('../../Backend/src/data/ingredientes');
-const { inserirIngredientesPadrao } = require('../../Backend/src/repositories/ingredienteRepository');
+const { inserirIngredientesPadrao, createIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
 const {
     adicionarItem,
     identificarIngredientePadrao,
     validarCatalogoIngredientes,
-    garantirIngredientesPadrao
+    garantirIngredientesPadrao,
+    createIngredienteService
 } = require('../../Backend/src/services/ingredienteService');
 
 beforeEach(() => jest.clearAllMocks());
@@ -18,6 +20,8 @@ test('todos os aliases apontam para um ingrediente canônico sem duplicatas', ()
     expect(new Set(nomes).size).toBe(nomes.length);
     expect(nomes).toContain('leite');
     expect(aliasesToNome['leite integral']).toBe('leite');
+    expect(nomes).toContain('ovo');
+    expect(aliasesToNome.ovos).toBe('ovo');
 });
 
 test('rejeita ingrediente repetido e alias sem destino', () => {
@@ -52,4 +56,14 @@ test('valida o catálogo antes de enviar nomes únicos à rotina de inserção',
     await expect(garantirIngredientesPadrao()).resolves.toBe(3);
     expect(inserirIngredientesPadrao).toHaveBeenCalledTimes(1);
     expect(inserirIngredientesPadrao).toHaveBeenCalledWith(Object.values(listaIngredientes));
+});
+
+test('cadastro pela API resolve aliases exatos e mantém nomes novos', async () => {
+    createIngredienteRepo.mockImplementation(async (nome) => ({ id: 1, nome }));
+
+    await expect(createIngredienteService({ nome: 'Ovos' })).resolves.toEqual({ id: 1, nome: 'ovo' });
+    await expect(createIngredienteService({ nome: 'Coco Ralado' }))
+        .resolves.toEqual({ id: 1, nome: 'coco ralado' });
+    expect(createIngredienteRepo).toHaveBeenNthCalledWith(1, 'ovo');
+    expect(createIngredienteRepo).toHaveBeenNthCalledWith(2, 'coco ralado');
 });

@@ -35,6 +35,7 @@ const listaIngredientes = Object.freeze({
     melancia: 'melancia',
     morango: 'morango',
     oleo_de_soja: 'oleo de soja',
+    ovo: 'ovo',
     pao: 'pao',
     pao_de_forma: 'pao de forma',
     peixe: 'peixe',
@@ -133,6 +134,8 @@ const aliasesToNome = Object.freeze({
     "água": "agua",
     "cerveja": "cerveja",
     "cerv": "cerveja",
+    "ovo": "ovo",
+    "ovos": "ovo",
 });
 
 module.exports = { listaIngredientes, aliasesToNome };

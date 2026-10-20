@@ -1,4 +1,15 @@
 const pool = require('../config/transactionDatabase');
+const sql = require('../config/database');
+
+// A API cria um ingrediente novo; duplicatas são tratadas como conflito pelo controlador.
+async function createIngredienteRepo(nome) {
+    const [ingrediente] = await sql`
+        INSERT INTO ingrediente (nome)
+        VALUES (${nome})
+        RETURNING id, nome
+    `;
+    return ingrediente;
+}
 
 async function inserirIngredientesPadrao(nomes) {
     if (!Array.isArray(nomes) || nomes.length === 0 ||
@@ -35,4 +46,4 @@ async function buscarIdsIngredientes(client, nomes) {
     return idsPorNome;
 }
 
-module.exports = { inserirIngredientesPadrao, buscarIdsIngredientes };
+module.exports = { createIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
