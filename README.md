@@ -1,5 +1,7 @@
 # Conserva
 
+> [Documentação técnica e histórico de implementação](Docs/README.md).
+
 ## 1. Visão Geral
 
 **Conserva** é uma ferramenta web de gerenciamento de estoque alimentício e sugestão de receitas, com foco em **consumo consciente** — reduzindo desperdício de alimentos e ajudando o usuário a entender melhor seus gastos com comida.
