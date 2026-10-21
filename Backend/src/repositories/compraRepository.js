@@ -1,7 +1,7 @@
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
-const { calcularValorUnitario } = require('../services/precoService');
+const { validarValorUnitario, PrecoInvalidoError } = require('../services/precoService');
 const { identificarIngredienteCandidato } = require('../services/ingredienteService');
 const { buscarIdsIngredientes } = require('./ingredienteRepository');
 
@@ -40,6 +40,12 @@ class ItemJaUsadoEmReceitaError extends Error {
     }
 }
 
+function erroCompraForaDoLimite(erro) {
+    return erro?.code === '22003'
+        ? new PrecoInvalidoError('Um valor da compra ultrapassa o limite do banco.')
+        : erro;
+}
+
 // =============================================================================
 // LISTAGEM
 async function listarComprasUsuario(usuarioId) {
@@ -67,7 +73,7 @@ async function listarCompraPorId(usuarioId, compraId) {
             item.quantidade,
             item.unidade_de_medida,
             item.tipo_medida,
-            ROUND(item.quantidade * item.valor_unitario, 2) AS valor_unitario,
+            item.valor_unitario,
             item.validade_estimada,
             users.username
         FROM compra
@@ -191,8 +197,10 @@ async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate)
 
 
         const novoValorUnitario = fieldsToUpdate.valor_unitario !== undefined
-            ? calcularValorUnitario(fieldsToUpdate.valor_unitario, quantidade)
+            ? validarValorUnitario(fieldsToUpdate.valor_unitario)
             : null;
+        const alterouPreco = novoValorUnitario !== null &&
+            novoValorUnitario !== Number(atual.valor_unitario);
 
         const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(fieldsToUpdate, 'validade_estimada') &&
             fieldsToUpdate.validade_estimada !== undefined;
@@ -228,21 +236,22 @@ async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate)
             estoque = estoqueAtualizado;
         }
 
-        const { rows: [compra] } = await client.query(`
-            UPDATE compra
-            SET valor_total = (
-                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
-                FROM item WHERE compra_id = $1
-            )
-            WHERE id = $1
-            RETURNING id, valor_total
-        `, [compraId]);
+        const consultaCompra = alterouMedida || alterouPreco
+            ? `UPDATE compra
+               SET valor_total = (
+                   SELECT COALESCE(SUM(ROUND(quantidade * valor_unitario, 2)), 0)
+                   FROM item WHERE compra_id = $1
+               )
+               WHERE id = $1
+               RETURNING id, valor_total`
+            : 'SELECT id, valor_total FROM compra WHERE id = $1';
+        const { rows: [compra] } = await client.query(consultaCompra, [compraId]);
 
         await client.query('COMMIT');
         return { item, compra, estoque };
     } catch (erro) {
         await client.query('ROLLBACK');
-        throw erro;
+        throw erroCompraForaDoLimite(erro);
     } finally {
         client.release();
     }
@@ -383,7 +392,7 @@ async function createCompraRepo(dadosCompra) {
 
         // Erro detectado, desfaz todas as operações
         await client.query('ROLLBACK');
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
 
         client.release();
@@ -404,6 +413,10 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
     }
 
     const updates = fieldsToUpdate;
+    validarValorUnitario(itemBusca.valor_unitario);
+    if (updates.valor_unitario !== undefined) {
+        validarValorUnitario(updates.valor_unitario);
+    }
 
     const deveAtualizarValidade = updates.validade_estimada !== undefined;
 
@@ -499,22 +512,24 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
             throw new ItemCompraNaoEncontradoError();
         }
 
-        const { rows: [compraAtualizada] } = await client.query(`
-            UPDATE compra
-            SET valor_total = (
-                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
-                FROM item
-                WHERE compra_id = $1
-            )
-            WHERE id = $1
-            RETURNING id, valor_total;
-        `, [compraId]);
+        const alterouPreco = updates.valor_unitario !== undefined &&
+            updates.valor_unitario !== itemBusca.valor_unitario;
+        const consultaCompra = alterouPreco
+            ? `UPDATE compra
+               SET valor_total = (
+                   SELECT COALESCE(SUM(ROUND(quantidade * valor_unitario, 2)), 0)
+                   FROM item WHERE compra_id = $1
+               )
+               WHERE id = $1
+               RETURNING id, valor_total;`
+            : 'SELECT id, valor_total FROM compra WHERE id = $1';
+        const { rows: [compraAtualizada] } = await client.query(consultaCompra, [compraId]);
 
         await client.query('COMMIT');
         return { itens: itensAtualizados, compra: compraAtualizada };
     } catch (err) {
         await client.query('ROLLBACK');
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
         client.release();
     }
@@ -622,7 +637,7 @@ async function adicionaItensACompraRepo(novosItens) {
         } catch (rollbackErr) {
             console.error('Falha no rollback:', rollbackErr);
         }
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
         client.release();
     }

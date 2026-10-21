@@ -82,3 +82,10 @@ test('edição direta não permite alterar a classificação de um item existent
     expect(res.status).toHaveBeenCalledWith(400);
     expect(atualizarPorId).not.toHaveBeenCalled();
 });
+
+test('edição direta rejeita preço que não cabe no campo do banco', async () => {
+    const res = resposta();
+    await atualizarItem({ params: { id: '10' }, body: { valor_unitario: 1.234 } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(atualizarPorId).not.toHaveBeenCalled();
+});

@@ -89,6 +89,22 @@ describe('createCompraService', () => {
         expect(dados.valor_total).toBe(20);
         expect(dados.itens).toHaveLength(2);
         expect(dados.itens[0]).toEqual(dados.itens[1]);
+        expect(dados.itens.every(item => item.valor_unitario === 20)).toBe(true);
+    });
+
+    test('multiplica o preço por kg pela medida de cada embalagem', async () => {
+        const payload = createValidPayload();
+        payload.itens = [{
+            nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
+            valor_unitario: 20, numero_embalagens: 3
+        }];
+
+        await createCompraService(7, payload);
+
+        const [dados] = createCompraRepo.mock.calls[0];
+        expect(dados.itens).toHaveLength(3);
+        expect(dados.itens.every(item => item.quantidade === 0.5 && item.valor_unitario === 20)).toBe(true);
+        expect(dados.valor_total).toBe(30);
     });
 
     test('mantém três maçãs num lote pelo preço por maçã', async () => {
@@ -117,6 +133,29 @@ describe('createCompraService', () => {
 
         const [dados] = createCompraRepo.mock.calls[0];
         expect(dados.valor_total).toBe(0.3);
+    });
+
+    test('arredonda cada item antes de somar o total da compra', async () => {
+        const payload = createValidPayload();
+        payload.itens = [
+            { nome_item: 'Produto A', quantidade: 0.5, unidade_de_medida: 'kg', valor_unitario: 0.01 },
+            { nome_item: 'Produto B', quantidade: 0.5, unidade_de_medida: 'kg', valor_unitario: 0.01 }
+        ];
+
+        await createCompraService(7, payload);
+
+        expect(createCompraRepo.mock.calls[0][0].valor_total).toBe(0.02);
+    });
+
+    test('não tenta gravar compra cujo total excede numeric(9, 2)', async () => {
+        const payload = createValidPayload();
+        payload.itens = [{
+            nome_item: 'Produto caro', quantidade: 2, unidade_de_medida: 'un',
+            valor_unitario: 9999999.99
+        }];
+
+        await expect(createCompraService(7, payload)).rejects.toThrow(/ultrapassa o limite/);
+        expect(createCompraRepo).not.toHaveBeenCalled();
     });
 
     test('aceita compra de item gratuito com total zero', async () => {
@@ -169,14 +208,14 @@ test('adiciona embalagens variáveis à compra pelo preço da medida', async () 
     adicionaItensACompraRepo.mockResolvedValue({ id: 42 });
     const itens = [{
         nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
-        valor_unitario: 20, numero_embalagens: 2
+        valor_unitario: 20, numero_embalagens: 3
     }];
 
     await adicionaItensACompraService(7, 42, { itens });
 
     expect(adicionaItensACompraRepo).toHaveBeenCalledTimes(1);
     const [dados] = adicionaItensACompraRepo.mock.calls[0];
-    expect(dados.valor_itens_novos).toBe('20.00');
-    expect(dados.itens).toHaveLength(2);
+    expect(dados.valor_itens_novos).toBe('30.00');
+    expect(dados.itens).toHaveLength(3);
     expect(dados.itens.every(item => item.tipo_medida === 'variavel')).toBe(true);
 });

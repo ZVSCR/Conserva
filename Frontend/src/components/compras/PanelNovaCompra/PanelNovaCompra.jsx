@@ -22,10 +22,10 @@ function novoItemVazio() {
 }
 
 function totalEmCentavos(itens) {
-    return Math.round(itens.reduce(
-        (total, item) => total + item.quantidade * Math.round(item.valor_unitario * 100),
+    return itens.reduce(
+        (total, item) => total + Math.round(item.quantidade * Math.round(item.valor_unitario * 100)),
         0
-    ));
+    );
 }
 
 function PanelNovaCompra() {

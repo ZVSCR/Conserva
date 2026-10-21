@@ -416,6 +416,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         ['quantidade negativa', { quantidade: -1 }],
         ['valor unitário textual', { valor_unitario: '10.50' }],
         ['valor unitário negativo', { valor_unitario: -0.01 }],
+        ['valor unitário com mais de duas casas', { valor_unitario: 10.005 }],
         ['nome não textual', { nome_item: 10 }],
         ['nome vazio', { nome_item: '   ' }],
         ['nome acima do limite', { nome_item: 'a'.repeat(101) }],
@@ -582,6 +583,17 @@ describe('PATCH /api/compras/:compraId/items', () => {
         expect(atualizarInstanciasPorCompraId).not.toHaveBeenCalled();
     });
 
+    test('rejeita preço de busca ou de edição coletiva com precisão incompatível', async () => {
+        for (const body of [
+            { itemBusca: { ...itemBusca, valor_unitario: 20.005 }, novosValores: { nome_item: 'Outro' } },
+            { itemBusca, novosValores: { valor_unitario: 18.005 } }
+        ]) {
+            const response = await request(app).patch(bulkEndpoint).send(body);
+            expect(response.status).toBe(400);
+        }
+        expect(atualizarInstanciasPorCompraId).not.toHaveBeenCalled();
+    });
+
     test('aceita apenas metadados compartilhados e permite remover a validade', async () => {
         const resultado = { itens: [{ id: 1 }, { id: 2 }], compra: { id: 2 } };
         atualizarInstanciasPorCompraId.mockResolvedValue(resultado);
@@ -599,11 +611,10 @@ describe('PATCH /api/compras/:compraId/items', () => {
 
         expect(response.status).toBe(200);
         expect(atualizarInstanciasPorCompraId).toHaveBeenCalledWith(1, 2, {
-            ...itemBusca,
-            valor_unitario: 40
+            ...itemBusca
         }, {
             nome_item: 'Outro',
-            valor_unitario: 36,
+            valor_unitario: 18,
             validade_estimada: null
         });
         expect(response.body.data).toEqual(resultado);

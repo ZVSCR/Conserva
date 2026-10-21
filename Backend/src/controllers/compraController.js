@@ -26,7 +26,7 @@ const {
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 const {
-    calcularValorUnitario,
+    valorUnitarioRepresentavel,
     PrecoInvalidoError
 } = require('../services/precoService');
 
@@ -148,6 +148,9 @@ const validateCompraPayload = (body) => {
             return invalidResult(
                 'valor_unitario deve ser um número maior ou igual a zero.'
             );
+        }
+        if (!valorUnitarioRepresentavel(valor_unitario)) {
+            return invalidResult('valor_unitario deve ter até duas casas decimais e caber no campo do banco.');
         }
     }
 
@@ -495,17 +498,12 @@ async function atualizarInstanciasPorCompra(req, res) {
             validade_estimada: novaValidadeEstimada
         } = novosValores;
 
-        const valorUnitarioBusca = calcularValorUnitario(valor_unitario, quantidade);
-        const valorUnitarioNovo = novoValorUnitario !== undefined
-            ? calcularValorUnitario(novoValorUnitario, quantidade)
-            : undefined;
-
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
             req.compraUsuarioId,
             compraId,
-            { nome_item, quantidade, unidade_de_medida, valor_unitario: valorUnitarioBusca, validade_estimada },
+            { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
             {
-                valor_unitario: valorUnitarioNovo,
+                valor_unitario: novoValorUnitario,
                 nome_item: novoNomeItem,
                 validade_estimada: novaValidadeEstimada
             }

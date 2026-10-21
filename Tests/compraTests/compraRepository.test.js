@@ -7,6 +7,7 @@ jest.mock('../../Backend/src/config/transactionDatabase', () => ({ connect: jest
 
 const sql = require('../../Backend/src/config/database');
 const pool = require('../../Backend/src/config/transactionDatabase');
+const { PrecoInvalidoError } = require('../../Backend/src/services/precoService');
 const {
     listarComprasUsuario,
     listarCompraPorId,
@@ -98,6 +99,9 @@ describe('compraRepository.listarCompraPorId', () => {
         ).resolves.toEqual(linhas);
         expect(sql).toHaveBeenCalledTimes(1);
         expect(sql.mock.calls[0].slice(1)).toEqual([1, 2]);
+        const consulta = sql.mock.calls[0][0].join(' ');
+        expect(consulta).toMatch(/item\.valor_unitario/);
+        expect(consulta).not.toMatch(/quantidade \* item\.valor_unitario/);
     });
 });
 
@@ -149,6 +153,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
                 if (query.includes('UPDATE item')) return { rows: [item] };
                 if (query.includes('UPDATE estoque')) return { rows: [estoque] };
                 if (query.includes('UPDATE compra')) return { rows: [compra] };
+                if (query.includes('SELECT id, valor_total FROM compra')) return { rows: [compra] };
                 return { rows: [] };
             }),
             release: jest.fn()
@@ -200,6 +205,58 @@ describe('compraRepository.atualizarPorCompraId', () => {
         await expect(atualizarPorCompraId(1, 1, 2, { quantidade: 4 }))
             .rejects.toBeInstanceOf(ItemCompraConflitoError);
         expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(false);
+    });
+
+    test('repetir o preço unitário ao salvar não o divide nem altera o saldo', async () => {
+        const { client } = prepararCliente({
+            id: 1, nome_item: 'Produto', quantidade: '3.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
+        });
+
+        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Produto', valor_unitario: 2 });
+
+        const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
+        expect(atualizacao[1][2]).toBe(2);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE estoque'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('FROM receita_preparada_estoque'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE compra'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('SELECT id, valor_total FROM compra'))).toBe(true);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
+    });
+
+    test('alterar somente a quantidade preserva o preço unitário existente', async () => {
+        const { client } = prepararCliente({
+            id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
+        });
+
+        await atualizarPorCompraId(1, 1, 2, { quantidade: 3 });
+
+        const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
+        expect(atualizacao[1][0]).toBe(3);
+        expect(atualizacao[1][2]).toBeNull();
+        expect(atualizacao[0]).toMatch(/COALESCE\(\$3, valor_unitario\)/);
+        const total = client.query.mock.calls.find(([query]) => query.includes('UPDATE compra'));
+        expect(total[0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
+    });
+
+    test('desfaz a edição se o novo total não couber em compra.valor_total', async () => {
+        const { client } = prepararCliente({
+            id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        });
+        const consultaOriginal = client.query.getMockImplementation();
+        client.query.mockImplementation((query, values) => {
+            if (query.includes('UPDATE compra')) {
+                return Promise.reject(Object.assign(new Error('numeric field overflow'), { code: '22003' }));
+            }
+            return consultaOriginal(query, values);
+        });
+
+        await expect(atualizarPorCompraId(1, 1, 2, { valor_unitario: 9999999.99 }))
+            .rejects.toBeInstanceOf(PrecoInvalidoError);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
+        expect(client.release).toHaveBeenCalledTimes(1);
     });
 
     test('impede renomear item já usado em receita, mesmo com saldo restaurado', async () => {
@@ -286,6 +343,7 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
                 }
                 if (query.includes('UPDATE item')) return { rows: itens };
                 if (query.includes('UPDATE compra')) return { rows: compra };
+                if (query.includes('SELECT id, valor_total FROM compra')) return { rows: compra };
                 return { rows: [] };
             }),
             release: jest.fn()
@@ -332,7 +390,9 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         expect(consultas[4][1].slice(-3)).toEqual([true, null, 1]);
         expect(consultas[4][0]).toMatch(/c\.usuario_id = \$14/);
         expect(consultas[1][0]).toMatch(/c\.usuario_id = \$7 AND e\.usuario_id = \$7/);
-        expect(consultas[5][0]).toMatch(/SUM\(quantidade \* valor_unitario\)/);
+        expect(consultas[4][1][0]).toBe(18);
+        expect(consultas[4][1][8]).toBe(20);
+        expect(consultas[5][0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
         expect(consultas[6][0]).toBe('COMMIT');
         expect(client.release).toHaveBeenCalledTimes(1);
     });
@@ -356,6 +416,7 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         expect(client.query.mock.calls.some(([query]) =>
             query.includes('FROM receita_preparada_estoque')
         )).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE compra'))).toBe(false);
         expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 
