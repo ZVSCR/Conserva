@@ -1,4 +1,4 @@
-// Requer um banco de testes separado, com as tabelas users, compra, item e estoque.
+// Requer um banco de testes separado com as tabelas users, compra, ingrediente, item e estoque.
 // Execute com TEST_DATABASE_URL configurada; nunca use a URL do banco normal.
 const { Pool } = require('pg');
 
@@ -26,6 +26,8 @@ describeWithDatabase('createCompraRepo — integração', () => {
         jest.resetModules();
 
         ({ createCompraRepo } = require('../../Backend/src/repositories/compraRepository'));
+        const { garantirIngredientesPadrao } = require('../../Backend/src/services/ingredienteService');
+        await garantirIngredientesPadrao();
         pool = new Pool({ connectionString: testDatabaseUrl });
 
         const username = uniqueName('teste_compra');
@@ -99,7 +101,7 @@ describeWithDatabase('createCompraRepo — integração', () => {
         const { rows: lotes } = await pool.query(
             `SELECT i.id AS item_id, i.compra_id, i.nome_item, i.quantidade,
                     i.unidade_de_medida, i.tipo_medida, i.valor_unitario,
-                    i.validade_estimada::text AS validade_estimada,
+                    i.validade_estimada::text AS validade_estimada, i.ingrediente_id,
                     e.id AS estoque_id, e.usuario_id,
                     e.quantidade_disponivel
              FROM item AS i
@@ -114,6 +116,9 @@ describeWithDatabase('createCompraRepo — integração', () => {
         const feijao = lotes.find(lote => lote.nome_item === 'Feijão');
         expect(arroz).toBeDefined();
         expect(feijao).toBeDefined();
+        expect(arroz.ingrediente_id).toEqual(expect.any(Number));
+        expect(feijao.ingrediente_id).toEqual(expect.any(Number));
+        expect(arroz.ingrediente_id).not.toBe(feijao.ingrediente_id);
         expect(arroz.compra_id).toBe(compra.id);
         expect(feijao.compra_id).toBe(compra.id);
         expect(arroz.item_id).not.toBe(feijao.item_id);

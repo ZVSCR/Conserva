@@ -1,5 +1,5 @@
-// Client-supplied user identification; this is not authentication.
-// POST: usuario_id no JSON. GET/PATCH/DELETE: ?usuario_id=ID.
+// Identificação fornecida pelo cliente; ainda não substitui autenticação.
+// POST: usuario_id no corpo. GET/PATCH/DELETE: ?usuario_id=ID.
 module.exports = function compraUser(req, res, next) {
     const value = req.method === 'POST' ? req.body?.usuario_id : req.query.usuario_id;
     const usuarioId = req.method === 'POST'

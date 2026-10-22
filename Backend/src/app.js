@@ -7,7 +7,7 @@ const authRoutes = require('./routes/authRoutes');        // Importa rotas de au
 const estoqueRoutes = require('./routes/estoqueRoutes');  // Importa rotas do Estoque
 const comprasRoutes = require('./routes/compraRoutes');   // Importa rotas de manipulação de compras
 const receitasRoutes = require('./routes/receitaRoutes'); // Importa rotas de manipulação de receitas
-const ingredienteRoutes = require('./routes/ingredienteRoutes') // Importa rotas de manipulação de ingredientes
+const ingredienteRoutes = require('./routes/ingredienteRoutes'); // Importa rotas de manipulação de ingredientes
 
 const app = express();
 

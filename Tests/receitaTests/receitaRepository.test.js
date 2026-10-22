@@ -9,6 +9,7 @@ const {
 } = require('../../Backend/src/repositories/receitaRepository');
 
 const payload = {
+    usuario_id: 7,
     nome: 'Bolo de Fubá',
     descricao: 'Bolo simples e gostoso. Tempo de preparo: 60min',
     modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.'
@@ -34,13 +35,14 @@ describe('receitaRepository.createReceitaRepo', () => {
         expect(sql).toHaveBeenCalledTimes(1);
     });
 
-    test('envia nome, descrição e modo de preparo como parâmetros, na ordem do INSERT', async () => {
+    test('envia usuário, nome, descrição e modo de preparo como parâmetros, na ordem do INSERT', async () => {
         sql.mockResolvedValue([{ id: 7 }]);
 
         await createReceitaRepo(payload);
 
         // No tagged template, os valores interpolados chegam após o array de strings.
         expect(sql.mock.calls[0].slice(1)).toEqual([
+            payload.usuario_id,
             payload.nome,
             payload.descricao,
             payload.modo_preparo
