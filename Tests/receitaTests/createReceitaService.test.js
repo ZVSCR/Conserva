@@ -26,10 +26,10 @@ describe('createReceitaService', () => {
     test('encaminha os dados da receita para uma única operação de persistência', async () => {
         const payload = createValidPayload();
 
-        await createReceitaService(payload);
+        await createReceitaService(7, payload);
 
         expect(createReceitaRepo).toHaveBeenCalledTimes(1);
-        expect(createReceitaRepo).toHaveBeenCalledWith(payload);
+        expect(createReceitaRepo).toHaveBeenCalledWith({ usuario_id: 7, ...payload });
     });
 
     test('só conclui após a operação de persistência e devolve seu resultado', async () => {
@@ -39,7 +39,7 @@ describe('createReceitaService', () => {
         }));
         let servicoConcluido = false;
 
-        const operacao = createReceitaService(createValidPayload());
+        const operacao = createReceitaService(7, createValidPayload());
         operacao.then(() => {
             servicoConcluido = true;
         });
@@ -58,7 +58,7 @@ describe('createReceitaService', () => {
         const falha = new Error('Falha ao gravar receita');
         createReceitaRepo.mockRejectedValue(falha);
 
-        await expect(createReceitaService(createValidPayload()))
+        await expect(createReceitaService(7, createValidPayload()))
             .rejects.toBe(falha);
         expect(createReceitaRepo).toHaveBeenCalledTimes(1);
     });

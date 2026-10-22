@@ -8,6 +8,7 @@ jest.mock('../../Backend/src/services/compraService', () => ({
 jest.mock('../../Backend/src/repositories/compraRepository', () => ({
     GranularidadeInvalidaError: class extends Error {},
     ItemCompraConflitoError: class extends Error {},
+    ItemJaUsadoEmReceitaError: class extends Error {},
     ItemCompraNaoEncontradoError: class extends Error {}
 }));
 
@@ -64,9 +65,27 @@ test('edição direta preserva a rota de nome e usa atualização compartilhada'
     expect(res.status).toHaveBeenCalledWith(200);
 });
 
+test('edição direta retorna 409 ao renomear item usado em receita', async () => {
+    const { ItemJaUsadoEmReceitaError } = require('../../Backend/src/repositories/compraRepository');
+    atualizarPorId.mockRejectedValue(new ItemJaUsadoEmReceitaError('Item já usado em receita'));
+    const res = resposta();
+
+    await atualizarItem({ params: { id: '10' }, body: { nome_item: 'Outro' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ erro: 'Item já usado em receita' });
+});
+
 test('edição direta não permite alterar a classificação de um item existente', async () => {
     const res = resposta();
     await atualizarItem({ params: { id: '10' }, body: { tipo_medida: 'unitaria' } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(atualizarPorId).not.toHaveBeenCalled();
+});
+
+test('edição direta rejeita preço que não cabe no campo do banco', async () => {
+    const res = resposta();
+    await atualizarItem({ params: { id: '10' }, body: { valor_unitario: 1.234 } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(atualizarPorId).not.toHaveBeenCalled();
 });
