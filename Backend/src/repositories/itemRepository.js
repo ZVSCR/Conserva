@@ -52,10 +52,10 @@ async function buscarItensPorUsuario(usuarioId) {
 // =============================================================================
 // ATUALIZAÇÃO
 async function atualizarPorId(itemId, fieldsToUpdate) {
-    const [atual] = await sql`SELECT compra_id FROM item WHERE id = ${itemId};`;
+    const [atual] = await sql`SELECT i.compra_id, c.usuario_id FROM item i JOIN compra c ON c.id = i.compra_id WHERE i.id = ${itemId};`;
     if (!atual) return undefined;
 
-    const resultado = await atualizarPorCompraId(itemId, atual.compra_id, fieldsToUpdate);
+    const resultado = await atualizarPorCompraId(atual.usuario_id, itemId, atual.compra_id, fieldsToUpdate);
     return resultado.item;
 }
 // =============================================================================
