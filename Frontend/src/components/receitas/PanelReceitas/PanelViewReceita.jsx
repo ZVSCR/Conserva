@@ -83,7 +83,7 @@ function PanelViewReceita() {
     const abrirModalNovaReceita = () => {
         setModalNovaReceitaAberto(true);
     };
-    
+
     const fecharModalNovaReceita = () => {
         setModalNovaReceitaAberto(false);
     }
@@ -130,8 +130,8 @@ function PanelViewReceita() {
 
             {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
             <div className="receita-actions">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     className="btn-adicionar"
                     onClick={abrirModalNovaReceita}
                     disabled={loading /*|| receitaRegistrada*/}>

@@ -11,6 +11,7 @@ const {
     quantidadeRepresentavel,
     tipoMedida
 } = require('../services/granularidadeService');
+const { valorUnitarioRepresentavel } = require('../services/precoService');
 
 // Valida integridade da entrada de estabelecimento
 function validateEstabelecimento(estabelecimento) {
@@ -163,6 +164,13 @@ function validateItem(item, index) {
             nonNegative: `Valor unitário do item ${index + 1} deve ser maior ou igual a zero.`
         }
     }));
+    if (typeof valor_unitario === 'number' && Number.isFinite(valor_unitario) &&
+        valor_unitario >= 0 && !valorUnitarioRepresentavel(valor_unitario)) {
+        errors.push({
+            field: `${fieldPrefix}.valor_unitario`,
+            message: `Valor unitário do item ${index + 1} deve ter até duas casas decimais e caber no campo do banco.`
+        });
+    }
 
     // Data de validade estimada
     errors.push(...validateDate({

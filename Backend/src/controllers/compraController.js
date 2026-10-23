@@ -10,6 +10,7 @@ const {
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
     ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError,
     apagarCompraPorId
 } = require('../repositories/compraRepository');
 
@@ -25,7 +26,7 @@ const {
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 const {
-    calcularValorUnitario,
+    valorUnitarioRepresentavel,
     PrecoInvalidoError
 } = require('../services/precoService');
 
@@ -147,6 +148,9 @@ const validateCompraPayload = (body) => {
             return invalidResult(
                 'valor_unitario deve ser um número maior ou igual a zero.'
             );
+        }
+        if (!valorUnitarioRepresentavel(valor_unitario)) {
+            return invalidResult('valor_unitario deve ter até duas casas decimais e caber no campo do banco.');
         }
     }
 
@@ -427,6 +431,10 @@ async function atualizarItensPorCompra(req, res) {
             return res.status(409).json({ erro: erro.message });
         }
 
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
+            return res.status(409).json({ erro: erro.message });
+        }
+
         if (erro instanceof PrecoInvalidoError) {
             return res.status(400).json({ erro: erro.message });
         }
@@ -490,17 +498,12 @@ async function atualizarInstanciasPorCompra(req, res) {
             validade_estimada: novaValidadeEstimada
         } = novosValores;
 
-        const valorUnitarioBusca = calcularValorUnitario(valor_unitario, quantidade);
-        const valorUnitarioNovo = novoValorUnitario !== undefined
-            ? calcularValorUnitario(novoValorUnitario, quantidade)
-            : undefined;
-
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
             req.compraUsuarioId,
             compraId,
-            { nome_item, quantidade, unidade_de_medida, valor_unitario: valorUnitarioBusca, validade_estimada },
+            { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
             {
-                valor_unitario: valorUnitarioNovo,
+                valor_unitario: novoValorUnitario,
                 nome_item: novoNomeItem,
                 validade_estimada: novaValidadeEstimada
             }
@@ -520,6 +523,10 @@ async function atualizarInstanciasPorCompra(req, res) {
 
         if (erro instanceof GranularidadeInvalidaError) {
             return res.status(400).json({ erro: erro.message });
+        }
+
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
+            return res.status(409).json({ erro: erro.message });
         }
 
         if (erro instanceof PrecoInvalidoError) {
@@ -550,8 +557,7 @@ async function atualizarInstanciasPorCompra(req, res) {
 async function createCompraVaziaController(req, res) {
     try {
         const { data_compra, estabelecimento } = req.body;
-        const usuarioId = req.compraUsuarioId;
-        const resultado = await createCompraVazia(usuarioId, data_compra, estabelecimento);
+        const resultado = await createCompraVazia(req.compraUsuarioId, data_compra, estabelecimento);
         res.status(201).json(resultado);
     } catch (erro) {
         console.error(erro)

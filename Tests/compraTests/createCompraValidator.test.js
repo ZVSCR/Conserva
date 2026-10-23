@@ -472,6 +472,19 @@ describe('validateCreateCompraPayload', () => {
                 expect(validateCreateCompraPayload(payload).isValid).toBe(true);
             }
         );
+
+        test.each([0.001, 10000000])(
+            'deve rejeitar valor que não cabe em numeric(9, 2): %p',
+            (valor_unitario) => {
+                expectSingleError(
+                    createValidPayload({ itens: [createValidItem({ valor_unitario })] }),
+                    {
+                        field: 'itens[0].valor_unitario',
+                        message: 'Valor unitário do item 1 deve ter até duas casas decimais e caber no campo do banco.'
+                    }
+                );
+            }
+        );
     });
 
     describe('validade estimada', () => {

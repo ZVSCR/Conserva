@@ -20,6 +20,4 @@ function validateIngredientePayload(body) {
     return { isValid: errors.length === 0, errors };
 }
 
-module.exports = {
-    validateIngredientePayload,
-};
+module.exports = { validateIngredientePayload };

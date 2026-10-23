@@ -8,6 +8,7 @@ function criarCliente() {
     let proximoItemId = 100;
     const client = {
         query: jest.fn(async (query) => {
+            if (/FROM ingrediente/.test(query)) return { rows: [{ id: 9, nome: 'maca' }] };
             if (/INSERT INTO compra|UPDATE compra/.test(query)) return { rows: [{ id: 42 }] };
             if (/INSERT INTO item/.test(query)) return { rows: [{ id: proximoItemId++ }] };
             return { rows: [] };
