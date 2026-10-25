@@ -11,6 +11,16 @@ async function createIngredienteRepo(nome) {
     return ingrediente;
 }
 
+async function updateIngredienteRepo(ingredienteId, nome) {
+    const [ingrediente] = await sql`
+        UPDATE ingrediente
+        SET nome = ${nome}
+        WHERE id = ${ingredienteId}
+        RETURNING id, nome
+    `;
+    return ingrediente;
+}
+
 async function inserirIngredientesPadrao(nomes) {
     if (!Array.isArray(nomes) || nomes.length === 0 ||
         nomes.some((nome) => typeof nome !== 'string' || !nome.trim())) {
@@ -46,4 +56,4 @@ async function buscarIdsIngredientes(client, nomes, nomesObrigatorios = nomes) {
     return idsPorNome;
 }
 
-module.exports = { createIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
+module.exports = { createIngredienteRepo, updateIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };

@@ -1,5 +1,7 @@
 const { validateIngredientePayload } = require('../middleware/ingredienteValidator');
-const { createIngredienteService } = require('../services/ingredienteService');
+const { createIngredienteService, updateIngredienteService } = require('../services/ingredienteService');
+
+const SERIAL_UPPER_LIMIT = 2_147_483_647;
 
 async function createIngrediente(req, res) {
     try {
@@ -21,4 +23,35 @@ async function createIngrediente(req, res) {
     }
 }
 
-module.exports = { createIngrediente };
+async function patchIngredienteById(req, res) {
+    try {
+        const { id } = req.params;
+        const ingredienteId = Number(id);
+        if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(ingredienteId) ||
+            ingredienteId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ error: 'id deve ser um inteiro positivo.' });
+        }
+
+        const { isValid, errors } = validateIngredientePayload(req.body);
+        if (!isValid) return res.status(400).json({ errors });
+
+        const ingrediente = await updateIngredienteService(ingredienteId, req.body);
+        if (!ingrediente) {
+            return res.status(404).json({ error: 'Ingrediente não encontrado.' });
+        }
+
+        return res.status(200).json({
+            message: 'Ingrediente atualizado com sucesso.',
+            ingrediente
+        });
+    } catch (error) {
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'Ingrediente já cadastrado.' });
+        }
+
+        console.error('Erro ao atualizar ingrediente:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
+module.exports = { createIngrediente, patchIngredienteById };

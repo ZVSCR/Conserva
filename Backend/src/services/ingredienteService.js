@@ -1,4 +1,4 @@
-const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { createIngredienteRepo, updateIngredienteRepo } = require('../repositories/ingredienteRepository');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
 function normalizar(str) {
@@ -120,11 +120,17 @@ function resolverNomeItem(rawItem, novoItemNome) {
     return { needsName: false, item: itemFinal };
 }
 
-async function createIngredienteService({ nome }) {
+function normalizarNomeIngrediente(nome) {
     const nomeNormalizado = normalizar(nome);
-    const nomeCanonico = aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
-    const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
-    return createIngredienteRepo(nomeCanonico);
+    return aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
+}
+
+async function createIngredienteService({ nome }) {
+    return createIngredienteRepo(normalizarNomeIngrediente(nome));
+}
+
+async function updateIngredienteService(ingredienteId, { nome }) {
+    return updateIngredienteRepo(ingredienteId, normalizarNomeIngrediente(nome));
 }
 
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
@@ -146,6 +152,7 @@ module.exports = {
     identificarIngredienteCandidato,
     resolverNomeItem,
     createIngredienteService,
+    updateIngredienteService,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
     aliasesToNome,
