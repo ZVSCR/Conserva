@@ -19,8 +19,7 @@
     margin-bottom: 20px;
 }
 
-.btn-adicionar,
-.btn-remover {
+.btn-adicionar {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
@@ -35,14 +34,6 @@
 
 .btn-adicionar:hover {
     background-color: #1858b4;
-}
-
-.btn-remover {
-    background-color: #d83c3e;
-}
-
-.btn-remover:hover {
-    background-color: #b02f31;
 }
 
 .search-box input {

@@ -128,7 +128,6 @@ function PanelViewReceita() {
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
 
-            {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
             <div className="receita-actions">
                 <button
                     type="button"
@@ -137,7 +136,6 @@ function PanelViewReceita() {
                     disabled={loading /*|| receitaRegistrada*/}>
                         Adicionar receita
                 </button>
-                <button type="button" className="btn-remover">Remover receita</button>
             </div>
 
             <div className="search-box">
