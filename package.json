@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ZVSCR/Conserva#readme",
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "bcrypt": "^6.0.0",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",

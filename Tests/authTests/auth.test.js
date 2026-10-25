@@ -1,9 +1,7 @@
 const request = require('supertest');
 const app = require('../../Backend/src/app');
 
-jest.mock('../../Backend/src/config/database.js', () => ({
-    query: jest.fn()
-}));
+jest.mock('../../Backend/src/config/database.js', () => jest.fn());
 
 const db = require('../../Backend/src/config/database');
 
@@ -22,7 +20,7 @@ describe('GET /', () => {
 // Teste de registro
 describe('POST /api/auth/register', () => {
 
-    // Limpa mocks de DB
+    // Limpa mocks da consulta SQL
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -223,7 +221,7 @@ describe('POST /api/auth/register', () => {
     // TESTE DE INFRAESTRUTURA
     test('deve retornar 500 quando ocorrer erro no banco.', async () => {
 
-        db.query.mockRejectedValue(
+        db.mockRejectedValue(
             new Error('Erro de banco')
         );
 
@@ -244,7 +242,7 @@ describe('POST /api/auth/register', () => {
         const error = new Error('Unique violation');
         error.code = '23505'
 
-        db.query.mockRejectedValue(error);
+        db.mockRejectedValue(error);
 
         const response = await request(app)
             .post('/api/auth/register')
@@ -261,17 +259,15 @@ describe('POST /api/auth/register', () => {
     // TESTE DE REGISTRO DE USUÁRIO
     test('deve retornar 201 se usuário foi registrado.', async () => {
 
-        db.query.mockResolvedValue({
-            rows: [
-                {
-                    id: 1,
-                    username: 'fulano',
-                    email: 'email@dofulano.com',
-                    tipo: 'adm',
-                    created_at: new Date()
-                }
-            ]
-        });
+        db.mockResolvedValue([
+            {
+                id: 1,
+                username: 'fulano',
+                email: 'email@dofulano.com',
+                tipo: 'adm',
+                created_at: new Date()
+            }
+        ]);
 
         const response = await request(app)
             .post('/api/auth/register')
@@ -292,13 +288,13 @@ describe('POST /api/auth/register', () => {
 
 describe('POST /api/auth/login', () => {
 
-    // Hashing de senha de acordo com o controller
+    // Hashing de senha de acordo com o serviço
     let hash;
     beforeAll(async () => {
         hash = await bcrypt.hash('senha', 12);
     });
 
-    // Limpa mocks de DB
+    // Limpa mocks da consulta SQL
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -375,9 +371,7 @@ describe('POST /api/auth/login', () => {
     // TESTES DE AUTENTICAÇÃO
     test('deve retornar 401 quando o usuário não existir.', async () => {
 
-        db.query.mockResolvedValue({
-            rows: []
-        });
+        db.mockResolvedValue([]);
 
         const response = await request(app)
             .post('/api/auth/login')
@@ -394,22 +388,20 @@ describe('POST /api/auth/login', () => {
 
         const hash = await bcrypt.hash('senha', 12);
 
-        db.query.mockResolvedValue({
-            rows: [
-                {
-                    id: 1,
-                    username: 'fulano',
-                    email: 'email@dofulano.com',
-                    tipo: 'adm',
-                    password_hash: hash
-                }
-            ]
-        });
+        db.mockResolvedValue([
+            {
+                id: 1,
+                username: 'fulano',
+                email: 'email@dofulano.com',
+                tipo: 'adm',
+                password_hash: hash
+            }
+        ]);
 
         const response = await request(app)
             .post('/api/auth/login')
             .send({
-                identifier: 'aaaaaaaaaa',
+                identifier: 'fulano',
                 password: 'senhaRuim'
             });
 
@@ -419,17 +411,15 @@ describe('POST /api/auth/login', () => {
 
     test('deve retornar 200 quando efetuar o login por username.', async () => {
 
-        db.query.mockResolvedValue({
-            rows: [
-                {
-                    id: 1,
-                    username: 'fulano',
-                    email: 'email@dofulano.com',
-                    tipo: 'adm',
-                    password_hash: hash
-                }
-            ]
-        });
+        db.mockResolvedValue([
+            {
+                id: 1,
+                username: 'fulano',
+                email: 'email@dofulano.com',
+                tipo: 'adm',
+                password_hash: hash
+            }
+        ]);
 
         const response = await request(app)
             .post('/api/auth/login')
@@ -451,17 +441,15 @@ describe('POST /api/auth/login', () => {
 
     test('deve retornar 200 quando efetuar o login por email.', async () => {
 
-        db.query.mockResolvedValue({
-            rows: [
-                {
-                    id: 1,
-                    username: 'fulano',
-                    email: 'email@dofulano.com',
-                    tipo: 'adm',
-                    password_hash: hash
-                }
-            ]
-        });
+        db.mockResolvedValue([
+            {
+                id: 1,
+                username: 'fulano',
+                email: 'email@dofulano.com',
+                tipo: 'adm',
+                password_hash: hash
+            }
+        ]);
 
         const response = await request(app)
             .post('/api/auth/login')
@@ -484,7 +472,7 @@ describe('POST /api/auth/login', () => {
     // TESTES DE INFRAESTRUTURA
     test('deve retornar 500 quando há falha no banco.', async () => {
 
-        db.query.mockRejectedValue(
+        db.mockRejectedValue(
             new Error('Erro de banco.')
         );
 
