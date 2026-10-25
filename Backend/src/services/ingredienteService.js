@@ -1,4 +1,5 @@
-const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { createIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { IngredienteError } = require('../errors/IngredienteError');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
 function normalizar(str) {
@@ -127,6 +128,19 @@ async function createIngredienteService({ nome }) {
     return createIngredienteRepo(nomeCanonico);
 }
 
+async function deleteIngredienteService(ingredienteId, usuarioId) {
+    if (usuarioId !== 1) {
+        throw new IngredienteError('Apenas o administrador pode excluir ingredientes.', 403);
+    }
+
+    const ingrediente = await deleteIngredienteRepo(ingredienteId);
+    if (!ingrediente) {
+        throw new IngredienteError('Ingrediente não encontrado.', 404);
+    }
+
+    return ingrediente;
+}
+
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
 
     const raw = await ask('Adicione um item:\n');
@@ -146,6 +160,7 @@ module.exports = {
     identificarIngredienteCandidato,
     resolverNomeItem,
     createIngredienteService,
+    deleteIngredienteService,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
     aliasesToNome,

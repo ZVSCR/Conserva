@@ -1,6 +1,7 @@
 jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
     inserirIngredientesPadrao: jest.fn(),
-    createIngredienteRepo: jest.fn()
+    createIngredienteRepo: jest.fn(),
+    deleteIngredienteRepo: jest.fn()
 }));
 
 const { listaIngredientes, aliasesToNome } = require('../../Backend/src/data/ingredientes');
@@ -14,7 +15,35 @@ const {
     createIngredienteService
 } = require('../../Backend/src/services/ingredienteService');
 
+const { deleteIngredienteService } = require('../../Backend/src/services/ingredienteService');
+const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+
 beforeEach(() => jest.clearAllMocks());
+
+describe('exclusão de ingrediente', () => {
+    test('administrador exclui ingrediente existente', async () => {
+        deleteIngredienteRepo.mockResolvedValue({ id: 12 });
+        await expect(deleteIngredienteService(12, 1)).resolves.toEqual({ id: 12 });
+        expect(deleteIngredienteRepo).toHaveBeenCalledWith(12);
+        expect(deleteIngredienteRepo).toHaveBeenCalledTimes(1);
+    });
+
+    test.each([2, 3, undefined, null, '1'])('usuário %p não pode excluir', async (usuarioId) => {
+        await expect(deleteIngredienteService(12, usuarioId)).rejects.toMatchObject({ statusCode: 403 });
+        expect(deleteIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('ingrediente inexistente gera erro de domínio', async () => {
+        deleteIngredienteRepo.mockResolvedValue(undefined);
+        await expect(deleteIngredienteService(12, 1)).rejects.toMatchObject({ statusCode: 404 });
+    });
+
+    test('propaga falha do repositório', async () => {
+        const erro = new Error('Banco indisponível');
+        deleteIngredienteRepo.mockRejectedValue(erro);
+        await expect(deleteIngredienteService(12, 1)).rejects.toBe(erro);
+    });
+});
 
 test('todos os aliases apontam para um ingrediente canônico sem duplicatas', () => {
     const nomes = validarCatalogoIngredientes();

@@ -46,4 +46,13 @@ async function buscarIdsIngredientes(client, nomes, nomesObrigatorios = nomes) {
     return idsPorNome;
 }
 
-module.exports = { createIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
+async function deleteIngredienteRepo(id) {
+    const [ingrediente] = await sql`
+        DELETE FROM ingrediente
+        WHERE id = ${id}
+        RETURNING id
+    `;
+    return ingrediente;
+}
+
+module.exports = { createIngredienteRepo, deleteIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
