@@ -1,4 +1,4 @@
-const { createIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
 const { IngredienteError } = require('../errors/IngredienteError');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
@@ -121,11 +121,17 @@ function resolverNomeItem(rawItem, novoItemNome) {
     return { needsName: false, item: itemFinal };
 }
 
-async function createIngredienteService({ nome }) {
+function normalizarNomeIngrediente(nome) {
     const nomeNormalizado = normalizar(nome);
-    const nomeCanonico = aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
-    const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
-    return createIngredienteRepo(nomeCanonico);
+    return aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
+}
+
+async function createIngredienteService({ nome }) {
+    return createIngredienteRepo(normalizarNomeIngrediente(nome));
+}
+
+async function updateIngredienteService(ingredienteId, { nome }) {
+    return updateIngredienteRepo(ingredienteId, normalizarNomeIngrediente(nome));
 }
 
 async function deleteIngredienteService(ingredienteId, usuarioId) {
@@ -160,6 +166,7 @@ module.exports = {
     identificarIngredienteCandidato,
     resolverNomeItem,
     createIngredienteService,
+    updateIngredienteService,
     deleteIngredienteService,
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
