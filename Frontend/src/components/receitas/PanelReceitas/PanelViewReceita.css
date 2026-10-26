@@ -88,24 +88,6 @@
     cursor: pointer;
 }
 
-.receita-botao-excluir {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-left: 20px;
-    padding: 4px;
-    border: none;
-    background: none;
-    cursor: pointer;
-}
-
-.receita-botao-excluir img {
-    width: 25px;
-    height: 25px;
-    object-fit: contain;
-}
-
 .receita-info h3 {
     font-size: 14px;
     margin: 0 0 5px 0;

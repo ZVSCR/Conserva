@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque";
-import IconDeletar from "../../../assets/IconsEstoque/delete.png";
+import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
 
 function PanelViewReceita() {
     const [receitas, setReceitas] = useState([]);
@@ -202,17 +202,7 @@ function PanelViewReceita() {
                                     </p>
                                 </div>
                             </button>
-                            <button
-                                type="button"
-                                className="receita-botao-excluir"
-                                aria-label={`Excluir receita ${receita.nome}`}
-                                onClick={() => {
-                                    setErroExclusao("");
-                                    setReceitaExcluindo(receita);
-                                }}
-                            >
-                                <img src={IconDeletar} alt="" />
-                            </button>
+                            <EllipsisMenuReceita rotulo={`Opções da receita ${receita.nome}`} />
                         </div>
                     ))
                 ) : (
