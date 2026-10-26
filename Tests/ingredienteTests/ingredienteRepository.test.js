@@ -6,6 +6,29 @@ const { inserirIngredientesPadrao, buscarIdsIngredientes } = require('../../Back
 
 beforeEach(() => jest.clearAllMocks());
 
+const sql = require('../../Backend/src/config/database');
+const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+
+test('exclui ingrediente por ID com consulta parametrizada e retorna o registro', async () => {
+    sql.mockResolvedValueOnce([{ id: 12 }]);
+    await expect(deleteIngredienteRepo(12)).resolves.toEqual({ id: 12 });
+    expect(sql).toHaveBeenCalledTimes(1);
+    const [partes, id] = sql.mock.calls[0];
+    expect(partes.join('?')).toMatch(/DELETE FROM ingrediente\s+WHERE id = \?\s+RETURNING id/);
+    expect(id).toBe(12);
+});
+
+test('exclusão retorna undefined quando o ingrediente não existe', async () => {
+    sql.mockResolvedValueOnce([]);
+    await expect(deleteIngredienteRepo(999)).resolves.toBeUndefined();
+});
+
+test('exclusão propaga falhas do banco', async () => {
+    const erro = new Error('Banco indisponível');
+    sql.mockRejectedValueOnce(erro);
+    await expect(deleteIngredienteRepo(12)).rejects.toBe(erro);
+});
+
 test('insere nomes em lote sem apagar ou alterar ingredientes existentes', async () => {
     pool.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
     const nomes = ['leite', 'maca'];

@@ -19,8 +19,7 @@
     margin-bottom: 20px;
 }
 
-.btn-adicionar,
-.btn-remover {
+.btn-adicionar {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
@@ -35,14 +34,6 @@
 
 .btn-adicionar:hover {
     background-color: #1858b4;
-}
-
-.btn-remover {
-    background-color: #d83c3e;
-}
-
-.btn-remover:hover {
-    background-color: #b02f31;
 }
 
 .search-box input {
@@ -79,13 +70,40 @@
     justify-content: space-between;
     align-items: center;
     width: 90%;
-    cursor: pointer;
 }
 
 .receita-card:hover,
-.receita-card:focus {
+.receita-card:focus-within {
     border-color: #5865f2;
     outline: none;
+}
+
+.receita-abrir {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.receita-botao-excluir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 20px;
+    padding: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.receita-botao-excluir img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
 }
 
 .receita-info h3 {

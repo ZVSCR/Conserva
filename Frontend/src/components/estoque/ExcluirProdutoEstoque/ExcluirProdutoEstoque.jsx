@@ -1,20 +1,30 @@
 import ModalEstoque from '../ModalEstoque/ModalEstoque';
 
-function ExcluirProdutoEstoque({ produto, onConfirmar, onCancelar }) {
+function ExcluirProdutoEstoque({
+    produto,
+    onConfirmar,
+    onCancelar,
+    titulo = "Excluir produto",
+    mensagem = <>Tem certeza que deseja excluir "{produto.nome}"?</>,
+    excluindo = false,
+    erro = "",
+}) {
 
     return (
-        <ModalEstoque titulo="Excluir produto">
+        <ModalEstoque titulo={titulo}>
 
             <p className="estoque-modal-texto">
-                Tem certeza que deseja excluir "{produto.nome}"?
+                {mensagem}
             </p>
 
+            {erro && <p className="estoque-modal-texto" role="alert">{erro}</p>}
+
             <div className="estoque-modal-acoes">
-                <button className="estoque-modal-botao-cancelar" onClick={onCancelar}>
+                <button type="button" className="estoque-modal-botao-cancelar" onClick={onCancelar} disabled={excluindo}>
                     Cancelar
                 </button>
-                <button className="estoque-modal-botao-excluir" onClick={onConfirmar}>
-                    Excluir
+                <button type="button" className="estoque-modal-botao-excluir" onClick={onConfirmar} disabled={excluindo}>
+                    {excluindo ? "Excluindo..." : "Excluir"}
                 </button>
             </div>
 

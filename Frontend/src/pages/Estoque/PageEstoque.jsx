@@ -8,11 +8,12 @@ import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/
 import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
 
+const USUARIO_MOCK_ID = 1;
 
 function PageEstoque(){
     
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
-    fetch('http://localhost:3000/api/estoque')
+    fetch(`http://localhost:3000/api/estoque?usuario_id=${USUARIO_MOCK_ID}`)
         .then((res) => res.json())
         .then((data) => {
             setProdutos(
@@ -50,7 +51,7 @@ function PageEstoque(){
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome_item: produtoAtualizado.nome })
             }),
-            fetch(`http://localhost:3000/api/estoque/${produtoAtualizado.id}`, { //Atualiza a quantidade no ESTOQUE
+            fetch(`http://localhost:3000/api/estoque/${produtoAtualizado.id}?usuario_id=${USUARIO_MOCK_ID}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantidade: produtoAtualizado.quantidade })
