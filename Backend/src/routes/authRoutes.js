@@ -4,14 +4,18 @@ const express = require('express');
 
 const {
     register,
-    login
+    login,
+    logout
 } = require('../controllers/authController');
 
-// const requireAuth = require('../middleware/requireAuth');
-
 const router = express.Router();
+router.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/logout', logout);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const express = require('express');
 const userRouter = express.Router();
 const userController = require('../controllers/userController');
+const requireAuth = require('../middleware/requireAuth');
 
 const mockAuth = (req, res, next) => {
   req.user = {
@@ -20,7 +21,7 @@ userRouter.route('/gastos')
     .get(userController.listarGastosUsuarios);
     
 userRouter.route('/me')
-    .all(mockAuth)
+    .all(requireAuth)
     .get(userController.getUserData)
     .patch(userController.updateUserData);
 

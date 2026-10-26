@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const { createSessionMiddleware, getSessionConfig } = require('./config/session');
+const sessionOrigin = require('./middleware/sessionOrigin');
 const sql = require('./config/database');                 // Importa conexão com o banco de dados
 const userRoutes = require('./routes/userRoutes');        // Importa rotas de operações de usuário
 const itemsRoutes = require('./routes/itemRoutes');       // Importa rotas de manipulação de itens
@@ -11,8 +13,17 @@ const ingredienteRoutes = require('./routes/ingredienteRoutes'); // Importa rota
 
 const app = express();
 
-app.use(cors());                          // Libera o acesso para o frontend
+app.use(cors({ origin: getSessionConfig().frontendOrigin, credentials: true }));
 app.use(express.json());
+const sessionMiddleware = createSessionMiddleware();
+app.use((req, res, next) => sessionMiddleware(req, res, (error) => {
+  if (error) {
+    console.error('Erro no armazenamento da sessão:', error);
+    return res.status(503).json({ error: 'Não foi possível acessar a sessão.' });
+  }
+  return next();
+}));
+app.use(['/api/auth', '/api/users'], sessionOrigin);
 app.use('/api/users', userRoutes);        // Rota para operações de usuário
 app.use('/api/items', itemsRoutes);       // Rota para itens do estoque
 app.use('/api/auth', authRoutes);         // Rota para autenticação de usuário

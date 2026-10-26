@@ -90,9 +90,7 @@ const listarGastosUsuarios = async (req, res, next) => {
 
 const getUserData = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const usuario = await userRepository.findUserDataById(userId);
+    const usuario = req.user;
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
