@@ -16,6 +16,10 @@ Use CommonJS (`require`/`module.exports`) in the backend and ES modules in the f
 
 Add Jest tests as `*.test.js` in the matching `Tests/<domain>Tests/` directory. Cover changed behavior at the appropriate layer; use mocks for isolated tests and Supertest where HTTP behavior matters. Integration tests requiring a database use `TEST_DATABASE_URL` and skip when it is absent. Point it to a separate test database, never the normal `DATABASE_URL`. No coverage threshold is configured.
 
+## Architectural Decisions and Evidence
+
+Avoid unsupported assumptions. Base request formats, function signatures, response shapes, and other architectural decisions on existing code or explicit user requirements. When a necessary decision cannot be verified from either source, ask the user before writing code or tests that depend on it. As an example, do not invent the expected payload for an update function that has not been implemented.
+
 ## Commit & Pull Request Guidelines
 
 Prefer the project's conventional commit pattern in Portuguese, using an indicative verb: `feat: adiciona histórico de receitas`, `fix: corrige validação`, or `refactor: separa componentes`. Keep commits focused. In pull requests, explain the behavior changed, affected API routes or screens, tests run, and any remaining integration work. Include screenshots for visible UI changes and link the related issue when one exists.
