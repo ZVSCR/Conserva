@@ -20,4 +20,9 @@
     padding: 10px 16px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+    text-align: left;
+}
+
+.receitas-popup-base__linha + .receitas-popup-base__linha {
+    border-top: 1px solid #777777;
 }
