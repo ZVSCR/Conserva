@@ -1,5 +1,6 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthProvider';
+import RequireSession from './components/usuario/RequireSession/RequireSession';
 import Home from './pages/Home/PageHome';
 import Login from './pages/Login/PageLogin';
 import Register from './pages/Register/PageRegister';
@@ -21,13 +22,15 @@ const router = createBrowserRouter(createRoutesFromElements(
 
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />
-        <Route path="/alterar-dados" element={<UserData />} />
-        <Route path="/configuracoes" element={<UserPreferences />} />
-        <Route path="/extrato-compras" element={<ExtratoCompras />} />
-        <Route path="/nova-compra" element={<NovaCompra />} />
-        <Route path='/estoque' element={<Estoque />} />
-        <Route path='/receitas' element={<ViewReceita />} />
-        <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
+        <Route element={<RequireSession />}>
+            <Route path="/alterar-dados" element={<UserData />} />
+            <Route path="/configuracoes" element={<UserPreferences />} />
+            <Route path="/extrato-compras" element={<ExtratoCompras />} />
+            <Route path="/nova-compra" element={<NovaCompra />} />
+            <Route path='/estoque' element={<Estoque />} />
+            <Route path='/receitas' element={<ViewReceita />} />
+            <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
+        </Route>
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
         <Route path="*" element={<h1>Página não encontrada (404)</h1>} />

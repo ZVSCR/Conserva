@@ -1,11 +1,13 @@
 import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
+import { useAuth } from "../../../context/useAuth";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
 
 function PanelUserData() {
   const navigate = useNavigate();
+  const { refreshSession } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -114,7 +116,7 @@ function PanelUserData() {
         return;
       }
 
-      console.log("Dados atualizados com sucesso:", data.data);
+      await refreshSession();
       navigate('/estoque');
 
       // Atualiza também os dados originais com o que acabou de ser salvo com sucesso

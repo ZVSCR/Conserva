@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/useAuth";
 import { registerUser } from "../../../services/auth";
 import "./PanelRegister.css";
 
 function PanelRegister() {
+  const navigate = useNavigate();
+  const { user, status } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -25,7 +28,7 @@ function PanelRegister() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
+    if (loading || status === 'checking') return;
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
@@ -34,6 +37,7 @@ function PanelRegister() {
       await registerUser(formData);
       setFormData((current) => ({ ...current, password: "" }));
       setSuccessMsg("Conta criada com sucesso. Você já pode fazer login.");
+      navigate('/login', { replace: true, state: { registered: true, identifier: formData.email } });
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -41,12 +45,14 @@ function PanelRegister() {
     }
   };
 
+  if (user && status === 'authenticated') return <Navigate to="/estoque" replace />;
+
   return (
     <div className="panel-register">
       <h2>Register</h2>
       {errorMsg && <p className="error-message" role="alert" style={{ color: "red" }}>{errorMsg}</p>}
       {successMsg && <p role="status">{successMsg}</p>}
-      
+
       <form className="register-form" method="post" onSubmit={handleSubmit}>
         <label htmlFor="username">Username:</label>
         <input
