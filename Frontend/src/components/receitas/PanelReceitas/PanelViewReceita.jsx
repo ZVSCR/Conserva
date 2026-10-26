@@ -202,7 +202,13 @@ function PanelViewReceita() {
                                     </p>
                                 </div>
                             </button>
-                            <EllipsisMenuReceita rotulo={`Opções da receita ${receita.nome}`} />
+                            <EllipsisMenuReceita
+                                rotulo={`Opções da receita ${receita.nome}`}
+                                onExcluir={() => {
+                                    setErroExclusao("");
+                                    setReceitaExcluindo(receita);
+                                }}
+                            />
                         </div>
                     ))
                 ) : (
