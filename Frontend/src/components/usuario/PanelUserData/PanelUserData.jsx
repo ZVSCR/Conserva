@@ -154,6 +154,9 @@ function PanelUserData() {
           type="text"
           name="username"
           id="username"
+          maxLength={50}
+          pattern="[^@]+"
+          title="O nome de usuário não pode conter @."
           value={formData.username}
           onChange={handleChange}
         />

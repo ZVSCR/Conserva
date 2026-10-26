@@ -2,12 +2,14 @@
 
 ## Resultado desta entrega
 
-- Backend: 588 testes aprovados; 13 ignorados, incluindo integrações que dependem de banco separado.
+- Backend: 615 testes aprovados; 13 ignorados, incluindo integrações que dependem de banco separado.
 - Serviços do frontend: 14 verificações aprovadas.
 - Compilação da interface aprovada. A análise estática continua apresentando avisos anteriores em componentes de estoque, perfil, extrato e receitas.
 - Nenhum teste desta entrega acessou o banco normal do projeto.
 
 Os testes de autorização usam o aplicativo, cookies e verificação de sessão reais, com repositórios simulados. Conferem operações sem sessão, identidade forjada pelo navegador, separação de contas, acesso a receitas públicas e bloqueio antecipado da exclusão de ingredientes. Os testes dos repositórios verificam os filtros de proprietário nos comandos SQL. Os testes do cliente HTTP verificam cookies, expiração e respostas atrasadas de uma sessão anterior.
+
+Os testes de identificação também cobrem um nome de usuário antigo igual ao e-mail de outra conta: o login deve selecionar somente o proprietário do e-mail e recusar a senha da outra pessoa. Cadastro e perfil rejeitam novos nomes com `@` e e-mails sem o formato básico, antes de gravar. A edição dos dados é seguida de novo login por nome e por e-mail para conferir a normalização.
 
 ## Conferência pelo navegador
 

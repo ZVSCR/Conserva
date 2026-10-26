@@ -2,6 +2,10 @@
 
 O cadastro recebe `username`, `email`, `password` e `tipo` (`domestico` ou `comercial`). O login recebe `identifier` (nome ou e-mail) e `password`. Contas antigas podem continuar fazendo login com o tipo já registrado.
 
+O caractere `@` é reservado para e-mails: nomes de usuário não podem contê-lo no cadastro nem na edição do perfil. O e-mail deve conter uma parte antes e outra depois de um único `@`, sem espaços internos. Cadastro e edição removem espaços nas extremidades e gravam nome/e-mail em letras minúsculas.
+
+No login, um identificador com `@` consulta somente o campo de e-mail; os demais consultam somente o nome de usuário. Isso impede que um nome antigo igual ao e-mail de outra conta selecione a pessoa errada. Uma conta antiga cujo nome contenha `@` deve entrar pelo próprio e-mail cadastrado e pode corrigir seu nome no perfil. Os registros existentes não são renomeados automaticamente.
+
 ## Configuração local
 
 1. Instale as dependências na raiz com `npm install` e no frontend com `npm --prefix Frontend install`.

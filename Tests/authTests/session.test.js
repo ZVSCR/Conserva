@@ -50,7 +50,7 @@ test('cadastro, login por email, recuperação da sessão e saída funcionam em 
             return [publicUser];
         }
         const { password_hash, ...publicUser } = savedUser;
-        return sql.includes('LOWER(username)') ? [savedUser] : [publicUser];
+        return sql.includes('LOWER(username)') || sql.includes('LOWER(email)') ? [savedUser] : [publicUser];
     });
     const agent = request.agent(app);
     const registered = await agent.post('/api/auth/register').send({

@@ -27,7 +27,10 @@ replaceModule('Backend/src/config/database.js', async (strings, ...values) => {
         return [publicUser];
     }
     if (sql.includes('LOWER(username)')) {
-        return users.filter((user) => user.username === values[0] || user.email === values[0]);
+        return users.filter((user) => user.username === values[0]);
+    }
+    if (sql.includes('LOWER(email)')) {
+        return users.filter((user) => user.email === values[0]);
     }
     if (sql.includes('SELECT notify_push')) {
         return [{ notify_push: false, notify_email: true, is_dark_theme: false }];

@@ -17,3 +17,18 @@ test.each(['ana', 'ana@example.com'])('aceita login usando identifier %s', (iden
 test('o login exige identifier, não username', () => {
     expect(validateLogin({ username: 'ana', password: 'senha' }).isValid).toBe(false);
 });
+
+test.each(['ana@example.com', 'ana@', '@ana', ' ANA@EXAMPLE.COM '])('reserva @ para emails, recusando username %s', (username) => {
+    expect(validateRegister({ ...cadastro, username })).toEqual({
+        isValid: false,
+        errors: expect.arrayContaining([expect.objectContaining({ field: 'username', message: expect.stringContaining('@') })])
+    });
+});
+
+test.each(['ana', 'ana@', '@example.com', 'ana@@example.com', 'ana @example.com'])('recusa email sem formato apropriado %s', (email) => {
+    expect(validateRegister({ ...cadastro, email }).isValid).toBe(false);
+});
+
+test.each(['ana.silva', 'ana_silva', 'ana-silva', ' ANA '])('preserva nomes válidos sem @: %s', (username) => {
+    expect(validateRegister({ ...cadastro, username }).isValid).toBe(true);
+});

@@ -63,6 +63,8 @@ function PanelRegister() {
           value={formData.username}
           onChange={handleChange}
           maxLength={50}
+          pattern="[^@]+"
+          title="O nome de usuário não pode conter @."
           autoComplete="username"
           disabled={loading}
           required

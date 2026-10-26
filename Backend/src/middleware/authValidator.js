@@ -4,7 +4,7 @@ const { validateString } = require('./generalValidator');
 function validateUsername(username) {
 
     // Username é obrigatório, não nulo, e com limite de 50 caracteres
-    return validateString({
+    const errors = validateString({
         value: username,
         field: 'username',
         maxLength: 50,
@@ -15,12 +15,18 @@ function validateUsername(username) {
             maxLength: 'Username deve possuir no máximo 50 caracteres.'
         }
     });
+
+    if (errors.length === 0 && username.includes('@')) {
+        errors.push({ field: 'username', message: 'Nome de usuário não pode conter @. Utilize seu email no campo de email.' });
+    }
+
+    return errors;
 }
 
 function validateEmail(email) {
 
     // Email é obrigatório, não nulo, e com limite de 100 caracteres
-    return validateString({
+    const errors = validateString({
         value: email,
         field: 'email',
         maxLength: 100,
@@ -31,6 +37,12 @@ function validateEmail(email) {
             maxLength: 'Email deve possuir no máximo 100 caracteres.'
         }
     });
+
+    if (errors.length === 0 && !/^[^\s@]+@[^\s@]+$/.test(email.trim())) {
+        errors.push({ field: 'email', message: 'Informe um email válido, como nome@exemplo.com.' });
+    }
+
+    return errors;
 }
 
 function validateTipo(tipo) {
@@ -166,5 +178,7 @@ function validateLogin(user) {
 module.exports = {
     validateRegister,
     validateLogin,
+    validateUsername,
+    validateEmail,
     validateTipo
 };
