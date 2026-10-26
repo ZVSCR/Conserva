@@ -1,0 +1,23 @@
+.receitas-popup-base {
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 160px;
+    max-width: 100%;
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+    background-color: #ffffff;
+    color: #222222;
+    border-radius: 10px;
+    box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.15);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.receitas-popup-base__linha {
+    margin: 0;
+    padding: 10px 16px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

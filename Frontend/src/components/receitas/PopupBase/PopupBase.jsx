@@ -1,4 +1,8 @@
-function PopupBase({ linhas = [] }) {
+import "./PopupBase.css";
+
+const LINHAS_PADRAO = ["Preparar", "Modificar", "Excluir"];
+
+function PopupBase({ linhas = LINHAS_PADRAO }) {
     return (
         <ul className="receitas-popup-base">
             {linhas.map((linha, indice) => (
