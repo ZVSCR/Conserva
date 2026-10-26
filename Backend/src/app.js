@@ -11,7 +11,22 @@ const ingredienteRoutes = require('./routes/ingredienteRoutes') // Importa rotas
 
 const app = express();
 
-app.use(cors());                          // Libera o acesso para o frontend
+const frontendOrigin = process.env.FRONTEND_URL;
+
+app.use(cors({
+  origin(origin, callback) {
+    const isLocalDevelopmentOrigin = process.env.NODE_ENV !== 'production'
+      && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '');
+    const isConfiguredOrigin = frontendOrigin && origin === frontendOrigin;
+
+    if (!origin || isLocalDevelopmentOrigin || isConfiguredOrigin) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Origem não autorizada para acessar a API.'));
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use('/api/users', userRoutes);        // Rota para operações de usuário
 app.use('/api/items', itemsRoutes);       // Rota para itens do estoque

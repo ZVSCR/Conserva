@@ -1,31 +1,46 @@
 const express = require('express');
 const userRouter = express.Router();
 const userController = require('../controllers/userController');
+const requireAuth = require('../middleware/requireAuth');
 
-const mockAuth = (req, res, next) => {
-  req.user = {
-    id: 1,
-    username: 'dev',
-    email: 'dev@exemplo.com',
-    tipo: 'dev',
-    notify_push: true,
-    notify_email: true,
-    is_dark_theme: false
-  };
+// const mockAuth = (req, res, next) => {
+//   req.user = {
+//     id: 1,
+//     username: 'dev',
+//     email: 'dev@exemplo.com',
+//     tipo: 'dev',
+//     notify_push: true,
+//     notify_email: true,
+//     is_dark_theme: false
+//   };
 
-  next();
-};
+//   next();
+// };
 
-userRouter.route('/gastos')
-    .get(userController.listarGastosUsuarios);
+// userRouter.route('/gastos')
+//     .get(userController.listarGastosUsuarios);
     
+// userRouter.route('/me')
+//     .all(mockAuth)
+//     .get(userController.getUserData)
+//     .patch(userController.updateUserData);
+
+// userRouter.route('/me/preferences')
+//     .all(mockAuth)
+//     .get(userController.getUserPreferences)
+//     .patch(userController.updateUserPreferences);
+
+userRouter.use(requireAuth);
+
+userRouter.get('/gastos', userController.listarGastosUsuarios);
+
 userRouter.route('/me')
-    .all(mockAuth)
+    .all(requireAuth)
     .get(userController.getUserData)
     .patch(userController.updateUserData);
 
 userRouter.route('/me/preferences')
-    .all(mockAuth)
+    .all(requireAuth)
     .get(userController.getUserPreferences)
     .patch(userController.updateUserPreferences);
 

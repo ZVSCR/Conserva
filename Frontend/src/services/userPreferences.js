@@ -7,7 +7,10 @@ async function requestPreferences(options) {
   let response;
 
   try {
-    response = await fetch(preferencesUrl, options);
+    response = await fetch(preferencesUrl, {
+      ...options,
+      credentials: 'include',
+    });
   } catch {
     throw new Error('Não foi possível conectar ao servidor.');
   }

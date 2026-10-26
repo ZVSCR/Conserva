@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
+import { useAuth } from "../../../contexts/useAuth";
 
 function PanelUserData() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -31,6 +33,7 @@ function PanelUserData() {
         const response = await fetch("http://localhost:3000/api/users/me", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
         });
 
         const data = await response.json();
@@ -102,6 +105,7 @@ function PanelUserData() {
       const response = await fetch("http://localhost:3000/api/users/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -121,6 +125,7 @@ function PanelUserData() {
         email: formData.email,
         tipo: formData.tipo,
       };
+      setUser((currentUser) => currentUser ? { ...currentUser, ...updatedOriginals } : currentUser);
       setInitialData(updatedOriginals);
 
       // Limpa os campos de senha

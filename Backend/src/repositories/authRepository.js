@@ -60,7 +60,19 @@ async function loginRepo(user) {
     return usuarioBuscado || null;
 }
 
+async function findUserByIdRepo(id) {
+    const [usuario] = await sql`
+        SELECT id, username, email, tipo
+        FROM users
+        WHERE id = ${id}
+        LIMIT 1
+    `;
+
+    return usuario || null;
+}
+
 module.exports = {
     registerRepo,
-    loginRepo
+    loginRepo,
+    findUserByIdRepo
 };
