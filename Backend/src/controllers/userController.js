@@ -1,4 +1,5 @@
 const userRepository = require('../repositories/userRepository');
+const { validateUsername, validateEmail, validateTipo } = require('../middleware/authValidator');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 12;
 
@@ -75,8 +76,8 @@ const updateUserPreferences = async (req, res, next) => {
 
 const listarGastosUsuarios = async (req, res, next) => {
   try {
-    const gastos = await userRepository.buscarGastosTotaisPorUsuario();
-    
+    const gastos = await userRepository.buscarGastosTotaisPorUsuario(req.user.id);
+
     return res.status(200).json({
       status: 'success',
       data: gastos
@@ -89,9 +90,7 @@ const listarGastosUsuarios = async (req, res, next) => {
 
 const getUserData = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const usuario = await userRepository.findUserDataById(userId);
+    const usuario = req.user;
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
@@ -112,6 +111,12 @@ const updateUserData = async (req, res) => {
     const userId = req.user.id;
     const { username, email, tipo, password } = req.body;
 
+    const errors = [];
+    if (username !== undefined) errors.push(...validateUsername(username));
+    if (email !== undefined) errors.push(...validateEmail(email));
+    if (tipo !== undefined) errors.push(...validateTipo(tipo));
+    if (errors.length > 0) return res.status(400).json({ errors });
+
     if (!username && !email && !tipo && !password) {
       return res.status(400).json({ message: 'Forneça ao menos um campo para atualização.' });
     }
@@ -122,7 +127,9 @@ const updateUserData = async (req, res) => {
     }
 
     const usuarioAtualizado = await userRepository.updateUserData(userId, {
-      username, email, tipo, passwordHash
+      username: username?.trim().toLowerCase(),
+      email: email?.trim().toLowerCase(),
+      tipo: tipo?.trim().toLowerCase(), passwordHash
     });
 
     if (!usuarioAtualizado) {

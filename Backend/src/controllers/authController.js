@@ -9,6 +9,7 @@ const {
 } = require('../services/authService');
 
 const { AuthError } = require('../errors/AuthError');
+const { clearSessionCookie } = require('../config/session');
 
 async function register(req, res) {
 
@@ -71,6 +72,17 @@ async function login(req, res) {
         // Chama serviço para efetuar login
         const userFound = await loginService(req.body);
 
+        // Uma sessão nova evita reutilizar a identificação anterior ao login.
+        await new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve()));
+        try {
+            req.session.userId = userFound.id;
+            await new Promise((resolve, reject) => req.session.save((error) => error ? reject(error) : resolve()));
+        } catch (error) {
+            await new Promise((resolve) => req.session.destroy(() => resolve()));
+            clearSessionCookie(res);
+            throw error;
+        }
+
         // Retorna status 200 se registro foi bem sucedido
         return res.status(200).json({
             message: 'Login efetuado! Seja bem vindo!',
@@ -94,9 +106,21 @@ async function login(req, res) {
     }
 }
 
+async function logout(req, res) {
+    try {
+        await new Promise((resolve, reject) => req.session.destroy((error) => error ? reject(error) : resolve()));
+        clearSessionCookie(res);
+        return res.sendStatus(204);
+    } catch (error) {
+        console.error('Erro ao encerrar sessão:', error);
+        return res.status(503).json({ error: 'Não foi possível encerrar a sessão.' });
+    }
+}
+
 module.exports = {
     register,
-    login
+    login,
+    logout
 };
 
 // Primeiro controller: ~240 LOC

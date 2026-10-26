@@ -5,10 +5,10 @@ const receitaUser = require('../middleware/receitaUser');
 
 const {
     createReceita,
-    createReceitaPreparada,
+    listarPreparos,
     getGastoPorReceita,
     getGastoReceita,
-    verificarReceita, 
+    verificarReceita,
     prepararReceita,
     listReceitas,
     getReceitaById,
@@ -16,26 +16,29 @@ const {
     patchReceitaById,
 } = require('../controllers/receitaController');
 
+receitaRouter.use(receitaUser);
+// Rotas fixas precisam vir antes de /:id.
+receitaRouter.get('/gastos', getGastoPorReceita);
+receitaRouter.get('/preparadas', listarPreparos);
+
 receitaRouter.route('/')
-    .post(receitaUser, createReceita)
-    .get(receitaUser, listReceitas)
+    .post(createReceita)
+    .get(listReceitas)
 
 receitaRouter.route('/:receitaId/disponibilidade')
-    .get(receitaUser, verificarReceita);
+    .get(verificarReceita);
 
 receitaRouter.route('/:receitaId/preparar')
-    .post(receitaUser, prepararReceita);
+    .post(prepararReceita);
 
 receitaRouter.route('/:id')
     .get(getReceitaById)
     .patch(patchReceitaById);
 
 receitaRouter.route('/:receitaId')
-    .delete(receitaUser, apagarReceita);
+    .delete(apagarReceita);
 
 // Gasto acumulado de todas as receitas (rota fixa antes das rotas com :id)
-receitaRouter.route('/gastos')
-    .get(getGastoPorReceita);
 
 // Gasto de uma receita, detalhado por preparo
 receitaRouter.route('/:id/gasto')

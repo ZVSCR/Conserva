@@ -273,7 +273,7 @@ const validateAtualizacaoCompraPayload = (body) => {
 
 async function listarCompras(req, res) {
     try {
-        const compras = await listarComprasUsuario(req.compraUsuarioId);
+        const compras = await listarComprasUsuario(req.user.id);
         return res.status(200).json({
             status: 'success',
             message: 'Acesso bem sucedido.',
@@ -288,7 +288,7 @@ async function listarCompras(req, res) {
 
 async function listarComprasData(req, res) {
     try {
-        const usuarioId = req.compraUsuarioId;
+        const usuarioId = req.user.id;
         const { dataInicio, dataFim } = req.query;
 
         const compras = await listarComprasUsuarioData(usuarioId, dataInicio, dataFim);
@@ -308,7 +308,7 @@ async function listarComprasData(req, res) {
 
 async function listarItensPorCompra(req, res) {
     try {
-        const usuarioId = req.compraUsuarioId;
+        const usuarioId = req.user.id;
         const compraId = parsePositiveIntegerParam(req.params.compraId)
 
         if (compraId === null) {
@@ -354,7 +354,7 @@ async function atualizarCompra(req, res) {
         }
 
         const { data_compra, estabelecimento } = req.body;
-        const compraAtualizada = await atualizarCompraPorId(req.compraUsuarioId, compraId, {
+        const compraAtualizada = await atualizarCompraPorId(req.user.id, compraId, {
             data_compra,
             estabelecimento
         });
@@ -403,7 +403,7 @@ async function atualizarItensPorCompra(req, res) {
 
         const { quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada } = req.body;
 
-        const resultadoAtualizacao = await atualizarPorCompraId(req.compraUsuarioId, itemId, compraId, {
+        const resultadoAtualizacao = await atualizarPorCompraId(req.user.id, itemId, compraId, {
             quantidade,
             valor_unitario,
             nome_item,
@@ -499,7 +499,7 @@ async function atualizarInstanciasPorCompra(req, res) {
         } = novosValores;
 
         const resultadoAtualizacao = await atualizarInstanciasPorCompraId(
-            req.compraUsuarioId,
+            req.user.id,
             compraId,
             { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
             {
@@ -557,7 +557,7 @@ async function atualizarInstanciasPorCompra(req, res) {
 async function createCompraVaziaController(req, res) {
     try {
         const { data_compra, estabelecimento } = req.body;
-        const resultado = await createCompraVazia(req.compraUsuarioId, data_compra, estabelecimento);
+        const resultado = await createCompraVazia(req.user.id, data_compra, estabelecimento);
         res.status(201).json(resultado);
     } catch (erro) {
         console.error(erro)
@@ -578,7 +578,7 @@ async function createCompra(req, res) {
         });
     }
 
-    const userId = req.compraUsuarioId;
+    const userId = req.user.id;
 
     try {
 
@@ -616,7 +616,7 @@ async function apagarCompra(req, res) {
             });
         }
 
-        const compraRemovida = await apagarCompraPorId(req.compraUsuarioId, compraId);
+        const compraRemovida = await apagarCompraPorId(req.user.id, compraId);
 
         return res.status(200).json({
             status: 'success',
@@ -651,7 +651,7 @@ async function adicionaItensACompra(req, res) {
         });
     }
 
-    const userId = req.compraUsuarioId;
+    const userId = req.user.id;
     const compraId = parsePositiveIntegerParam(req.params.compraId);
     // Valida ID de compra
     if (!Number.isSafeInteger(compraId) || compraId <= 0) {

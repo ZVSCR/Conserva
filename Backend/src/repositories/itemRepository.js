@@ -3,9 +3,9 @@ const { atualizarPorCompraId } = require('./compraRepository');
 
 // =============================================================================
 // LISTAGEM  -- Alterei pra ocultar a senha do usuario e mostrar o id dos itens
-async function buscarItens() {
+async function buscarItens(usuarioId) {
     const query = await sql`
-        SELECT 
+        SELECT
             item.id AS item_id,
             item.nome_item,
             item.quantidade,
@@ -23,16 +23,18 @@ async function buscarItens() {
             users.tipo
         FROM item
         JOIN compra ON item.compra_id = compra.id
-        JOIN users ON compra.usuario_id = users.id;
+        JOIN users ON compra.usuario_id = users.id
+        WHERE users.id = ${usuarioId};
     `;
 
     return query;
 }
 
-async function buscarPorId(id) {
+async function buscarPorId(id, usuarioId) {
     const query = await sql`
-    SELECT * FROM item
-    WHERE id = ${id};
+    SELECT i.* FROM item i
+    JOIN compra c ON c.id = i.compra_id
+    WHERE i.id = ${id} AND c.usuario_id = ${usuarioId};
     `;
 
     return query[0];
@@ -51,20 +53,21 @@ async function buscarItensPorUsuario(usuarioId) {
 }
 // =============================================================================
 // ATUALIZAÇÃO
-async function atualizarPorId(itemId, fieldsToUpdate) {
-    const [atual] = await sql`SELECT i.compra_id, c.usuario_id FROM item i JOIN compra c ON c.id = i.compra_id WHERE i.id = ${itemId};`;
+async function atualizarPorId(itemId, fieldsToUpdate, usuarioId) {
+    const [atual] = await sql`SELECT i.compra_id FROM item i JOIN compra c ON c.id = i.compra_id WHERE i.id = ${itemId} AND c.usuario_id = ${usuarioId};`;
     if (!atual) return undefined;
 
-    const resultado = await atualizarPorCompraId(atual.usuario_id, itemId, atual.compra_id, fieldsToUpdate);
+    const resultado = await atualizarPorCompraId(usuarioId, itemId, atual.compra_id, fieldsToUpdate);
     return resultado.item;
 }
 // =============================================================================
 // REMOÇÃO
-async function apagarPorId(id) {
+async function apagarPorId(id, usuarioId) {
     const [resultado] = await sql`
         WITH item_apagado AS (
-            DELETE FROM item WHERE id = ${id}
-            RETURNING id, compra_id
+            DELETE FROM item i USING compra c
+            WHERE i.compra_id = c.id AND i.id = ${id} AND c.usuario_id = ${usuarioId}
+            RETURNING i.id, i.compra_id
         )
         UPDATE compra AS c
         SET valor_total = (

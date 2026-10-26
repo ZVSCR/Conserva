@@ -47,12 +47,18 @@ async function loginRepo(user) {
 
     const { identifier } = user;
 
-    const [usuarioBuscado] = await sql`
+    // @ identifica exclusivamente um email, inclusive para registros antigos.
+    const [usuarioBuscado] = identifier.includes('@') ? await sql`
+        SELECT
+            id, username, email, tipo, password_hash
+        FROM users
+        WHERE LOWER(email) = ${identifier}
+        LIMIT 1
+    ` : await sql`
         SELECT
             id, username, email, tipo, password_hash
         FROM users
         WHERE LOWER(username) = ${identifier}
-            OR LOWER(email) = ${identifier}
         LIMIT 1
     `;
 
