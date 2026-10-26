@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from './apiErrors.js';
-import { API_BASE_URL } from './apiConfig.js';
+import { apiFetch } from './apiClient.js';
 
 export class AuthRequestError extends Error {
   constructor(message, status) {
@@ -12,7 +12,7 @@ export class AuthRequestError extends Error {
 async function authRequest(path, { method = 'GET', body, signal } = {}) {
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    response = await apiFetch(path, {
       method,
       credentials: 'include',
       cache: 'no-store',
@@ -21,7 +21,7 @@ async function authRequest(path, { method = 'GET', body, signal } = {}) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       }),
-    });
+    }, { notifyUnauthorized: false });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
     throw new Error('Não foi possível conectar ao servidor.');

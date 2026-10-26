@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "../../../services/apiConfig";
+import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
 import "./PanelUserData.css";
@@ -30,7 +30,7 @@ function PanelUserData() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+        const response = await apiFetch(`/api/users/me`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -101,7 +101,7 @@ function PanelUserData() {
     if (formData.tipo) payload.tipo = formData.tipo;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+      const response = await apiFetch(`/api/users/me`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -115,7 +115,7 @@ function PanelUserData() {
       }
 
       console.log("Dados atualizados com sucesso:", data.data);
-      navigate('/estoque'); 
+      navigate('/estoque');
 
       // Atualiza também os dados originais com o que acabou de ser salvo com sucesso
       const updatedOriginals = {
@@ -142,7 +142,7 @@ function PanelUserData() {
   return (
     <div className="panel-data">
       <h2> Altere seus dados </h2>
-      
+
       {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
       {successMsg && <p className="success-message" style={{ color: "green" }}>{successMsg}</p>}
 

@@ -1,10 +1,10 @@
-import { API_BASE_URL } from "../../../services/apiConfig";
+import { apiFetch } from '../../../services/apiClient.js';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import './PanelReceitasPreparadas.css';
 
-const API_URL = `${API_BASE_URL}/api/receitas/preparadas`;
+const API_URL = `/api/receitas/preparadas`;
 
 function formatarData(valor) {
     if (!valor) return 'Data não informada';
@@ -32,7 +32,7 @@ function PanelRefeicoesPreparadas() {
 
         async function carregarHistorico() {
             try {
-                const response = await fetch(API_URL, { signal: controller.signal });
+                const response = await apiFetch(API_URL, { signal: controller.signal });
                 const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {

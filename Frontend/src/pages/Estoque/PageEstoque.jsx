@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "../../services/apiConfig";
+import { apiFetch } from '../../services/apiClient.js';
 import { useState, useEffect } from 'react';
 
 import './Estoque.css';
@@ -8,13 +8,10 @@ import EstoqueProduto from '../../components/estoque/ProdutoEstoque/ProdutoEstoq
 import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/EditarProdutoEstoque';
 import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
-
-const USUARIO_MOCK_ID = 1;
-
 function PageEstoque(){
-    
+
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
-    fetch(`${API_BASE_URL}/api/estoque?usuario_id=${USUARIO_MOCK_ID}`)
+    apiFetch(`/api/estoque`)
         .then((res) => res.json())
         .then((data) => {
             setProdutos(
@@ -27,13 +24,13 @@ function PageEstoque(){
             );
         })
         .catch((erro) => console.error('Erro ao buscar estoque:', erro));
-}, []); 
+}, []);
 
     //Para integração ao BD usar essa parte com [id, nome, qtd]
     const [produtos, setProdutos] = useState([]);
 
     const [produtoEditando, setProdutoEditando] = useState(null);
-    
+
     const [adicionandoProduto, setAdicionandoProduto] = useState(false);
 
     const [produtoExcluindo, setProdutoExcluindo] = useState(null);
@@ -42,17 +39,17 @@ function PageEstoque(){
     function editarProduto(produto) {
         setProdutoEditando(produto);
     }
-    
+
     //atualizar as edições no BD
  async function salvarEdicao(produtoAtualizado) {
     try {
         const [resNome, resQuantidade] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
+            apiFetch(`/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome_item: produtoAtualizado.nome })
             }),
-            fetch(`${API_BASE_URL}/api/estoque/${produtoAtualizado.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+            apiFetch(`/api/estoque/${produtoAtualizado.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantidade: produtoAtualizado.quantidade })
@@ -81,7 +78,7 @@ function PageEstoque(){
 
     async function confirmarExclusao() {
     try {
-        const resposta = await fetch(`${API_BASE_URL}/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
+        const resposta = await apiFetch(`/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
             method: 'DELETE'
         });
 

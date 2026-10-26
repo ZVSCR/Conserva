@@ -76,8 +76,8 @@ const updateUserPreferences = async (req, res, next) => {
 
 const listarGastosUsuarios = async (req, res, next) => {
   try {
-    const gastos = await userRepository.buscarGastosTotaisPorUsuario();
-    
+    const gastos = await userRepository.buscarGastosTotaisPorUsuario(req.user.id);
+
     return res.status(200).json({
       status: 'success',
       data: gastos

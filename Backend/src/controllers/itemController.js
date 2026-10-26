@@ -72,7 +72,7 @@ const validateItemPayload = (body) => {
 // LISTAGEM
 async function listarItens(req, res) {
     try {
-        const items = await buscarItens();
+        const items = await buscarItens(req.user.id);
         res.json(items);
     } catch (erro) {
         res.status(500).json({
@@ -84,7 +84,7 @@ async function listarItens(req, res) {
 async function listarPorId(req, res) {
     try {
         const { id } = req.params;
-        const item = await buscarPorId(id);
+        const item = await buscarPorId(id, req.user.id);
         if (!item) {
             return res.status(404).json({
                 erro: 'Item não encontrado'
@@ -100,9 +100,9 @@ async function listarPorId(req, res) {
 // =============================================================================
 async function listarItensGastos(req, res) {
     try {
-        // Pega o ID do usuário injetado pelo mockAuth
-        const usuarioId = req.user.id; 
-        
+        // Identidade confirmada pela sessão.
+        const usuarioId = req.user.id;
+
         const items = await buscarItensPorUsuario(usuarioId);
         res.json(items);
     } catch (erro) {
@@ -136,7 +136,7 @@ async function atualizarItem(req, res) {
             nome_item,
             unidade_de_medida,
             validade_estimada
-        });
+        }, req.user.id);
 
         if (!itemAtualizado) {
             return res.status(404).json({
@@ -176,7 +176,7 @@ async function atualizarItem(req, res) {
 async function apagarId(req, res) {
     try {
         const { id } = req.params;
-        const resultado = await apagarPorId(id);
+        const resultado = await apagarPorId(id, req.user.id);
         if (!resultado)
             return res.status(404).json({
                 erro: "Item não encontrado"
@@ -193,11 +193,10 @@ async function apagarId(req, res) {
 // CRIAÇÃO
 async function criarItemHandler(req, res) {
     try {
-        const usuarioId = req.body?.usuario_id;
+        const usuarioId = req.user.id;
         const compraId = req.body?.compra_id;
-        if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0 ||
-            !Number.isSafeInteger(compraId) || compraId <= 0) {
-            return res.status(400).json({ erro: 'usuario_id e compra_id devem ser inteiros positivos.' });
+        if (!Number.isSafeInteger(compraId) || compraId <= 0) {
+            return res.status(400).json({ erro: 'compra_id deve ser um inteiro positivo.' });
         }
 
         const erros = validateItem(req.body, 0);
