@@ -1,3 +1,5 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(1));
+
 const request = require('supertest');
 
 jest.mock('../../Backend/src/config/database', () => jest.fn());
@@ -16,58 +18,18 @@ beforeEach(() => jest.clearAllMocks());
 
 const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
 
-describe('DELETE /api/ingredientes/:id', () => {
-    test('administrador recebe 204 ao excluir ingrediente', async () => {
-        deleteIngredienteRepo.mockResolvedValue({ id: 12 });
-        const response = await request(app).delete('/api/ingredientes/12?usuario_id=1');
-        expect(response.status).toBe(204);
-        expect(response.text).toBe('');
-        expect(deleteIngredienteRepo).toHaveBeenCalledWith(12);
+describe('DELETE /api/ingredientes/:id desativada', () => {
+    test.each(['12', '999', 'abc', '0'])('recusa exclusão de %s antes de qualquer consulta', async (id) => {
+        const response = await request(app).delete('/api/ingredientes/' + id).query({ usuario_id: 1 });
+        expect(response.status).toBe(403);
+        expect(response.body.error).toBe('A exclusão de ingredientes está indisponível.');
+        expect(deleteIngredienteRepo).not.toHaveBeenCalled();
     });
 
-    test('usuário comum recebe 403 sem consultar o banco', async () => {
-        const response = await request(app).delete('/api/ingredientes/12?usuario_id=2');
+    test('nem o usuário anteriormente considerado administrador ativa a exclusão', async () => {
+        const response = await request(app).delete('/api/ingredientes/12').set('X-Test-User', '1');
         expect(response.status).toBe(403);
         expect(deleteIngredienteRepo).not.toHaveBeenCalled();
-    });
-
-    test.each(['', '?usuario_id=0', '?usuario_id=-1', '?usuario_id=abc',
-        '?usuario_id=1.5', '?usuario_id=9007199254740992', '?usuario_id=1&usuario_id=2',
-        '?usuario_id[]=1'])('rejeita identificação inválida: %s', async (query) => {
-        const response = await request(app).delete(`/api/ingredientes/12${query}`);
-        expect(response.status).toBe(400);
-        expect(deleteIngredienteRepo).not.toHaveBeenCalled();
-    });
-
-    test('não aceita usuario_id do corpo como identificação', async () => {
-        const response = await request(app).delete('/api/ingredientes/12').send({ usuario_id: 1 });
-        expect(response.status).toBe(400);
-        expect(deleteIngredienteRepo).not.toHaveBeenCalled();
-    });
-
-    test.each(['0', '-1', 'abc', '1.5', '12abc', '1e2', '9007199254740992'])('rejeita ID de ingrediente %s', async (id) => {
-        const response = await request(app).delete(`/api/ingredientes/${id}?usuario_id=1`);
-        expect(response.status).toBe(400);
-        expect(deleteIngredienteRepo).not.toHaveBeenCalled();
-    });
-
-    test('ingrediente inexistente recebe 404', async () => {
-        deleteIngredienteRepo.mockResolvedValue(undefined);
-        const response = await request(app).delete('/api/ingredientes/999?usuario_id=1');
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ error: 'Ingrediente não encontrado.' });
-    });
-
-    test('falha inesperada recebe 500 sem detalhes internos', async () => {
-        deleteIngredienteRepo.mockRejectedValue(new Error('Detalhes privados do banco'));
-        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            const response = await request(app).delete('/api/ingredientes/12?usuario_id=1');
-            expect(response.status).toBe(500);
-            expect(response.body).toEqual({ error: 'Erro interno do servidor.' });
-        } finally {
-            log.mockRestore();
-        }
     });
 });
 

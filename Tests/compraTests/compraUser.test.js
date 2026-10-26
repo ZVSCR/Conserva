@@ -1,35 +1,31 @@
+jest.mock('../../Backend/src/repositories/userRepository', () => ({ findUserDataById: jest.fn() }));
 const compraUser = require('../../Backend/src/middleware/compraUser');
+const { findUserDataById } = require('../../Backend/src/repositories/userRepository');
 
-test.each(['GET', 'PATCH', 'DELETE'])('%s usa o ID informado na consulta', (method) => {
-    const req = { method, query: { usuario_id: '42' } };
+beforeEach(() => {
+    jest.clearAllMocks();
+    findUserDataById.mockResolvedValue({ id: 42, username: 'teste' });
+});
+
+function response() {
+    return { set: jest.fn(), status: jest.fn().mockReturnThis(), json: jest.fn() };
+}
+
+test.each(['GET', 'POST', 'PATCH', 'DELETE'])('%s usa a sessão e ignora usuario_id da consulta e do corpo', async (method) => {
+    const req = { method, session: { userId: 42 }, query: { usuario_id: '1' }, body: { usuario_id: 7 } };
     const next = jest.fn();
-    compraUser(req, {}, next);
-    expect(req.compraUsuarioId).toBe(42);
+    await compraUser(req, response(), next);
+    expect(req.user.id).toBe(42);
+    expect(findUserDataById).toHaveBeenCalledWith(42);
     expect(next).toHaveBeenCalledTimes(1);
 });
 
-test('POST usa o ID do corpo, não da consulta', () => {
-    const req = { method: 'POST', body: { usuario_id: 42 }, query: { usuario_id: '1' } };
-    const next = jest.fn();
-    compraUser(req, {}, next);
-    expect(req.compraUsuarioId).toBe(42);
-    expect(next).toHaveBeenCalledTimes(1);
-});
-
-test.each([undefined, null, 0, -1, 1.5, '42', {}, []])('POST rejeita ID inválido %s', (usuario_id) => {
+test.each([undefined, null, 0, -1, '42'])('identificação %s no corpo não cria uma sessão', async (usuario_id) => {
     const req = { method: 'POST', body: { usuario_id } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const res = response();
     const next = jest.fn();
-    compraUser(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(next).not.toHaveBeenCalled();
-});
-
-test('rejeita IDs de consulta repetidos', () => {
-    const req = { method: 'GET', query: { usuario_id: ['7', '42'] } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    const next = jest.fn();
-    compraUser(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(400);
+    await compraUser(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(findUserDataById).not.toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
 });

@@ -1,3 +1,5 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(42));
+
 const request = require('supertest');
 
 jest.mock('../../Backend/src/config/database.js', () => ({}));
@@ -29,7 +31,7 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-test('cria compra com o usuario_id informado no JSON, sem token', async () => {
+test('cria compra com o usuário autenticado', async () => {
     createCompraService.mockResolvedValue({ id: 123 });
 
     const response = await request(app)
@@ -42,17 +44,15 @@ test('cria compra com o usuario_id informado no JSON, sem token', async () => {
 });
 
 test.each([undefined, null, 0, -1, 1.5, '42'])(
-    'rejeita usuario_id inválido: %s',
+    'usuario_id %s não substitui a sessão',
     async (usuario_id) => {
+        createCompraService.mockResolvedValue({ id: 123 });
         const response = await request(app)
             .post('/api/compras')
             .send({ ...compraValida, usuario_id });
 
-        expect(response.status).toBe(400);
-        expect(response.body.error).toEqual([
-            expect.objectContaining({ field: 'usuario_id' })
-        ]);
-        expect(createCompraService).not.toHaveBeenCalled();
+        expect(response.status).toBe(201);
+        expect(createCompraService).toHaveBeenCalledWith(42, { ...compraValida, usuario_id });
     }
 );
 

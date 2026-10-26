@@ -14,12 +14,13 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
     let pool;
     let updateReceitaRepo;
     let previousDatabaseUrl;
+    let usuarioId;
     const ids = [];
 
     async function criar(nome) {
         const { rows: [receita] } = await pool.query(
-            'INSERT INTO receita (nome, descricao, modo_preparo) VALUES ($1, $2, $3) RETURNING id',
-            [nome, 'Descrição original', 'Preparo original']
+            'INSERT INTO receita (nome, descricao, modo_preparo, usuario_id) VALUES ($1, $2, $3, $4) RETURNING id',
+            [nome, 'Descrição original', 'Preparo original', usuarioId]
         );
         ids.push(receita.id);
         return receita.id;
@@ -38,6 +39,11 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
         jest.resetModules();
         ({ updateReceitaRepo } = require('../../Backend/src/repositories/receitaRepository'));
         pool = new Pool({ connectionString: testDatabaseUrl });
+        const { rows: [usuario] } = await pool.query(
+            'INSERT INTO users (username, email, tipo, password_hash) VALUES ($1, $2, $3, $4) RETURNING id',
+            [suiteTag, `${suiteTag}@example.test`, 'domestico', 'hash-ficticio-sem-login']
+        );
+        usuarioId = usuario.id;
     });
 
     afterAll(async () => {
@@ -45,6 +51,7 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
             if (pool && ids.length) {
                 await pool.query('DELETE FROM receita WHERE id = ANY($1::int[])', [ids]);
             }
+            if (pool && usuarioId) await pool.query('DELETE FROM users WHERE id = $1', [usuarioId]);
         } finally {
             if (pool) await pool.end();
             if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
@@ -61,7 +68,7 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
             modo_preparo: 'Preparo original'
         };
 
-        const atualizada = await updateReceitaRepo(id, payload);
+        const atualizada = await updateReceitaRepo(id, payload, usuarioId);
 
         expect(atualizada).toEqual(expect.objectContaining({
             id, ...payload
@@ -78,7 +85,7 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
             nome: `${suiteTag}_alvo`,
             descricao: 'Descrição original',
             modo_preparo: texto
-        });
+        }, usuarioId);
 
         expect((await buscar(id)).modo_preparo).toBe(texto);
         expect(await buscar(outroId)).toEqual({
@@ -87,12 +94,12 @@ describeWithDatabase('updateReceitaRepo — integração', () => {
         });
     });
 
-    test('retorna null quando o id não existe', async () => {
+    test('retorna undefined quando o id não existe', async () => {
         await expect(updateReceitaRepo(2147483647, {
             nome: 'Inexistente',
             descricao: 'Descrição',
             modo_preparo: 'Preparo'
-        }))
-            .resolves.toBeNull();
+        }, usuarioId))
+            .resolves.toBeUndefined();
     });
 });

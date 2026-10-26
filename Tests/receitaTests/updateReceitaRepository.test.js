@@ -16,7 +16,7 @@ describe('updateReceitaRepo', () => {
         const atualizada = { id: 7, ...payload };
         sql.mockResolvedValue([atualizada]);
 
-        await expect(updateReceitaRepo(7, payload)).resolves.toEqual(atualizada);
+        await expect(updateReceitaRepo(7, payload, 42)).resolves.toEqual(atualizada);
 
         expect(sql).toHaveBeenCalledTimes(1);
         const [fragmentos, ...valores] = sql.mock.calls[0];
@@ -27,13 +27,14 @@ describe('updateReceitaRepo', () => {
             payload.nome,
             payload.descricao,
             payload.modo_preparo,
-            7
+            7,
+            42
         ]);
     });
 
     test('retorna undefined quando nenhuma receita é encontrada', async () => {
         sql.mockResolvedValue([]);
 
-        await expect(updateReceitaRepo(999, payload)).resolves.toBeUndefined();
+        await expect(updateReceitaRepo(999, payload, 42)).resolves.toBeUndefined();
     });
 });
