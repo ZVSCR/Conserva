@@ -1,9 +1,13 @@
+import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
+import { getApiErrorMessage } from "../../../services/apiErrors";
+import { useAuth } from "../../../context/useAuth";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
 
 function PanelUserData() {
   const navigate = useNavigate();
+  const { refreshSession } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -28,7 +32,7 @@ function PanelUserData() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/users/me", {
+        const response = await apiFetch(`/api/users/me`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -99,7 +103,7 @@ function PanelUserData() {
     if (formData.tipo) payload.tipo = formData.tipo;
 
     try {
-      const response = await fetch("http://localhost:3000/api/users/me", {
+      const response = await apiFetch(`/api/users/me`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -108,12 +112,12 @@ function PanelUserData() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.message || "Erro ao atualizar dados.");
+        setErrorMsg(getApiErrorMessage(data, "Erro ao atualizar dados."));
         return;
       }
 
-      console.log("Dados atualizados com sucesso:", data.data);
-      navigate('/estoque'); 
+      await refreshSession();
+      navigate('/estoque');
 
       // Atualiza também os dados originais com o que acabou de ser salvo com sucesso
       const updatedOriginals = {
@@ -140,7 +144,7 @@ function PanelUserData() {
   return (
     <div className="panel-data">
       <h2> Altere seus dados </h2>
-      
+
       {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
       {successMsg && <p className="success-message" style={{ color: "green" }}>{successMsg}</p>}
 
@@ -150,6 +154,9 @@ function PanelUserData() {
           type="text"
           name="username"
           id="username"
+          maxLength={50}
+          pattern="[^@]+"
+          title="O nome de usuário não pode conter @."
           value={formData.username}
           onChange={handleChange}
         />

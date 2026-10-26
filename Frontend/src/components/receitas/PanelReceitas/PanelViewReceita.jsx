@@ -1,3 +1,4 @@
+import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
@@ -12,9 +13,7 @@ function PanelViewReceita() {
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
     const [preparando, setPreparando] = useState(false);
     const [mensagemPreparo, setMensagemPreparo] = useState("");
-    // Identificação temporária, seguindo o mesmo padrão de Compras.
-    const USUARIO_MOCK_ID = 1;
-    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    // Identificação temporária, seguindo o mesmo padrão de Compras.    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
     const [receitaExcluindo, setReceitaExcluindo] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
     const [erroExclusao, setErroExclusao] = useState("");
@@ -23,7 +22,7 @@ function PanelViewReceita() {
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas?usuario_id=${USUARIO_MOCK_ID}`, {
+            const response = await apiFetch(`/api/receitas`, {
                 method: "GET",
             });
 
@@ -100,7 +99,7 @@ function PanelViewReceita() {
         setErroExclusao("");
 
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas/${receitaExcluindo.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+            const response = await apiFetch(`/api/receitas/${receitaExcluindo.id}`, {
                 method: "DELETE",
             });
 
@@ -126,10 +125,10 @@ function PanelViewReceita() {
         setMensagemPreparo("");
 
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas/${receitaId}/preparar`, {
+            const response = await apiFetch(`/api/receitas/${receitaId}/preparar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ usuario_id: USUARIO_MOCK_ID }),
+                body: JSON.stringify({}),
             });
             const data = await response.json();
 
@@ -274,7 +273,7 @@ function PanelViewReceita() {
 
             {modalNovaReceitaAberto && (
                 <div className="modal-nova-receita">
-                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas} usuarioId={USUARIO_MOCK_ID}/>
+                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas}/>
                 </div>
             )}
         </div>

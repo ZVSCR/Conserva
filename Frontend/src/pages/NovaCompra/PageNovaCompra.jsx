@@ -1,14 +1,11 @@
 import PanelNovaCompra from "../../components/compras/PanelNovaCompra/PanelNovaCompra";
-import Header from "../../components/shared/Header/Header";
+import AppHeader from "../../components/shared/AppHeader/AppHeader";
 
 import './NovaCompra.css';
 function NovaCompra() {
     return (
         <div>
-            <header className="Header">
-                <h1>ConservaAI</h1>
-                <a href="/scan">VOLTAR</a>
-            </header>
+            <AppHeader />
             <PanelNovaCompra />
         </div>
     );
