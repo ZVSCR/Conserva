@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../services/apiConfig";
 import { useState, useEffect } from 'react';
 
 import './Estoque.css';
@@ -13,7 +14,7 @@ const USUARIO_MOCK_ID = 1;
 function PageEstoque(){
     
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
-    fetch(`http://localhost:3000/api/estoque?usuario_id=${USUARIO_MOCK_ID}`)
+    fetch(`${API_BASE_URL}/api/estoque?usuario_id=${USUARIO_MOCK_ID}`)
         .then((res) => res.json())
         .then((data) => {
             setProdutos(
@@ -46,12 +47,12 @@ function PageEstoque(){
  async function salvarEdicao(produtoAtualizado) {
     try {
         const [resNome, resQuantidade] = await Promise.all([
-            fetch(`http://localhost:3000/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
+            fetch(`${API_BASE_URL}/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome_item: produtoAtualizado.nome })
             }),
-            fetch(`http://localhost:3000/api/estoque/${produtoAtualizado.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+            fetch(`${API_BASE_URL}/api/estoque/${produtoAtualizado.id}?usuario_id=${USUARIO_MOCK_ID}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantidade: produtoAtualizado.quantidade })
@@ -80,7 +81,7 @@ function PageEstoque(){
 
     async function confirmarExclusao() {
     try {
-        const resposta = await fetch(`http://localhost:3000/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
+        const resposta = await fetch(`${API_BASE_URL}/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
             method: 'DELETE'
         });
 

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../../services/apiConfig";
 import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
@@ -23,7 +24,7 @@ function PanelViewReceita() {
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas?usuario_id=${USUARIO_MOCK_ID}`, {
+            const response = await fetch(`${API_BASE_URL}/api/receitas?usuario_id=${USUARIO_MOCK_ID}`, {
                 method: "GET",
             });
 
@@ -100,7 +101,7 @@ function PanelViewReceita() {
         setErroExclusao("");
 
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas/${receitaExcluindo.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+            const response = await fetch(`${API_BASE_URL}/api/receitas/${receitaExcluindo.id}?usuario_id=${USUARIO_MOCK_ID}`, {
                 method: "DELETE",
             });
 
@@ -126,7 +127,7 @@ function PanelViewReceita() {
         setMensagemPreparo("");
 
         try {
-            const response = await fetch(`http://localhost:3000/api/receitas/${receitaId}/preparar`, {
+            const response = await fetch(`${API_BASE_URL}/api/receitas/${receitaId}/preparar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ usuario_id: USUARIO_MOCK_ID }),

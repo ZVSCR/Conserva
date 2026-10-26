@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../../services/apiConfig";
 import { useState, useEffect } from "react";
 import "./PanelExtratoCompras.css";
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +22,7 @@ function ExtratoCompras() {
   // Busca as compras do usuário para exibir em scroll
   const fetchComprasComItens = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/compras?usuario_id=${USUARIO_MOCK_ID}`, {
+      const response = await fetch(`${API_BASE_URL}/api/compras?usuario_id=${USUARIO_MOCK_ID}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -38,7 +39,7 @@ function ExtratoCompras() {
       const comprasComQuantidade = await Promise.all(
         listaCompras.map(async (compra) => {
           try {
-            const resItens = await fetch(`http://localhost:3000/api/compras/${compra.id}?usuario_id=${USUARIO_MOCK_ID}`);
+            const resItens = await fetch(`${API_BASE_URL}/api/compras/${compra.id}?usuario_id=${USUARIO_MOCK_ID}`);
             const dataItens = await resItens.json();
             const itens = dataItens.data || dataItens;
 
@@ -96,7 +97,7 @@ function ExtratoCompras() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/compras/${id}?usuario_id=${USUARIO_MOCK_ID}`);
+      const response = await fetch(`${API_BASE_URL}/api/compras/${id}?usuario_id=${USUARIO_MOCK_ID}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -151,7 +152,7 @@ function ExtratoCompras() {
     const promises = [];
 
     promises.push(
-      fetch(`http://localhost:3000/api/compras/${compraId}?usuario_id=${USUARIO_MOCK_ID}`, {
+      fetch(`${API_BASE_URL}/api/compras/${compraId}?usuario_id=${USUARIO_MOCK_ID}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(compraEditando),
@@ -161,7 +162,7 @@ function ExtratoCompras() {
     itensEditando.forEach((item) => {
       const { id, ...camposItem } = item;
       promises.push(
-        fetch(`http://localhost:3000/api/compras/${compraId}/items/${id}?usuario_id=${USUARIO_MOCK_ID}`, {
+        fetch(`${API_BASE_URL}/api/compras/${compraId}/items/${id}?usuario_id=${USUARIO_MOCK_ID}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(camposItem),
@@ -194,7 +195,7 @@ function ExtratoCompras() {
   // Apaga a compra e os itens dela em cascata
   const handleExcluir = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/compras/${id}?usuario_id=${USUARIO_MOCK_ID}`, {
+      const response = await fetch(`${API_BASE_URL}/api/compras/${id}?usuario_id=${USUARIO_MOCK_ID}`, {
         method: "DELETE",
       });
 

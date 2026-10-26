@@ -1,6 +1,5 @@
 import { getApiErrorMessage } from './apiErrors.js';
-
-const apiBaseUrl = (import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+import { API_BASE_URL } from './apiConfig.js';
 
 export class AuthRequestError extends Error {
   constructor(message, status) {
@@ -13,7 +12,7 @@ export class AuthRequestError extends Error {
 async function authRequest(path, { method = 'GET', body, signal } = {}) {
   let response;
   try {
-    response = await fetch(`${apiBaseUrl}${path}`, {
+    response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       credentials: 'include',
       cache: 'no-store',

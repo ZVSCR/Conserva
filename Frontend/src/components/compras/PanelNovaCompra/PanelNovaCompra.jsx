@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../../services/apiConfig";
 import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import "./PanelNovaCompra.css";
@@ -103,7 +104,7 @@ function PanelNovaCompra() {
         setErrorMsg("");
 
         try {
-            const response = await fetch("http://localhost:3000/api/compras", {
+            const response = await fetch(`${API_BASE_URL}/api/compras`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

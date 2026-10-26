@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../../services/apiConfig";
 import { useState } from "react";
 import "./ModalAdicionarReceita.css";
 
@@ -35,7 +36,7 @@ function ModalAdicionarReceita({ onClose, onCreated, usuarioId }) {
         setErrorMsg("");
         setEnviando(true);
         try {
-            const response = await fetch("http://localhost:3000/api/receitas/", {
+            const response = await fetch(`${API_BASE_URL}/api/receitas/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

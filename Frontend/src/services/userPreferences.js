@@ -1,7 +1,8 @@
+import { API_BASE_URL } from './apiConfig.js';
+
 const preferenceFields = ['notify_email', 'notify_push', 'is_dark_theme'];
 const allowedFields = new Set(preferenceFields);
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
-const preferencesUrl = `${apiBaseUrl}/api/users/me/preferences`;
+const preferencesUrl = `${API_BASE_URL}/api/users/me/preferences`;
 
 async function requestPreferences(options) {
   let response;
