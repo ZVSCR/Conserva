@@ -25,6 +25,12 @@ O cookie usa `HttpOnly` e `SameSite=Lax`; com `NODE_ENV=production`, exige HTTPS
 
 ## Escopo desta entrega
 
+O frontend usa `Frontend/src/services/auth.js` para centralizar as chamadas e `AuthProvider` para compartilhar o usuário, o estado de verificação e as operações de login e saída. Ao atualizar a página, a aplicação consulta `/api/users/me`. O cookie permanece sob controle do navegador; senhas e comprovantes de sessão não são salvos em `localStorage`.
+
+As telas exibem o resultado do cadastro e login. O serviço de saída já está disponível, mas o botão de sair e os redirecionamentos automáticos ficam para a etapa 5. O endereço da API pode ser configurado por `VITE_API_BASE_URL` no ambiente do frontend.
+
 As etapas 1–3 preparam o cadastro, a sessão e a conexão do frontend. A migração das demais rotas e telas que ainda usam usuário fixo pertence à etapa 4. A proteção da navegação e o botão de sair pertencem à etapa 5; portanto, esta entrega ainda não torna toda a aplicação privada.
 
 Os testes Jest usam armazenamento de sessão em memória por meio de `Tests/setupSession.js`, sem acessar o armazenamento real de sessões. A integração com Neon e navegador deve ser validada com um banco de testes separado.
+
+Execute `npm test -- --runInBand` para os testes do backend e `node --test Tests/frontendTests/*.checks.mjs` para os contratos do serviço do frontend. `npm --prefix Frontend run build` verifica a compilação da interface.

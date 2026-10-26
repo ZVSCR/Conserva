@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { getApiErrorMessage } from "../../../services/apiErrors";
+import { Link } from "react-router-dom";
+import { registerUser } from "../../../services/auth";
 import "./PanelRegister.css";
 
 function PanelRegister() {
@@ -12,6 +13,7 @@ function PanelRegister() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,28 +25,17 @@ function PanelRegister() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setErrorMsg("");
+    setSuccessMsg("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMsg(getApiErrorMessage(data, "Erro ao efetuar registro."));
-        return;
-      }
-
-      console.log("Painel: Usuário criado com sucesso:", data.user);
-      // Aqui você pode redirecionar ou limpar o formulário
+      await registerUser(formData);
+      setFormData((current) => ({ ...current, password: "" }));
+      setSuccessMsg("Conta criada com sucesso. Você já pode fazer login.");
     } catch (err) {
-      console.error("Erro na requisição:", err);
-      setErrorMsg("Não foi possível conectar ao servidor.");
+      setErrorMsg(err.message);
     } finally {
       setLoading(false);
     }
@@ -53,9 +44,10 @@ function PanelRegister() {
   return (
     <div className="panel-register">
       <h2>Register</h2>
-      {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
+      {errorMsg && <p className="error-message" role="alert" style={{ color: "red" }}>{errorMsg}</p>}
+      {successMsg && <p role="status">{successMsg}</p>}
       
-      <form className="register-form" onSubmit={handleSubmit}>
+      <form className="register-form" method="post" onSubmit={handleSubmit}>
         <label htmlFor="username">Username:</label>
         <input
           type="text"
@@ -64,6 +56,9 @@ function PanelRegister() {
           placeholder="Username"
           value={formData.username}
           onChange={handleChange}
+          maxLength={50}
+          autoComplete="username"
+          disabled={loading}
           required
         />
 
@@ -75,6 +70,9 @@ function PanelRegister() {
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
+          maxLength={100}
+          autoComplete="email"
+          disabled={loading}
           required
         />
 
@@ -86,11 +84,13 @@ function PanelRegister() {
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
+          autoComplete="new-password"
+          disabled={loading}
           required
         />
 
         <label htmlFor="tipo">Tipo de conta:</label>
-        <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange}>
+        <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange} disabled={loading}>
           <option value="domestico">Doméstico</option>
           <option value="comercial">Comercial</option>
         </select>
@@ -98,7 +98,7 @@ function PanelRegister() {
         <button type="submit" className="btn btn-primary-register" disabled={loading}>
           {loading ? "Registrando..." : "Register"}
         </button>
-        <a href="/login">Already have an account? Login</a>
+        <Link to="/login">Já tem uma conta? Entrar</Link>
       </form>
     </div>
   );
