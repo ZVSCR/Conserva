@@ -6,10 +6,11 @@ jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
     createIngredienteRepo: jest.fn(),
     inserirIngredientesPadrao: jest.fn(),
     buscarIdsIngredientes: jest.fn(),
-    deleteIngredienteRepo: jest.fn()
+    deleteIngredienteRepo: jest.fn(),
+    updateIngredienteRepo: jest.fn()
 }));
 
-const { createIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+const { createIngredienteRepo, updateIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
 const app = require('../../Backend/src/app');
 
 beforeEach(() => jest.clearAllMocks());
@@ -112,4 +113,103 @@ test('POST /api/ingredientes rejeita nome inválido sem consultar o banco', asyn
 
     expect(response.status).toBe(400);
     expect(createIngredienteRepo).not.toHaveBeenCalled();
+});
+
+describe('PATCH /api/ingredientes/:id', () => {
+    test('usa o ID da URL e atualiza somente o nome', async () => {
+        const expectedOutput = { id: 12, nome: 'novo nome' };
+        updateIngredienteRepo.mockResolvedValue(expectedOutput);
+
+        const response = await request(app)
+            .patch('/api/ingredientes/12?usuario_id=1')
+            .send({ nome: 'novo nome' });
+
+        expect(response.status).toBe(200);
+        expect(updateIngredienteRepo).toHaveBeenCalledWith(12, { nome: 'novo nome' });
+        expect(response.body.ingrediente).toEqual(expectedOutput);
+    });
+
+    test.each([{}, { nome: '' }, { nome: '!!!' }, { nome: 'a'.repeat(101) }])(
+        'rejeita nome inválido sem atualizar o banco: %p', async (body) => {
+            const response = await request(app)
+                .patch('/api/ingredientes/12?usuario_id=1')
+                .send(body);
+
+            expect(response.status).toBe(400);
+            expect(updateIngredienteRepo).not.toHaveBeenCalled();
+        }
+    );
+
+    test.each(['0', 'abc', '1.5'])('rejeita ID inválido: %s', async (id) => {
+        const response = await request(app)
+            .patch(`/api/ingredientes/${id}?usuario_id=1`)
+            .send({ nome: 'novo nome' });
+
+        expect(response.status).toBe(400);
+        expect(updateIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('rejeita usuário não administrador sem atualizar o banco', async () => {
+        const response = await request(app)
+            .patch('/api/ingredientes/12?usuario_id=2')
+            .send({ nome: 'novo nome' });
+
+        expect(response.status).toBe(403);
+        expect(updateIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('rejeita identificação ausente sem atualizar o banco', async () => {
+        const response = await request(app)
+            .patch('/api/ingredientes/12')
+            .send({ nome: 'novo nome' });
+
+        expect(response.status).toBe(400);
+        expect(updateIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('retorna 404 quando o ingrediente não existe', async () => {
+        updateIngredienteRepo.mockResolvedValue(undefined);
+
+        const response = await request(app)
+            .patch('/api/ingredientes/12?usuario_id=1')
+            .send({ nome: 'novo nome' });
+
+        expect(response.status).toBe(404);
+    });
+
+    test('retorna 409 quando o nome já pertence a outro ingrediente', async () => {
+        updateIngredienteRepo.mockRejectedValue(Object.assign(new Error('Duplicado'), { code: '23505' }));
+
+        const response = await request(app)
+            .patch('/api/ingredientes/12?usuario_id=1')
+            .send({ nome: 'leite' });
+
+        expect(response.status).toBe(409);
+    });
+
+    test('aceita reenviar o nome atual sem mudar o ID', async () => {
+        updateIngredienteRepo.mockResolvedValue({ id: 12, nome: 'ovo' });
+
+        const response = await request(app)
+            .patch('/api/ingredientes/12?usuario_id=1')
+            .send({ nome: 'ovo' });
+
+        expect(response.status).toBe(200);
+        expect(response.body.ingrediente).toEqual({ id: 12, nome: 'ovo' });
+    });
+
+    test('retorna 500 sem expor detalhes da falha do banco', async () => {
+        updateIngredienteRepo.mockRejectedValue(new Error('Detalhes privados do banco'));
+        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const response = await request(app)
+                .patch('/api/ingredientes/12?usuario_id=1')
+                .send({ nome: 'novo nome' });
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ error: 'Erro interno do servidor.' });
+        } finally {
+            log.mockRestore();
+        }
+    });
 });
