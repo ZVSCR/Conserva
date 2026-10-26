@@ -8,7 +8,6 @@ const {
 const {
     AuthError
 } = require('../errors/AuthError');
-const authController = require('../controllers/authController');
 
 // Configura o custo computacional do bcrypt
 const SALT_ROUNDS = 12;
@@ -27,7 +26,7 @@ async function registerService(user) {
     // Normaliza campos para salvar no BD
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim().toLowerCase();
-    const normalizedTipo = tipo.trim();
+    const normalizedTipo = tipo.trim().toLowerCase();
 
     // Aplica hash na senha
     const passwordHash = await bcrypt.hash(

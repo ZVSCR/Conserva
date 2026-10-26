@@ -1,4 +1,5 @@
 const userRepository = require('../repositories/userRepository');
+const { validateTipo } = require('../middleware/authValidator');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 12;
 
@@ -112,6 +113,11 @@ const updateUserData = async (req, res) => {
     const userId = req.user.id;
     const { username, email, tipo, password } = req.body;
 
+    if (tipo !== undefined) {
+      const errors = validateTipo(tipo);
+      if (errors.length > 0) return res.status(400).json({ errors });
+    }
+
     if (!username && !email && !tipo && !password) {
       return res.status(400).json({ message: 'Forneça ao menos um campo para atualização.' });
     }
@@ -122,7 +128,7 @@ const updateUserData = async (req, res) => {
     }
 
     const usuarioAtualizado = await userRepository.updateUserData(userId, {
-      username, email, tipo, passwordHash
+      username, email, tipo: tipo?.trim().toLowerCase(), passwordHash
     });
 
     if (!usuarioAtualizado) {

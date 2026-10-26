@@ -36,7 +36,7 @@ function validateEmail(email) {
 function validateTipo(tipo) {
 
     // Tipo é obrigatório, não nulo, e com limite de 11 caracteres
-    return validateString({
+    const errors = validateString({
         value: tipo,
         field: 'tipo',
         maxLength: 11,
@@ -47,6 +47,12 @@ function validateTipo(tipo) {
             maxLength: 'Tipo deve possuir no máximo 11 caracteres.'
         }
     });
+
+    if (errors.length === 0 && !['domestico', 'comercial'].includes(tipo.trim().toLowerCase())) {
+        errors.push({ field: 'tipo', message: 'Tipo de conta deve ser domestico ou comercial.' });
+    }
+
+    return errors;
 }
 
 function validatePassword(password) {
@@ -159,5 +165,6 @@ function validateLogin(user) {
 
 module.exports = {
     validateRegister,
-    validateLogin
+    validateLogin,
+    validateTipo
 };

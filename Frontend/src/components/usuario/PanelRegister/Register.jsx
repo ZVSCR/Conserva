@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { getApiErrorMessage } from "../../../services/apiErrors";
 
 export default function Register() {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    tipo: "user", // Defina o tipo padrão exigido pelo backend
+    tipo: "domestico",
   });
 
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function Register() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.error || "Erro no registro.");
+        setErrorMsg(getApiErrorMessage(data, "Erro no registro."));
         return;
       }
 

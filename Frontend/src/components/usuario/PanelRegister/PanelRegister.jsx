@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getApiErrorMessage } from "../../../services/apiErrors";
 import "./PanelRegister.css";
 
 function PanelRegister() {
@@ -6,7 +7,7 @@ function PanelRegister() {
     username: "",
     email: "",
     password: "",
-    tipo: "adm", // Defina o valor padrão de acordo com o papel no painel
+    tipo: "domestico",
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ function PanelRegister() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.error || "Erro ao efetuar registro.");
+        setErrorMsg(getApiErrorMessage(data, "Erro ao efetuar registro."));
         return;
       }
 
@@ -87,6 +88,12 @@ function PanelRegister() {
           onChange={handleChange}
           required
         />
+
+        <label htmlFor="tipo">Tipo de conta:</label>
+        <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange}>
+          <option value="domestico">Doméstico</option>
+          <option value="comercial">Comercial</option>
+        </select>
 
         <button type="submit" className="btn btn-primary-register" disabled={loading}>
           {loading ? "Registrando..." : "Register"}

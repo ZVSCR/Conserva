@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getApiErrorMessage } from "../../../services/apiErrors";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
 
@@ -108,7 +109,7 @@ function PanelUserData() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.message || "Erro ao atualizar dados.");
+        setErrorMsg(getApiErrorMessage(data, "Erro ao atualizar dados."));
         return;
       }
 
