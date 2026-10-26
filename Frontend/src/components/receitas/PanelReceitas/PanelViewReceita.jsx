@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
+import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque";
+import IconDeletar from "../../../assets/IconsEstoque/delete.png";
 
 function PanelViewReceita() {
     const [receitas, setReceitas] = useState([]);
@@ -13,6 +15,9 @@ function PanelViewReceita() {
     // Identificação temporária, seguindo o mesmo padrão de Compras.
     const USUARIO_MOCK_ID = 1;
     const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    const [receitaExcluindo, setReceitaExcluindo] = useState(null);
+    const [excluindo, setExcluindo] = useState(false);
+    const [erroExclusao, setErroExclusao] = useState("");
     //const [receitaRegistrada, setReceitaRegistrada] = useState(false);
 
     // Busca as receitas registradas para exibição
@@ -88,6 +93,34 @@ function PanelViewReceita() {
         setModalNovaReceitaAberto(false);
     }
 
+    const confirmarExclusao = async () => {
+        if (!receitaExcluindo || excluindo) return;
+
+        setExcluindo(true);
+        setErroExclusao("");
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/receitas/${receitaExcluindo.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                setErroExclusao(data.erro || data.message || "Não foi possível excluir a receita.");
+                return;
+            }
+
+            setReceitas((atuais) => atuais.filter((receita) => receita.id !== receitaExcluindo.id));
+            if (receitaExpandidaId === receitaExcluindo.id) fecharPopup();
+            setReceitaExcluindo(null);
+        } catch (error) {
+            console.error("Erro ao excluir receita:", error);
+            setErroExclusao("Não foi possível conectar ao servidor para excluir a receita.");
+        } finally {
+            setExcluindo(false);
+        }
+    };
+
     const prepararReceita = async (receitaId) => {
         setPreparando(true);
         setMensagemPreparo("");
@@ -128,7 +161,6 @@ function PanelViewReceita() {
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
 
-            {/* Botões de adicionar/remover: ainda sem funcionalidade, serão linkados depois */}
             <div className="receita-actions">
                 <button
                     type="button"
@@ -137,7 +169,6 @@ function PanelViewReceita() {
                     disabled={loading /*|| receitaRegistrada*/}>
                         Adicionar receita
                 </button>
-                <button type="button" className="btn-remover">Remover receita</button>
             </div>
 
             <div className="search-box">
@@ -155,24 +186,33 @@ function PanelViewReceita() {
                         <div
                             key={receita.id}
                             className="receita-card"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => abrirReceita(receita.id)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    abrirReceita(receita.id);
-                                }
-                            }}
                         >
-                            <div className="receita-info">
-                                <h3>
-                                    {receita.nome}
-                                </h3>
-                                <p className="receita-descricao">
-                                    {receita.descricao}
-                                </p>
-                            </div>
+                            <button
+                                type="button"
+                                className="receita-abrir"
+                                aria-label={`Ver receita ${receita.nome}`}
+                                onClick={() => abrirReceita(receita.id)}
+                            >
+                                <div className="receita-info">
+                                    <h3>
+                                        {receita.nome}
+                                    </h3>
+                                    <p className="receita-descricao">
+                                        {receita.descricao}
+                                    </p>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                className="receita-botao-excluir"
+                                aria-label={`Excluir receita ${receita.nome}`}
+                                onClick={() => {
+                                    setErroExclusao("");
+                                    setReceitaExcluindo(receita);
+                                }}
+                            >
+                                <img src={IconDeletar} alt="" />
+                            </button>
                         </div>
                     ))
                 ) : (
@@ -222,6 +262,18 @@ function PanelViewReceita() {
                         {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
                 </div>
+            )}
+
+            {receitaExcluindo && (
+                <ExcluirProdutoEstoque
+                    produto={receitaExcluindo}
+                    titulo="Excluir receita"
+                    mensagem={<>Tem certeza que deseja excluir "{receitaExcluindo.nome}" de suas receitas?</>}
+                    excluindo={excluindo}
+                    erro={erroExclusao}
+                    onConfirmar={confirmarExclusao}
+                    onCancelar={() => setReceitaExcluindo(null)}
+                />
             )}
 
             {modalNovaReceitaAberto && (
