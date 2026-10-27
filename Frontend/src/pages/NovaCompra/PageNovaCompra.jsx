@@ -1,5 +1,6 @@
 import PanelNovaCompra from "../../components/compras/PanelNovaCompra/PanelNovaCompra";
 import AppHeader from "../../components/shared/AppHeader/AppHeader";
+import BottomNav from "../../components/shared/BottomNav/BottomNav";
 
 import './NovaCompra.css';
 function NovaCompra() {
@@ -7,6 +8,7 @@ function NovaCompra() {
         <div>
             <AppHeader />
             <PanelNovaCompra />
+            <BottomNav />
         </div>
     );
 }
