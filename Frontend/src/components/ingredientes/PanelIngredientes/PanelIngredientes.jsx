@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PanelIngredientes.css";
+import { apiFetch } from "../../../services/api"; // Ajuste o caminho relativo conforme a pasta onde PanelIngredientes está
 
-const API_URL = "http://localhost:3000/api/ingredientes";
-const USUARIO_MOCK_ID = 1;
+const API_URL = "/api/ingredientes";
 const ROTA_VOLTAR = "/estoque";
 
 // Busca sem acento e sem diferença de maiúsculas (o backend guarda os nomes normalizados)
@@ -19,7 +19,6 @@ function ordenar(lista) {
     return [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
 
-// O backend responde erros como { errors: [...] }, { error: "texto" } ou { error: [...] }
 function mensagemDeErro(data, padrao) {
     if (Array.isArray(data?.errors)) return data.errors.map((e) => e.message).join(" ");
     if (Array.isArray(data?.error)) return data.error.map((e) => e.message).join(" ");
@@ -50,7 +49,8 @@ function PanelIngredientes() {
     useEffect(() => {
         async function carregarIngredientes() {
             try {
-                const response = await fetch(API_URL);
+                // Usando apiFetch para respeitar a sessão/token do usuário logado
+                const response = await apiFetch(API_URL);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -110,7 +110,7 @@ function PanelIngredientes() {
         setModalErrorMsg("");
 
         try {
-            const response = await fetch(editando ? `${API_URL}/${ingredienteEditandoId}` : API_URL, {
+            const response = await apiFetch(editando ? `${API_URL}/${ingredienteEditandoId}` : API_URL, {
                 method: editando ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ nome: nomeLimpo }),
@@ -123,7 +123,6 @@ function PanelIngredientes() {
                 return;
             }
 
-            // Usa o que o backend devolveu, porque ele normaliza o nome (minúsculas, sem acento)
             const salvo = data.ingrediente;
             setIngredientes((atuais) =>
                 ordenar(
@@ -158,12 +157,12 @@ function PanelIngredientes() {
         setExcluirErrorMsg("");
 
         try {
-            const response = await fetch(
-                `${API_URL}/${ingredienteExcluindo.id}?usuario_id=${USUARIO_MOCK_ID}`,
+            // Removido o ?usuario_id= do parâmetro, pois a sessão atual já identifica o usuário no backend
+            const response = await apiFetch(
+                `${API_URL}/${ingredienteExcluindo.id}`,
                 { method: "DELETE" }
             );
 
-            // Sucesso é 204, sem corpo; só lê o JSON quando houve erro
             if (!response.ok) {
                 const data = await response.json().catch(() => null);
                 setExcluirErrorMsg(mensagemDeErro(data, "Não foi possível excluir o ingrediente."));
