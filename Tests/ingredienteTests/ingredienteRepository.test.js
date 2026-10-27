@@ -7,7 +7,7 @@ const { inserirIngredientesPadrao, buscarIdsIngredientes } = require('../../Back
 beforeEach(() => jest.clearAllMocks());
 
 const sql = require('../../Backend/src/config/database');
-const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+const { deleteIngredienteRepo, updateIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
 
 test('exclui ingrediente por ID com consulta parametrizada e retorna o registro', async () => {
     sql.mockResolvedValueOnce([{ id: 12 }]);
@@ -27,6 +27,31 @@ test('exclusão propaga falhas do banco', async () => {
     const erro = new Error('Banco indisponível');
     sql.mockRejectedValueOnce(erro);
     await expect(deleteIngredienteRepo(12)).rejects.toBe(erro);
+});
+
+describe('atualização de ingrediente', () => {
+    test('atualiza o nome pelo ID com SQL parametrizado e retorna o mesmo ID', async () => {
+        const atualizado = { id: 12, nome: 'novo nome' };
+        sql.mockResolvedValueOnce([atualizado]);
+
+        await expect(updateIngredienteRepo(12, { nome: 'novo nome' })).resolves.toEqual(atualizado);
+
+        expect(sql).toHaveBeenCalledTimes(1);
+        const [partes, ...valores] = sql.mock.calls[0];
+        expect(partes.join('?')).toMatch(/UPDATE ingrediente\s+SET nome = \?\s+WHERE id = \?\s+RETURNING id, nome/);
+        expect(valores).toEqual(['novo nome', 12]);
+    });
+
+    test('retorna undefined quando o ID não existe', async () => {
+        sql.mockResolvedValueOnce([]);
+        await expect(updateIngredienteRepo(12, { nome: 'novo nome' })).resolves.toBeUndefined();
+    });
+
+    test('propaga conflito de nome imposto pelo banco', async () => {
+        const erro = Object.assign(new Error('Duplicado'), { code: '23505' });
+        sql.mockRejectedValueOnce(erro);
+        await expect(updateIngredienteRepo(12, { nome: 'leite' })).rejects.toBe(erro);
+    });
 });
 
 test('insere nomes em lote sem apagar ou alterar ingredientes existentes', async () => {

@@ -1,35 +1,35 @@
-# Validação do login e das sessões
+# Validação do login compatível com a main
 
-## Resultado desta entrega
+## Contrato utilizado
 
-- Backend: 615 testes aprovados; 13 ignorados, incluindo integrações que dependem de banco separado.
-- Serviços do frontend: 14 verificações aprovadas.
-- Compilação da interface aprovada. A análise estática continua apresentando avisos anteriores em componentes de estoque, perfil, extrato e receitas.
-- Nenhum teste desta entrega acessou o banco normal do projeto.
+O backend mantém o JWT da main no cookie `conservia_session`, com validade de sete dias. A restauração utiliza `GET /api/auth/me` e `{ user }`; o perfil utiliza `GET /api/users/me` e `{ data }`. O logout mantém a limpeza do cookie já existente, sem acrescentar revogação no servidor.
 
-Os testes de autorização usam o aplicativo, cookies e verificação de sessão reais, com repositórios simulados. Conferem operações sem sessão, identidade forjada pelo navegador, separação de contas, acesso a receitas públicas e bloqueio antecipado da exclusão de ingredientes. Os testes dos repositórios verificam os filtros de proprietário nos comandos SQL. Os testes do cliente HTTP verificam cookies, expiração e respostas atrasadas de uma sessão anterior.
+Os testes de autenticação conferem cadastro seguido de login, senha incorreta, duas contas, perfil completo, expiração de JWT e ausência de senha/hash nas respostas. Os testes de identificação preservam o caso em que um nome antigo coincide com o e-mail de outra conta e conferem novo login após editar nome/e-mail. As verificações do cliente HTTP cobrem cookies, ausência de cache, falhas de rede e respostas atrasadas de uma sessão anterior.
 
-Os testes de identificação também cobrem um nome de usuário antigo igual ao e-mail de outra conta: o login deve selecionar somente o proprietário do e-mail e recusar a senha da outra pessoa. Cadastro e perfil rejeitam novos nomes com `@` e e-mails sem o formato básico, antes de gravar. A edição dos dados é seguida de novo login por nome e por e-mail para conferir a normalização.
+## Executar as verificações
 
-## Conferência pelo navegador
+A partir da raiz:
 
-Foi utilizado o frontend e o backend da aplicação, com contas, estoque e sessões somente em memória. Os seguintes fluxos foram conferidos:
+```powershell
+npm test -- --runInBand
+node --test Tests/frontendTests/*.checks.mjs
+npm --prefix Frontend run build
+npm --prefix Frontend run lint
+```
 
-1. Abrir `/estoque` sem sessão encaminha para `/login`.
-2. Cadastrar uma conta mostra a confirmação no login e preenche seu e-mail.
-3. Uma senha incorreta apresenta erro e mantém a página de login, sem colocar a senha na URL.
-4. Uma entrada válida abre o estoque e mostra o nome da conta.
-5. Atualizar a página recupera a sessão e o estoque da mesma conta.
-6. O perfil e as configurações consultam as rotas com o cookie da sessão.
-7. Sair retorna ao login; voltar pelo histórico não reabre os dados pessoais.
-8. Entrar com uma segunda conta mostra somente o estoque fictício dessa conta.
-9. Expirar as sessões e abrir uma página pessoal retorna ao login com a mensagem de expiração.
+Os testes comuns recebem uma chave exclusiva e uma URL fictícia no processo de testes. Os repositórios são simulados; nenhum `.env` é modificado. As integrações ficam ignoradas sem `TEST_DATABASE_URL`. Essa variável deve apontar para um banco exclusivo de testes, nunca para o banco normal do projeto.
 
-A conferência também identificou uma tentativa de interpretar uma resposta `401` como uma lista de produtos. A tela de estoque agora interrompe esse processamento e cancela a consulta quando é desmontada.
+## Limite da validação e pendência herdada
 
-### Reproduzir sem Neon
+Antes da reconciliação, a main `6afecdf` apresentou 575 testes aprovados, 13 ignorados e duas falhas em `Tests/ingredienteTests/ingredienteRoutes.test.js`. São os casos de PATCH que ainda esperam a identificação antiga pela URL, enquanto o módulo já utiliza a sessão. Essa pendência foi preservada, conforme a decisão de tratar ingredientes em outra tarefa; seus testes não foram excluídos nem alterados para ocultar as falhas.
 
-Em dois terminais PowerShell, a partir da raiz:
+Após a reconciliação, a suíte completa apresentou 627 testes aprovados, as mesmas duas falhas prévias de ingredientes e 14 ignorados. As 14 verificações dos serviços do frontend e a compilação passaram. O lint mantém quatro avisos anteriores nos componentes de estoque, extrato e receitas. Os resultados completos ficam registrados no relatório local da tarefa.
+
+A integração real com Neon continua pendente. `session.integration.test.js` foi adaptado para JWT e dados de duas contas; não depende de tabela de sessões. A integração de atualização de receitas envia o proprietário exigido pelo repositório.
+
+## Conferência local pelo navegador
+
+O servidor de QA utiliza o backend real e seu JWT, com contas e estoques fictícios em memória. Em dois terminais PowerShell, a partir da raiz:
 
 ```powershell
 node Tests/authTests/browserTestServer.cjs
@@ -40,22 +40,10 @@ $env:VITE_API_BASE_URL='http://localhost:3107'
 npm --prefix Frontend run dev -- --host 127.0.0.1 --port 5178 --strictPort
 ```
 
-Abra `http://localhost:5178/estoque`. Cadastre duas contas fictícias; cada conta recebe um item de estoque de demonstração. O servidor cobre cadastro, login, perfil, leitura de preferências e estoque; não serve para validar alterações de compras, receitas ou preferências. Para simular expiração durante o uso:
+Abra `http://localhost:5178/home`. Confira o encaminhamento ao login, cadastro com confirmação, senha incorreta, entrada em `/home`, atualização da página, perfil e troca entre duas contas. No estoque, cada conta recebe um item fictício com seu nome. O helper permite editar perfil e preferências, mas não cobre compras, preparo de receitas ou ingredientes.
 
-```powershell
-Invoke-WebRequest -Uri 'http://localhost:3107/__qa/expire-sessions' -Method Post
-```
+Para instalar um JWT já expirado no navegador e conferir a rejeição, abra `http://localhost:3107/__qa/expire-session`. Essa rota existe somente no processo local de QA, que redireciona de volta à interface. Encerre os dois processos com `Ctrl+C`; nada é persistido.
 
-Essa rota existe somente no servidor de QA, restrito ao computador local. Encerre os dois processos com `Ctrl+C`. Nenhum dado demonstrativo é persistido, e as variáveis acima valem somente para esses processos.
+Uma conferência neste ambiente comprova apenas o fluxo com banco simulado. Ela não confirma as credenciais, a integração Neon nem a infraestrutura de deploy.
 
-## Validação ainda pendente
-
-A execução com Neon continua dependendo da configuração do backend acordada pelo grupo: URL válida do banco, carregamento do ambiente, chave de sessão, origem do frontend e tabela `user_sessions`. Esses ajustes não foram aplicados.
-
-Depois de preparar um Neon exclusivo de testes com o esquema atual, defina `TEST_DATABASE_URL` no terminal e execute:
-
-```powershell
-npm test -- --runInBand Tests/authTests/session.integration.test.js
-```
-
-Essa integração usa o armazenamento real e duas contas temporárias. A conferência completa pelo navegador com o banco de testes real e a infraestrutura de deploy continua pendente. Os resultados em memória não confirmam essas integrações.
+Na conferência desta reconciliação foram verificados: cadastro com confirmação e e-mail preenchido, senha incorreta, entrada em `/home`, restauração ao atualizar, edição do perfil com atualização do cabeçalho, estoque de uma segunda conta, JWT expirado e recuperação pelo botão de tentar novamente após interromper e reiniciar o servidor de QA.

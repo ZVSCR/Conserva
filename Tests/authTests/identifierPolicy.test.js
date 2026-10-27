@@ -4,8 +4,6 @@ jest.mock('../../Backend/src/config/database', () => jest.fn());
 
 const app = require('../../Backend/src/app');
 const db = require('../../Backend/src/config/database');
-const createSessionStore = require('../../Backend/src/config/sessionStore');
-const store = createSessionStore.mock.results[0].value;
 let accounts;
 let hashes;
 
@@ -23,11 +21,8 @@ beforeEach(async () => {
     db.mockImplementation(async (strings, ...values) => {
         const sql = strings.join('?');
         if (sql.includes('LOWER(')) {
-            // Reproduz os filtros da consulta, incluindo o OR antigo se ele voltar.
-            return accounts.filter((user) =>
-                (sql.includes('LOWER(username)') && user.username.toLowerCase() === values[0]) ||
-                (sql.includes('LOWER(email)') && user.email.toLowerCase() === values[0])
-            ).slice(0, 1);
+            const [isEmail, identifier] = values;
+            return accounts.filter((user) => user[isEmail ? 'email' : 'username'].toLowerCase() === identifier).slice(0, 1);
         }
         if (sql.includes('UPDATE users')) {
             const user = accounts.find((account) => account.id === values.at(-1));
@@ -43,7 +38,6 @@ beforeEach(async () => {
         }
         throw new Error('Consulta não prevista no teste de identificação.');
     });
-    await new Promise((resolve) => store.clear(resolve));
 });
 
 const login = (client, identifier = 'ana', password = 'senha-ana') =>

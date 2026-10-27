@@ -33,9 +33,9 @@ test('sessão ausente é diferente de servidor indisponível', async (t) => {
 test('recupera somente dados públicos e permite cancelar a consulta inicial', async (t) => {
   const controller = new AbortController();
   t.mock.method(globalThis, 'fetch', async (url, options) => {
-    assert.equal(url, 'http://localhost:3000/api/users/me');
+    assert.equal(url, 'http://localhost:3000/api/auth/me');
     assert.equal(options.signal, controller.signal);
-    return response({ data: { ...user, password_hash: 'não-deve-ser-mantido' } });
+    return response({ user: { ...user, password_hash: 'não-deve-ser-mantido' } });
   });
   assert.deepEqual(await loadSession({ signal: controller.signal }), user);
 });

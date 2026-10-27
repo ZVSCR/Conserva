@@ -1,4 +1,4 @@
-const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo, listIngredientesRepo } = require('../repositories/ingredienteRepository');
 const { IngredienteError } = require('../errors/IngredienteError');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
@@ -130,8 +130,19 @@ async function createIngredienteService({ nome }) {
     return createIngredienteRepo(normalizarNomeIngrediente(nome));
 }
 
-async function updateIngredienteService(ingredienteId, { nome }) {
-    return updateIngredienteRepo(ingredienteId, normalizarNomeIngrediente(nome));
+async function updateIngredienteService(ingredienteId, { nome }, usuarioId) {
+    if (usuarioId !== 1) {
+        throw new IngredienteError('Apenas o administrador pode atualizar ingredientes.', 403);
+    }
+
+    const ingrediente = await updateIngredienteRepo(ingredienteId, {
+        nome: normalizarNomeIngrediente(nome)
+    });
+    if (!ingrediente) {
+        throw new IngredienteError('Ingrediente não encontrado.', 404);
+    }
+
+    return ingrediente;
 }
 
 async function deleteIngredienteService(ingredienteId, usuarioId) {
@@ -145,6 +156,10 @@ async function deleteIngredienteService(ingredienteId, usuarioId) {
     }
 
     return ingrediente;
+}
+
+async function listIngredientesService(){
+    return listIngredientesRepo();
 }
 
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
@@ -171,4 +186,5 @@ module.exports = {
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
     aliasesToNome,
+    listIngredientesService,
 };

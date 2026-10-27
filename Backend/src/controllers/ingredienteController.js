@@ -1,5 +1,5 @@
 const { validateIngredientePayload, validateIngredienteId } = require('../middleware/ingredienteValidator');
-const { createIngredienteService, updateIngredienteService, deleteIngredienteService } = require('../services/ingredienteService');
+const { createIngredienteService, updateIngredienteService, deleteIngredienteService, listIngredientesService } = require('../services/ingredienteService');
 const { IngredienteError } = require('../errors/IngredienteError');
 
 const SERIAL_UPPER_LIMIT = 2_147_483_647;
@@ -36,16 +36,16 @@ async function patchIngredienteById(req, res) {
         const { isValid, errors } = validateIngredientePayload(req.body);
         if (!isValid) return res.status(400).json({ errors });
 
-        const ingrediente = await updateIngredienteService(ingredienteId, req.body);
-        if (!ingrediente) {
-            return res.status(404).json({ error: 'Ingrediente não encontrado.' });
-        }
+        const ingrediente = await updateIngredienteService(ingredienteId, req.body, req.ingredienteUsuarioId);
 
         return res.status(200).json({
             message: 'Ingrediente atualizado com sucesso.',
             ingrediente
         });
     } catch (error) {
+        if (error instanceof IngredienteError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         if (error.code === '23505') {
             return res.status(409).json({ error: 'Ingrediente já cadastrado.' });
         }
@@ -72,4 +72,19 @@ async function deleteIngrediente(req, res) {
     }
 }
 
-module.exports = { createIngrediente, patchIngredienteById, deleteIngrediente };
+async function listIngredientes(req, res) {
+    try {
+        const ingredientes = await listIngredientesService();
+        return res.status(200).json({ ingredientes });
+    } catch (error) {
+        console.error('Erro ao listar ingredientes:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
+module.exports = { 
+    createIngrediente, 
+    patchIngredienteById, 
+    deleteIngrediente,
+    listIngredientes, 
+};

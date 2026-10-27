@@ -1,5 +1,6 @@
-// Identificação temporária fornecida pelo cliente; não substitui autenticação.
-// DELETE: ?usuario_id=ID, seguindo o padrão de receitas e compras.
+// PATCH/DELETE: ?usuario_id=ID, seguindo o padrão de receitas e compras.
+const requireAuth = require('./requireAuth');
+
 module.exports = function ingredienteUser(req, res, next) {
     const value = req.query.usuario_id;
     const usuarioId = typeof value === 'string' && /^[1-9]\d*$/.test(value)
@@ -14,7 +15,14 @@ module.exports = function ingredienteUser(req, res, next) {
             }]
         });
     }
+}
 
-    req.ingredienteUsuarioId = usuarioId;
-    next();
+module.exports = function ingredienteUser(req, res, next) {
+    return requireAuth(req, res, () => {
+        if (req.user.id !== 1) {
+            return res.status(403).json({ error: 'Apenas o administrador pode alterar ingredientes.' });
+        }
+        req.ingredienteUsuarioId = req.user.id;
+        next();
+    });
 };

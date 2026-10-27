@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { apiFetch, advanceSessionRevision, onSessionExpired } from '../../Frontend/src/services/apiClient.js';
+import { apiFetch, advanceSessionRevision } from '../../Frontend/src/services/api.js';
 import { loginUser, loadSession } from '../../Frontend/src/services/auth.js';
+
+// O evento permanece compatível com os consumidores existentes da main.
+globalThis.window = new EventTarget();
+const onSessionExpired = (listener) => {
+  window.addEventListener('conserva:session-expired', listener);
+  return () => window.removeEventListener('conserva:session-expired', listener);
+};
 
 test('todas as operações pessoais enviam cookie e evitam reutilizar dados em cache', async (t) => {
   t.mock.method(globalThis, 'fetch', async (url, options) => {

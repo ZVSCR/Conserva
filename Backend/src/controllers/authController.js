@@ -5,10 +5,17 @@ const {
 
 const {
     registerService,
-    loginService
+    loginService,
+    getUserByIdService
 } = require('../services/authService');
 
 const { AuthError } = require('../errors/AuthError');
+const {
+    SESSION_COOKIE_NAME,
+    createSessionToken,
+    getSessionCookieOptions,
+    clearSessionCookie
+} = require('../config/session');
 
 async function register(req, res) {
 
@@ -70,8 +77,10 @@ async function login(req, res) {
 
         // Chama serviço para efetuar login
         const userFound = await loginService(req.body);
+        const sessionToken = createSessionToken(userFound.id);
+        res.cookie(SESSION_COOKIE_NAME, sessionToken, getSessionCookieOptions());
 
-        // Retorna status 200 se registro foi bem sucedido
+        // Retorna status 200 se o login foi bem sucedido
         return res.status(200).json({
             message: 'Login efetuado! Seja bem vindo!',
             user: userFound
@@ -94,9 +103,32 @@ async function login(req, res) {
     }
 }
 
+async function me(req, res) {
+    try {
+        const user = await getUserByIdService(req.user.id);
+
+        if (!user) {
+            clearSessionCookie(res);
+            return res.status(401).json({ error: 'Usuário da sessão não encontrado.' });
+        }
+
+        return res.status(200).json({ user });
+    } catch (error) {
+        console.error('Erro em authController.me:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
+function logout(req, res) {
+    clearSessionCookie(res);
+    return res.status(200).json({ message: 'Sessão encerrada.' });
+}
+
 module.exports = {
     register,
-    login
+    login,
+    me,
+    logout
 };
 
 // Primeiro controller: ~240 LOC

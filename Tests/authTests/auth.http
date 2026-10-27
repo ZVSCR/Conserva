@@ -8,7 +8,7 @@ Content-Type: application/json
 {
     "username": "fulano",
     "email": "email@dofulano.com",
-    "tipo": "domestico",
+    "tipo": "adm",
     "password": "senha"
 }
 

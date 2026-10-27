@@ -17,7 +17,7 @@ As páginas combinam componentes do próprio domínio; por exemplo, `pages/Recei
 
 ## Integração com a API
 
-Parte das telas usa `fetch` diretamente com `http://localhost:3000`; `services/userPreferences.js` usa `VITE_API_BASE_URL`, com o mesmo endereço como padrão. O catálogo de receitas ainda usa o usuário fixo `1` e envia seu ID nas requisições. A página de histórico chama `/api/receitas/preparadas`, mas essa rota não consta em [`receitaRoutes.js`](../../Backend/src/routes/receitaRoutes.js) no recorte documentado; a integração do histórico precisa ser conferida.
+As chamadas a dados pessoais usam `services/api.js`, que envia o cookie com `credentials: 'include'` e usa `VITE_API_BASE_URL` (padrão `http://localhost:3000`). O usuário vem da sessão; as telas não enviam `usuario_id`. O contexto de autenticação restaura a sessão ao abrir a aplicação e redireciona ao login quando uma chamada pessoal recebe `401`. O histórico consulta `/api/receitas/preparadas`.
 
 ## Evolução
 
@@ -25,5 +25,6 @@ Parte das telas usa `fetch` diretamente com `http://localhost:3000`; `services/u
 2. Em setembro, chegaram as telas de dados do usuário, estoque, compras e configurações (`a923c33`, `2520c55`, `c5234e4`, `325f381`).
 3. Em 12/10, entraram o catálogo de receitas e o histórico de refeições preparadas (`caa75c7`, `432c8a8`).
 4. Em 15/10, os componentes foram agrupados por domínio (`843826c`). Em 19/10, o cadastro de receitas pelo modal foi integrado ao catálogo (`89638ff`).
+5. Em 26/10, as telas protegidas passaram a usar o cookie de sessão para compras, estoque e receitas; o cabeçalho oferece saída da conta.
 
 O [README principal](../../README.md) inclui ideias de OCR e sugestão automática de receitas. Não há telas completas para esses fluxos neste recorte.
