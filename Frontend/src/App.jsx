@@ -11,6 +11,7 @@ import ViewReceita from './pages/Receitas/PageViewReceita';
 import RefeicoesPreparadas from './pages/RefeicoesPreparadas/PageRefeicoesPreparadas';
 import RequireAuth from './components/auth/RequireAuth';
 import { AuthProvider } from './contexts/AuthContext';
+import PageIngredientes from './pages/Ingredientes/PageIngredientes';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
@@ -28,6 +29,7 @@ const router = createBrowserRouter(createRoutesFromElements(
             <Route path='/estoque' element={<Estoque />} />
             <Route path='/receitas' element={<ViewReceita />} />
             <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
+            <Route path='/ingredientes' element={<PageIngredientes/>} />
         </Route>
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}

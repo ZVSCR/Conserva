@@ -1,5 +1,6 @@
-// Identificação temporária fornecida pelo cliente; não substitui autenticação.
 // PATCH/DELETE: ?usuario_id=ID, seguindo o padrão de receitas e compras.
+const requireAuth = require('./requireAuth');
+
 module.exports = function ingredienteUser(req, res, next) {
     const value = req.query.usuario_id;
     const usuarioId = typeof value === 'string' && /^[1-9]\d*$/.test(value)
