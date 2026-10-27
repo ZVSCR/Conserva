@@ -1,4 +1,4 @@
-// Requer um banco de testes separado, com a tabela receita (id, nome, descricao, modo_preparo).
+// Requer um banco de testes separado, com receita, ingrediente e receita_ingrediente.
 // Como o repositório usa o driver serverless da Neon, TEST_DATABASE_URL deve ser uma
 // connection string Neon (por exemplo, uma branch só de testes).
 // Execute com TEST_DATABASE_URL configurada; nunca use a URL do banco normal.
@@ -23,6 +23,24 @@ function receitaNome(sufixo) {
     return `${suiteTag}_${sufixo}`;
 }
 
+function ingredienteNome(sufixo) {
+    return `${suiteTag}_${sufixo}_ingrediente`;
+}
+
+function payloadReceita(sufixo, overrides = {}) {
+    return {
+        nome: receitaNome(sufixo),
+        descricao: 'Bolo simples e gostoso. Tempo de preparo: 60min',
+        modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.',
+        ingredientes: [{
+            nome: ingredienteNome(sufixo),
+            quantidade: 1.25,
+            unidade_de_medida: 'kg'
+        }],
+        ...overrides
+    };
+}
+
 describeWithDatabase('createReceitaRepo — integração', () => {
     let pool;
     let createReceitaRepo;
@@ -33,6 +51,16 @@ describeWithDatabase('createReceitaRepo — integração', () => {
             'SELECT nome, descricao, modo_preparo FROM receita WHERE id = $1',
             [id]
         );
+        return rows;
+    }
+
+    async function buscarIngredientesAssociados(id) {
+        const { rows } = await pool.query(`
+            SELECT i.nome, ri.quantidade, ri.unidade_de_medida
+            FROM receita_ingrediente ri
+            JOIN ingrediente i ON i.id = ri.ingrediente_id
+            WHERE ri.receita_id = $1
+        `, [id]);
         return rows;
     }
 
@@ -50,6 +78,7 @@ describeWithDatabase('createReceitaRepo — integração', () => {
             if (pool) {
                 // Remove somente as receitas criadas nesta suíte.
                 await pool.query('DELETE FROM receita WHERE nome LIKE $1', [`${suiteTag}%`]);
+                await pool.query('DELETE FROM ingrediente WHERE nome LIKE $1', [`${suiteTag}%`]);
             }
         } finally {
             if (pool) await pool.end();
@@ -62,11 +91,7 @@ describeWithDatabase('createReceitaRepo — integração', () => {
     });
 
     test('grava a receita com os campos informados e devolve o id', async () => {
-        const payload = {
-            nome: receitaNome('bolo_de_fuba'),
-            descricao: 'Bolo simples e gostoso. Tempo de preparo: 60min',
-            modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.'
-        };
+        const payload = payloadReceita('bolo_de_fuba');
 
         const receita = await createReceitaRepo(payload);
 
@@ -74,20 +99,27 @@ describeWithDatabase('createReceitaRepo — integração', () => {
 
         const rows = await buscarReceita(receita.id);
         expect(rows).toHaveLength(1);
-        expect(rows[0]).toEqual(payload);
+        expect(rows[0]).toEqual({
+            nome: payload.nome,
+            descricao: payload.descricao,
+            modo_preparo: payload.modo_preparo
+        });
+        await expect(buscarIngredientesAssociados(receita.id)).resolves.toEqual([{
+            nome: ingredienteNome('bolo_de_fuba'),
+            quantidade: '1.25',
+            unidade_de_medida: 'kg'
+        }]);
     });
 
     test('gera ids distintos para receitas criadas em sequência', async () => {
-        const primeira = await createReceitaRepo({
-            nome: receitaNome('sequencia_1'),
+        const primeira = await createReceitaRepo(payloadReceita('sequencia_1', {
             descricao: 'Primeira receita',
             modo_preparo: 'Passo a passo da primeira'
-        });
-        const segunda = await createReceitaRepo({
-            nome: receitaNome('sequencia_2'),
+        }));
+        const segunda = await createReceitaRepo(payloadReceita('sequencia_2', {
             descricao: 'Segunda receita',
             modo_preparo: 'Passo a passo da segunda'
-        });
+        }));
 
         expect(primeira.id).not.toBe(segunda.id);
         expect(await buscarReceita(primeira.id)).toHaveLength(1);
@@ -95,25 +127,28 @@ describeWithDatabase('createReceitaRepo — integração', () => {
     });
 
     test('preserva acentos, quebras de linha e trata aspas e SQL como texto', async () => {
-        const payload = {
-            nome: receitaNome("pao_d'agua'); DROP TABLE receita;--"),
+        const payload = payloadReceita("pao_d'agua'); DROP TABLE receita;--", {
             descricao: 'Pão d\'água — "crocante" por fora, macio por dentro',
             modo_preparo: '1. Misture a farinha.\n2. Descanse a massa.\n3. Asse até dourar.'
-        };
+        });
 
         const receita = await createReceitaRepo(payload);
 
         const rows = await buscarReceita(receita.id);
         expect(rows).toHaveLength(1);
-        expect(rows[0]).toEqual(payload);
+        expect(rows[0]).toEqual({
+            nome: payload.nome,
+            descricao: payload.descricao,
+            modo_preparo: payload.modo_preparo
+        });
     });
 
     test('aceita textos nos tamanhos máximos permitidos pelo validador', async () => {
-        const payload = {
+        const payload = payloadReceita('limites', {
             nome: receitaNome('limites').padEnd(100, 'x'),
             descricao: 'd'.repeat(1000),
             modo_preparo: 'm'.repeat(10000)
-        };
+        });
 
         const receita = await createReceitaRepo(payload);
 
@@ -129,16 +164,23 @@ describeWithDatabase('createReceitaRepo — integração', () => {
         // Se a coluna for TEXT, remova este teste.
         const nomeLongo = receitaNome('falha').padEnd(101, 'x');
 
-        await expect(createReceitaRepo({
+        const ingredienteNovo = ingredienteNome('falha');
+        await expect(createReceitaRepo(payloadReceita('falha', {
             nome: nomeLongo,
             descricao: 'Receita que não deve ser gravada',
             modo_preparo: 'Sem modo de preparo'
-        })).rejects.toThrow();
+        }))).rejects.toThrow();
 
         const { rows } = await pool.query(
             'SELECT COUNT(*)::int AS total FROM receita WHERE nome = $1',
             [nomeLongo]
         );
         expect(rows[0].total).toBe(0);
+
+        const { rows: ingredientRows } = await pool.query(
+            'SELECT COUNT(*)::int AS total FROM ingrediente WHERE nome = $1',
+            [ingredienteNovo]
+        );
+        expect(ingredientRows[0].total).toBe(0);
     });
 });

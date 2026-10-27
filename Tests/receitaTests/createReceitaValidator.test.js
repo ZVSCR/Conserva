@@ -156,4 +156,90 @@ describe('validateReceitaPayload', () => {
             expect(result).toEqual({ isValid: true, errors: [] });
         });
     });
+
+    describe('ingredientes', () => {
+        const ingredienteValido = {
+            nome: 'Farinha de trigo',
+            quantidade: 9999999.99,
+            unidade_de_medida: 'g'
+        };
+
+        test('valida ingredientes quando a opção é ativada', () => {
+            expect(validateReceitaPayload(
+                createValidPayload({ ingredientes: [ingredienteValido] }),
+                true
+            )).toEqual({ isValid: true, errors: [] });
+        });
+
+        test('não valida ingredientes por padrão, para manter o uso pelo PATCH', () => {
+            expect(validateReceitaPayload(
+                createValidPayload({ ingredientes: 'inválido' })
+            )).toEqual({ isValid: true, errors: [] });
+        });
+
+        test.each([undefined, null])('exige ingredientes quando ativado: %p', (ingredientes) => {
+            const result = validateReceitaPayload(
+                createValidPayload({ ingredientes }),
+                true
+            );
+
+            expect(result.errors).toContainEqual({
+                field: 'ingredientes',
+                message: 'A receita deve conter ao menos um ingrediente.'
+            });
+        });
+
+        test('rejeita ingredientes que não sejam array', () => {
+            const result = validateReceitaPayload(
+                createValidPayload({ ingredientes: {} }),
+                true
+            );
+
+            expect(result.errors).toContainEqual({
+                field: 'ingredientes',
+                message: 'Formato de ingredientes inválido. Deve ser um array.'
+            });
+        });
+
+        test('rejeita array vazio', () => {
+            const result = validateReceitaPayload(
+                createValidPayload({ ingredientes: [] }),
+                true
+            );
+
+            expect(result.errors).toContainEqual({
+                field: 'ingredientes',
+                message: 'A receita deve conter ao menos um ingrediente.'
+            });
+        });
+
+        test('valida os atributos e os limites de cada ingrediente', () => {
+            const result = validateReceitaPayload(createValidPayload({
+                ingredientes: [{
+                    nome: ' '.repeat(101),
+                    quantidade: 10000000,
+                    unidade_de_medida: 'x'
+                }]
+            }), true);
+
+            expect(result.isValid).toBe(false);
+            expect(result.errors.map(({ field }) => field)).toEqual([
+                'ingredientes[0].nome',
+                'ingredientes[0].quantidade',
+                'ingredientes[0].unidade_de_medida'
+            ]);
+        });
+
+        test('rejeita itens que não sejam objetos', () => {
+            const result = validateReceitaPayload(
+                createValidPayload({ ingredientes: [null] }),
+                true
+            );
+
+            expect(result.errors).toContainEqual({
+                field: 'ingredientes[0]',
+                message: 'Ingrediente 1 não é um objeto válido.'
+            });
+        });
+    });
 });
