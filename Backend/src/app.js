@@ -12,14 +12,22 @@ const ingredienteRoutes = require('./routes/ingredienteRoutes'); // Importa rota
 const app = express();
 
 const frontendOrigin = process.env.FRONTEND_URL;
+const isAllowedOrigin = (origin) => {
+  const isLocalDevelopmentOrigin = process.env.NODE_ENV !== 'production'
+    && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '');
+  return !origin || isLocalDevelopmentOrigin || (frontendOrigin && origin === frontendOrigin);
+};
+
+app.use('/api', (req, res, next) => {
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !isAllowedOrigin(req.get('Origin'))) {
+    return res.status(403).json({ error: 'Origem não autorizada.' });
+  }
+  next();
+});
 
 app.use(cors({
   origin(origin, callback) {
-    const isLocalDevelopmentOrigin = process.env.NODE_ENV !== 'production'
-      && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '');
-    const isConfiguredOrigin = frontendOrigin && origin === frontendOrigin;
-
-    if (!origin || isLocalDevelopmentOrigin || isConfiguredOrigin) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 

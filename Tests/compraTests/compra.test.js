@@ -1,3 +1,5 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(1));
+
 const request = require('supertest');
 
 jest.mock('../../Backend/src/config/database.js', () => {
@@ -162,7 +164,7 @@ describe('GET /api/compras/:compraId', () => {
         });
         expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
     });
-    
+
     test.each(['/api/compras/abc', '/api/compras/0'])(
         'retorna 400 para ID inválido em %s',
         async (url) => {
@@ -175,7 +177,7 @@ describe('GET /api/compras/:compraId', () => {
             expect(listarCompraPorId).not.toHaveBeenCalled();
         }
     );
-    
+
     test('retorna 404 para compra nao existente', async () => {
         listarCompraPorId.mockRejectedValue(
             new CompraNaoEncontradaError()
@@ -190,7 +192,7 @@ describe('GET /api/compras/:compraId', () => {
         });
         expect(listarCompraPorId).toHaveBeenCalledWith(1, 2);
     });
-    
+
     test('retorna 200 para compra existente', async () => {
         const compra = [
             {
@@ -653,20 +655,21 @@ describe('PATCH /api/compras/:compraId/items', () => {
 });
 // =============================================================================
 
-// No default user: missing or malformed IDs must not reach persistence.
+// A identificação enviada pelo cliente não substitui a sessão.
 describe('Compra user identification', () => {
     beforeEach(() => jest.clearAllMocks());
     test.each([undefined, '', '0', '-1', '1.5', 'abc', '9007199254740992'])(
-        'rejects invalid usuario_id %s', async (usuario_id) => {
+        'recusa requisição sem sessão mesmo com usuario_id %s', async (usuario_id) => {
             const response = await request(app).get('/api/compras')
+                .set('X-Test-User', 'anonymous')
                 .query(usuario_id === undefined ? {} : { usuario_id });
-            expect(response.status).toBe(400);
+            expect(response.status).toBe(401);
             expect(listarComprasUsuario).not.toHaveBeenCalled();
         }
     );
-    test.each([7, 42])('lists purchases for supplied user %s', async (usuario_id) => {
+    test.each([7, 42])('lista compras do usuário autenticado %s', async (usuario_id) => {
         listarComprasUsuario.mockResolvedValue([]);
-        const response = await request(app).get('/api/compras').query({ usuario_id });
+        const response = await request(app).get('/api/compras').set('X-Test-User', String(usuario_id)).query({ usuario_id: 999 });
         expect(response.status).toBe(200);
         expect(listarComprasUsuario).toHaveBeenCalledWith(usuario_id);
     });

@@ -1,4 +1,5 @@
 const request = require('supertest');
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(1));
 
 // Exercita rota, controlador, serviço e repositório sem acessar o banco real.
 jest.mock('../../Backend/src/config/database', () => jest.fn());

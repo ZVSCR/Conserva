@@ -28,6 +28,7 @@ describe('user session', () => {
             }
         };
         const res = {
+            set: jest.fn(),
             status: jest.fn().mockReturnThis(),
             json: jest.fn(),
             clearCookie: jest.fn()
@@ -36,7 +37,7 @@ describe('user session', () => {
 
         requireAuth(req, res, next);
 
-        expect(req.user).toEqual({ id: '42' });
+        expect(req.user).toEqual({ id: 42 });
         expect(next).toHaveBeenCalledTimes(1);
         expect(jwt.verify(token, process.env.SESSION_SECRET).sub).toBe('42');
     });
@@ -48,6 +49,7 @@ describe('user session', () => {
             }
         };
         const res = {
+            set: jest.fn(),
             status: jest.fn().mockReturnThis(),
             json: jest.fn(),
             clearCookie: jest.fn()

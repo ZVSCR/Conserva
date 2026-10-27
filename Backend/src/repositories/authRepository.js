@@ -51,8 +51,8 @@ async function loginRepo(user) {
         SELECT
             id, username, email, tipo, password_hash
         FROM users
-        WHERE LOWER(username) = ${identifier}
-            OR LOWER(email) = ${identifier}
+        WHERE CASE WHEN ${identifier.includes('@')}
+            THEN LOWER(email) ELSE LOWER(username) END = ${identifier}
         LIMIT 1
     `;
 

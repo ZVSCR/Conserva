@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AuthContext from './auth-context';
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+import { API_BASE_URL } from '../services/api';
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const expireSession = () => setUser(null);
+        window.addEventListener('conserva:session-expired', expireSession);
+        return () => window.removeEventListener('conserva:session-expired', expireSession);
+    }, []);
 
     useEffect(() => {
         let isMounted = true;

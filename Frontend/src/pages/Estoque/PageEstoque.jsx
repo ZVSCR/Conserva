@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch } from '../../services/api';
 
 import './Estoque.css';
 import AppHeader from '../../components/shared/AppHeader/AppHeader';
@@ -8,13 +9,15 @@ import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/
 import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
 
-const USUARIO_MOCK_ID = 1;
-
 function PageEstoque(){
+    const [produtos, setProdutos] = useState([]);
     
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
-    fetch(`http://localhost:3000/api/estoque?usuario_id=${USUARIO_MOCK_ID}`)
-        .then((res) => res.json())
+    apiFetch('/api/estoque')
+        .then((res) => {
+            if (!res.ok) throw new Error('Erro ao carregar estoque');
+            return res.json();
+        })
         .then((data) => {
             setProdutos(
                 data.map((item) => ({
@@ -27,9 +30,6 @@ function PageEstoque(){
         })
         .catch((erro) => console.error('Erro ao buscar estoque:', erro));
 }, []); 
-
-    //Para integração ao BD usar essa parte com [id, nome, qtd]
-    const [produtos, setProdutos] = useState([]);
 
     const [produtoEditando, setProdutoEditando] = useState(null);
     
@@ -46,12 +46,12 @@ function PageEstoque(){
  async function salvarEdicao(produtoAtualizado) {
     try {
         const [resNome, resQuantidade] = await Promise.all([
-            fetch(`http://localhost:3000/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
+            apiFetch(`/api/items/${produtoAtualizado.id}`, { //Usa a parte de atualizar o nome do ITEM
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome_item: produtoAtualizado.nome })
             }),
-            fetch(`http://localhost:3000/api/estoque/${produtoAtualizado.id}?usuario_id=${USUARIO_MOCK_ID}`, {
+            apiFetch(`/api/estoque/${produtoAtualizado.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantidade: produtoAtualizado.quantidade })
@@ -80,7 +80,7 @@ function PageEstoque(){
 
     async function confirmarExclusao() {
     try {
-        const resposta = await fetch(`http://localhost:3000/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
+        const resposta = await apiFetch(`/api/items/${produtoExcluindo.id}`, { //chama a rota para excluir item
             method: 'DELETE'
         });
 

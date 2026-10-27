@@ -1,3 +1,5 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(7));
+
 const request = require('supertest');
 
 jest.mock('../../Backend/src/config/database.js', () => ({}));
@@ -77,16 +79,14 @@ test('retorna todos os erros de validação de uma vez', async () => {
     expect(createReceitaService).not.toHaveBeenCalled();
 });
 
-test('rejeita payload sem identificador de usuário', async () => {
+test('rejeita payload não objeto mesmo com sessão válida', async () => {
     const response = await request(app)
         .post(endpoint)
         .send([])
         .set('Content-Type', 'application/json');
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toEqual([
-        expect.objectContaining({ field: 'usuario_id' })
-    ]);
+    expect(response.body.errors).toEqual(expect.any(Array));
     expect(createReceitaService).not.toHaveBeenCalled();
 });
 

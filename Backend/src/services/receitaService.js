@@ -56,7 +56,7 @@ async function getGastoReceitaService({ receitaId, usuarioId } = {}) {
         preparos
     };
 }
-async function updateReceitaService(receitaId, payload) {
+async function updateReceitaService(receitaId, payload, usuarioId) {
     const {
         nome,
         descricao,
@@ -71,6 +71,7 @@ async function updateReceitaService(receitaId, payload) {
             descricao,
             modo_preparo
         },
+        usuarioId
     );
 }
 

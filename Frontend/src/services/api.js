@@ -1,19 +1,14 @@
-export async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem("token");
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
-  const res = await fetch(`http://localhost:3000${path}`, {
+export async function apiFetch(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
+    credentials: 'include',
   });
 
-  if (res.status === 401) {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+  if (response.status === 401) {
+    window.dispatchEvent(new Event('conserva:session-expired'));
   }
 
-  return res;
+  return response;
 }

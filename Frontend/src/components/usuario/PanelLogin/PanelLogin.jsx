@@ -2,9 +2,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/useAuth';
+import { API_BASE_URL } from '../../../services/api';
 import './PanelLogin.css'
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
 function PanelLogin() {
     const navigate = useNavigate();

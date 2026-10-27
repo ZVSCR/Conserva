@@ -6,6 +6,7 @@ const {
 } = require('../config/session');
 
 function requireAuth(req, res, next) {
+    res.set('Cache-Control', 'no-store');
     const token = readSessionToken(req);
 
     if (!token) {
@@ -23,12 +24,14 @@ function requireAuth(req, res, next) {
     try {
         const payload = jwt.verify(token, secret);
 
-        if (typeof payload.sub !== 'string' || payload.sub.length === 0) {
+        const userId = Number(payload.sub);
+        if (typeof payload.sub !== 'string' || !/^[1-9]\d*$/.test(payload.sub) ||
+            !Number.isSafeInteger(userId)) {
             clearSessionCookie(res);
             return res.status(401).json({ error: 'Sessão inválida. Entre novamente.' });
         }
 
-        req.user = { id: payload.sub };
+        req.user = { id: userId };
         return next();
     } catch (error) {
         clearSessionCookie(res);

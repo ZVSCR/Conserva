@@ -1,6 +1,8 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(7));
+
 jest.mock('../../Backend/src/controllers/receitaController.js', () => ({
     createReceita: (_req, res) => res.sendStatus(501),
-    createReceitaPreparada: (_req, res) => res.sendStatus(501),
+    listarPreparos: (_req, res) => res.sendStatus(501),
     verificarReceita: (_req, res) => res.sendStatus(501),
     prepararReceita: (_req, res) => res.sendStatus(501),
     listReceitas: (_req, res) => res.sendStatus(501),

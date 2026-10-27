@@ -13,20 +13,20 @@ test('edição direta reutiliza a atualização transacional da compra', async (
     sql.mockResolvedValue([{ compra_id: 42, usuario_id: 7 }]);
     atualizarPorCompraId.mockResolvedValue({ item: { id: 10, nome_item: 'Produto' } });
 
-    await expect(atualizarPorId(10, { nome_item: 'Produto' }))
+    await expect(atualizarPorId(10, { nome_item: 'Produto' }, 7))
         .resolves.toEqual({ id: 10, nome_item: 'Produto' });
     expect(atualizarPorCompraId).toHaveBeenCalledWith(7, 10, 42, { nome_item: 'Produto' });
 });
 
 test('não tenta atualizar item inexistente', async () => {
     sql.mockResolvedValue([]);
-    await expect(atualizarPorId(10, { quantidade: 2 })).resolves.toBeUndefined();
+    await expect(atualizarPorId(10, { quantidade: 2 }, 7)).resolves.toBeUndefined();
     expect(atualizarPorCompraId).not.toHaveBeenCalled();
 });
 
 test('remoção recompõe o total sem incluir o item apagado', async () => {
     sql.mockResolvedValue([{ id: 10 }]);
-    await expect(apagarPorId(10)).resolves.toEqual({ id: 10 });
+    await expect(apagarPorId(10, 7)).resolves.toEqual({ id: 10 });
     const [partes] = sql.mock.calls[0];
     expect(partes.join('?')).toContain('i.id <> ?');
     expect(partes.join('?')).toMatch(/SUM\(ROUND\(i\.quantidade \* i\.valor_unitario, 2\)\)/);
