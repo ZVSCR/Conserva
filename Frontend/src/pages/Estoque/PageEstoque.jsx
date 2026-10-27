@@ -1,5 +1,5 @@
+import { apiFetch } from '../../services/api.js';
 import { useState, useEffect } from 'react';
-import { apiFetch } from '../../services/api';
 
 import './Estoque.css';
 import AppHeader from '../../components/shared/AppHeader/AppHeader';
@@ -8,17 +8,20 @@ import EstoqueProduto from '../../components/estoque/ProdutoEstoque/ProdutoEstoq
 import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/EditarProdutoEstoque';
 import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
-
 function PageEstoque(){
     const [produtos, setProdutos] = useState([]);
-    
+
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
-    apiFetch('/api/estoque')
+    const controller = new AbortController();
+    apiFetch(`/api/estoque`, { signal: controller.signal })
         .then((res) => {
-            if (!res.ok) throw new Error('Erro ao carregar estoque');
+            if (res.status === 401) return null; // O controle de sessão encaminha para o login.
+            if (!res.ok) throw new Error('Não foi possível carregar o estoque.');
             return res.json();
         })
         .then((data) => {
+            if (data === null || controller.signal.aborted) return;
+            if (!Array.isArray(data)) throw new Error('Resposta de estoque inválida.');
             setProdutos(
                 data.map((item) => ({
                     id: item.item_id,
@@ -28,11 +31,14 @@ function PageEstoque(){
                 }))
             );
         })
-        .catch((erro) => console.error('Erro ao buscar estoque:', erro));
-}, []); 
+        .catch((erro) => {
+            if (erro.name !== 'AbortError') console.error('Erro ao buscar estoque:', erro);
+        });
+    return () => controller.abort();
+}, []);
 
     const [produtoEditando, setProdutoEditando] = useState(null);
-    
+
     const [adicionandoProduto, setAdicionandoProduto] = useState(false);
 
     const [produtoExcluindo, setProdutoExcluindo] = useState(null);
@@ -41,7 +47,7 @@ function PageEstoque(){
     function editarProduto(produto) {
         setProdutoEditando(produto);
     }
-    
+
     //atualizar as edições no BD
  async function salvarEdicao(produtoAtualizado) {
     try {

@@ -1,100 +1,53 @@
-
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/useAuth';
-import { API_BASE_URL } from '../../../services/api';
 import './PanelLogin.css'
-
 function PanelLogin() {
-    const navigate = useNavigate();
-    const { setUser } = useAuth();
-    const [formData, setFormData] = useState({
-        identifier: '',
-        password: ''
-    });
+    const { login, user, status, sessionError } = useAuth();
+    const location = useLocation();
+    const [identifier, setIdentifier] = useState(location.state?.identifier || '');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-
-    function handleChange(event) {
-        const { name, value } = event.target;
-        setFormData((previous) => ({
-            ...previous,
-            [name]: value
-        }));
-    }
+    const busy = loading || status === 'checking';
 
     async function handleSubmit(event) {
         event.preventDefault();
+        if (busy) return;
         setLoading(true);
         setErrorMsg('');
-
         try {
-            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
-            const responseText = await response.text();
-            let data;
-
-            try {
-                data = JSON.parse(responseText);
-            } catch (error) {
-                console.error('Resposta inválida ao efetuar login:', error);
-                setErrorMsg(`O servidor retornou uma resposta inválida (HTTP ${response.status}).`);
-                return;
-            }
-
-            if (!response.ok) {
-                const validationErrors = Array.isArray(data.errors)
-                    ? data.errors.map(({ message }) => message).join(' ')
-                    : '';
-                setErrorMsg(data.error || validationErrors || `Erro ao efetuar login (HTTP ${response.status}).`);
-                return;
-            }
-
-            setUser(data.user);
-            navigate('/home', { replace: true });
+            await login({ identifier: identifier.trim(), password });
+            setPassword('');
         } catch (error) {
-            console.error('Erro ao efetuar login:', error);
-            setErrorMsg('Não foi possível conectar ao servidor.');
+            setErrorMsg(error.message);
         } finally {
             setLoading(false);
         }
     }
 
+    if (user && status === 'authenticated') return <Navigate to="/home" replace />;
+
     return (
         <div className="panel-login">
             <h2>Login</h2>
-            {errorMsg && <p className="error-message" role="alert" style={{ color: 'red' }}>{errorMsg}</p>}
-            <form className="login-form" onSubmit={handleSubmit}>
-                <label htmlFor="username">Usuário/email:</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="identifier"
-                    placeholder="Usuário/email"
-                    autoComplete="username"
-                    value={formData.identifier}
-                    onChange={handleChange}
-                    required
-                />
+            {location.state?.registered && <p role="status">Conta criada com sucesso. Faça login para continuar.</p>}
+            {status === 'checking' && <p role="status">Verificando sessão...</p>}
+            {user && <p role="status">Sessão iniciada como {user.username}.</p>}
+            {(errorMsg || sessionError) && <p role="alert">{errorMsg || sessionError}</p>}
+            <form className="login-form" method="post" onSubmit={handleSubmit}>
+                <label htmlFor="identifier">Usuário/email:</label>
+                <input type="text" id="identifier" name="identifier" placeholder="Usuário/email"
+                    value={identifier} onChange={(event) => setIdentifier(event.target.value)}
+                    maxLength={100} autoComplete="username" required disabled={busy} />
                 <label htmlFor="password">Senha:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Senha"
-                    autoComplete="current-password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                />
-                <button type="submit" className="btn btn-primary-login" disabled={loading}>
+                <input type="password" id="password" name="password" placeholder="Senha"
+                    value={password} onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password" required disabled={busy} />
+                <button type="submit" className="btn btn-primary-login" disabled={busy}>
                     {loading ? 'Entrando...' : 'Entrar'}
                 </button>
-                <a href="/registrar">Registrar</a>
+                <Link to="/registrar">Registrar</Link>
             </form>
         </div>
     );

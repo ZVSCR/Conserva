@@ -27,7 +27,12 @@ Abra um terminal e navegue até a pasta do frontend para instalar as dependênci
    ```bash
    npm install
    ```
-3. **Iniciar o servidor local:**
+3. **Configurar o endereço da API:**
+   * Copie `Frontend/.env.example` para `Frontend/.env` e configure `VITE_API_BASE_URL=http://localhost:3000`, substituindo o endereço caso necessário. Não acrescente `/api` ao endereço.
+   * Todas as chamadas utilizam `src/services/api.js`. Sem a variável, o endereço padrão é `http://localhost:3000`.
+   * Reinicie o Vite após alterar o `.env`; para a versão compilada, execute novamente `npm run build`.
+   * Variáveis `VITE_` são públicas no navegador. Credenciais do banco e a chave de sessão pertencem exclusivamente ao backend.
+4. **Iniciar o servidor local:**
    ```bash
    npm run dev
    ```
