@@ -16,7 +16,8 @@ const {
 const {
     listReceitasRepo,
     getReceitaByIdRepo,
-    apagarReceitaPorId
+    apagarReceitaPorId,
+    listarPreparosPorUsuario
 } = require('../repositories/receitaRepository')
 
 // Converte valor para inteiro positivo; retorna null se inválido
@@ -69,32 +70,28 @@ async function createReceita(req, res) {
     }
 }
 
-// GET /receitas/gastos?usuario_id=
+// GET /receitas/gastos
 // Lista o gasto acumulado de cada receita
 async function getGastoPorReceita(req, res) {
 
     try {
 
-        let usuarioId;
-
-        if (req.query.usuario_id !== undefined) {
-            usuarioId = parsePositiveInt(req.query.usuario_id);
-
-            if (usuarioId === null) {
-                return res.status(400).json({
-                    errors: [{
-                        field: 'usuario_id',
-                        message: 'usuario_id deve ser um inteiro positivo.'
-                    }]
-                });
-            }
-        }
-
-        const receitas = await getGastoPorReceitaService({ usuarioId });
+        const receitas = await getGastoPorReceitaService({ usuarioId: req.user.id });
 
         return res.status(200).json({ receitas });
     } catch (error) {
         console.error('Erro ao consultar gasto por receita:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
+async function listarPreparos(req, res) {
+    try {
+        const refeicoesPreparadas = await listarPreparosPorUsuario(req.user.id);
+        return res.status(200).json({ refeicoesPreparadas });
+    } catch (error) {
+        console.error('Erro ao listar refeições preparadas:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 }
 const {
@@ -176,7 +173,7 @@ async function listReceitas(req, res) {
     }
 }
 
-// GET /receitas/:id/gasto?usuario_id=
+// GET /receitas/:id/gasto
 // Retorna o gasto de uma receita, detalhado por preparo
 async function getGastoReceita(req, res) {
 
@@ -193,28 +190,14 @@ async function getGastoReceita(req, res) {
             });
         }
 
-        let usuarioId;
-
-        if (req.query.usuario_id !== undefined) {
-            usuarioId = parsePositiveInt(req.query.usuario_id);
-
-            if (usuarioId === null) {
-                return res.status(400).json({
-                    errors: [{
-                        field: 'usuario_id',
-                        message: 'usuario_id deve ser um inteiro positivo.'
-                    }]
-                });
-            }
-        }
-
-        const gasto = await getGastoReceitaService({ receitaId, usuarioId });
+        const gasto = await getGastoReceitaService({ receitaId, usuarioId: req.user.id });
 
         if (!gasto) {
             return res.status(404).json({
                 error: 'Receita não encontrada.'
             });
         }
+        return res.status(200).json({ gasto });
     } catch (error) {
         console.error('Erro ao buscar receita:', error);
 
@@ -233,7 +216,7 @@ async function getReceitaById(req, res) {
             });
         }
 
-        const receita = await getReceitaByIdRepo(Number(req.params.id));
+        const receita = await getReceitaByIdRepo(Number(req.params.id), req.user.id);
 
         if (!receita) {
             return res.status(404).json({
@@ -318,7 +301,7 @@ async function patchReceitaById(req, res) {
                 errors
             });
 
-        const receitaAtualizada = await updateReceitaService(receitaId, req.body);
+        const receitaAtualizada = await updateReceitaService(receitaId, req.body, req.user.id);
         if (!receitaAtualizada)
             return res.status(404).json({
                 erro: 'Receita não encontrada'
@@ -364,4 +347,5 @@ module.exports = {
     deleteIngredienteReceitaById,
     getGastoPorReceita,
     getGastoReceita,
+    listarPreparos,
 };

@@ -1,31 +1,20 @@
 const express = require('express');
 const userRouter = express.Router();
 const userController = require('../controllers/userController');
+const requireAuth = require('../middleware/requireAuth');
 
-const mockAuth = (req, res, next) => {
-  req.user = {
-    id: 1,
-    username: 'dev',
-    email: 'dev@exemplo.com',
-    tipo: 'dev',
-    notify_push: true,
-    notify_email: true,
-    is_dark_theme: false
-  };
+userRouter.use(requireAuth);
 
-  next();
-};
+userRouter.get('/gastos', (req, res, next) => {
+    if (req.user.id !== 1) return res.status(403).json({ error: 'Apenas o administrador pode consultar gastos gerais.' });
+    next();
+}, userController.listarGastosUsuarios);
 
-userRouter.route('/gastos')
-    .get(userController.listarGastosUsuarios);
-    
 userRouter.route('/me')
-    .all(mockAuth)
     .get(userController.getUserData)
     .patch(userController.updateUserData);
 
 userRouter.route('/me/preferences')
-    .all(mockAuth)
     .get(userController.getUserPreferences)
     .patch(userController.updateUserPreferences);
 

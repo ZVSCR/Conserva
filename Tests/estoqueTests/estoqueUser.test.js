@@ -1,3 +1,5 @@
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(7));
+
 const request = require('supertest');
 const app = require('../../Backend/src/app');
 
@@ -30,22 +32,23 @@ const rotasDeLeitura = [
 
 describe.each(rotasDeLeitura)('GET %s', (rota, funcaoRepo) => {
 
-    test('deve retornar 400 se usuario_id não foi enviado.', async () => {
-        const response = await request(app).get(rota);
+    test('deve retornar 401 sem sessão.', async () => {
+        const response = await request(app).get(rota).set('X-Test-User', 'anonymous');
 
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(401);
         expect(estoqueRepo[funcaoRepo]).not.toHaveBeenCalled();
     });
 
-    test.each(['abc', '0', '-1', '1.5'])('deve retornar 400 se usuario_id é "%s".', async (valor) => {
+    test.each(['abc', '0', '-1', '1.5'])('usuario_id "%s" não substitui a sessão.', async (valor) => {
         const response = await request(app)
             .get(rota)
+            .set('X-Test-User', 'anonymous')
             .query({ usuario_id: valor });
 
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(401);
     });
 
-    test('deve usar o usuario_id enviado, e não o usuário fixo 1.', async () => {
+    test('deve usar o usuário da sessão, e não o usuário fixo 1.', async () => {
         estoqueRepo[funcaoRepo].mockResolvedValue([]);
 
         const response = await request(app)
@@ -77,12 +80,13 @@ describe('PATCH /api/estoque/:itemId', () => {
     const patch = (itemId = 5) =>
         request(app).patch(`/api/estoque/${itemId}`).query({ usuario_id: 7 });
 
-    test('deve retornar 400 se usuario_id não foi enviado.', async () => {
+    test('deve retornar 401 sem sessão.', async () => {
         const response = await request(app)
             .patch('/api/estoque/5')
+            .set('X-Test-User', 'anonymous')
             .send({ quantidade: 2 });
 
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(401);
         expect(estoqueRepo.buscarDetalheEstoque).not.toHaveBeenCalled();
     });
 
@@ -141,7 +145,7 @@ describe('PATCH /api/estoque/:itemId', () => {
         expect(response.status).toBe(409);
     });
 
-    test('deve atualizar o estoque do usuário enviado e retornar 200.', async () => {
+    test('deve atualizar o estoque do usuário autenticado e retornar 200.', async () => {
         const atualizado = { id: 1, item_id: 5, quantidade_disponivel: '2.00' };
         estoqueRepo.buscarDetalheEstoque.mockResolvedValue(detalheVariavel);
         estoqueRepo.atualizarQuantidade.mockResolvedValue(atualizado);

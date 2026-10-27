@@ -3,6 +3,8 @@ const ingredienteRouter = express.Router();
 const { createIngrediente, patchIngredienteById, deleteIngrediente } = require('../controllers/ingredienteController');
 const ingredienteUser = require('../middleware/ingredienteUser');
 
+ingredienteRouter.use(ingredienteUser);
+
 ingredienteRouter.route('/')
     .post(createIngrediente);
 

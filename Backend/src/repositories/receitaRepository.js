@@ -58,14 +58,10 @@ async function createReceitaRepo(payload) {
 // (ambos na unidade do item, então não há conversão de medida)
 
 // Lista todas as receitas com quantidade de preparos e gasto total acumulado.
-// Receitas nunca preparadas aparecem com gasto 0. usuarioId é opcional.
-async function getGastoPorReceitaRepo({ usuarioId } = {}) {
+// Receitas nunca preparadas aparecem com gasto 0.
+async function getGastoPorReceitaRepo({ usuarioId }) {
 
     try {
-
-        const filtroUsuario = usuarioId
-            ? sql`AND rp.usuario_id = ${usuarioId}`
-            : sql``;
 
         return await sql`
             SELECT
@@ -75,18 +71,20 @@ async function getGastoPorReceitaRepo({ usuarioId } = {}) {
                 ROUND(COALESCE(SUM(rpe.quantidade_gasta * i.valor_unitario), 0), 2)::float8 AS gasto_total
             FROM receita r
             LEFT JOIN receita_preparada rp
-                ON rp.receita_id = r.id ${filtroUsuario}
+                ON rp.receita_id = r.id AND rp.usuario_id = ${usuarioId}
             LEFT JOIN receita_preparada_estoque rpe
                 ON rpe.receita_preparada_id = rp.id
             LEFT JOIN estoque e
                 ON e.id = rpe.estoque_id
             LEFT JOIN item i
                 ON i.id = e.item_id
+            WHERE r.usuario_id IS NULL OR r.usuario_id = ${usuarioId}
             GROUP BY r.id, r.nome
             ORDER BY r.nome
         `;
     } catch (error) {
         console.error('Erro em getGastoPorReceitaRepo:', error);
+        throw error;
     }
 }
 // simular = true: Confere e devolve o plano, sem gravar nada ainda. Apenas para ver se é possível fazer a receita
@@ -97,7 +95,7 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         await client.query('BEGIN');
 
         const { rows: [receita] } = await client.query(
-            'SELECT id FROM receita WHERE id = $1', [receitaId]
+            'SELECT id FROM receita WHERE id = $1 AND (usuario_id IS NULL OR usuario_id = $2)', [receitaId, usuarioId]
         );
         if (!receita) throw new ReceitaNaoEncontradaError();
 
@@ -203,24 +201,20 @@ async function listReceitasRepo(usuarioId) {
 }
 
 // Retorna o gasto de uma receita, detalhado por preparo.
-// Retorna null se a receita não existe. usuarioId é opcional.
-async function getGastoReceitaRepo({ receitaId, usuarioId } = {}) {
+// Retorna null se a receita não existe ou não está visível ao usuário.
+async function getGastoReceitaRepo({ receitaId, usuarioId }) {
 
     try {
 
         const [receita] = await sql`
             SELECT id, nome
             FROM receita
-            WHERE id = ${receitaId}
+            WHERE id = ${receitaId} AND (usuario_id IS NULL OR usuario_id = ${usuarioId})
         `;
 
         if (!receita) {
             return null;
         }
-
-        const filtroUsuario = usuarioId
-            ? sql`AND rp.usuario_id = ${usuarioId}`
-            : sql``;
 
         const preparos = await sql`
             SELECT
@@ -235,7 +229,7 @@ async function getGastoReceitaRepo({ receitaId, usuarioId } = {}) {
                 ON e.id = rpe.estoque_id
             LEFT JOIN item i
                 ON i.id = e.item_id
-            WHERE rp.receita_id = ${receitaId} ${filtroUsuario}
+            WHERE rp.receita_id = ${receitaId} AND rp.usuario_id = ${usuarioId}
             GROUP BY rp.id
             ORDER BY rp.data_preparo DESC
         `;
@@ -243,11 +237,12 @@ async function getGastoReceitaRepo({ receitaId, usuarioId } = {}) {
         return { receita, preparos };
     } catch (error) {
         console.error('Erro em getGastoReceitaRepo:', error);
+        throw error;
     }
 }
 
 // Busca uma receita pelo id, com seus ingredientes
-async function getReceitaByIdRepo(id) {
+async function getReceitaByIdRepo(id, usuarioId) {
     try {
         const [receita] = await sql`
             SELECT
@@ -269,7 +264,7 @@ async function getReceitaByIdRepo(id) {
             FROM receita r
             LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
             LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
-            WHERE r.id = ${id}
+            WHERE r.id = ${id} AND (r.usuario_id IS NULL OR r.usuario_id = ${usuarioId})
             GROUP BY r.id
         `;
 
@@ -295,7 +290,7 @@ async function apagarReceitaPorId(usuarioId, receitaId) {
     return receitaRemovida;
 }
 
-async function updateReceitaRepo(receitaId, payload) {
+async function updateReceitaRepo(receitaId, payload, usuarioId) {
     const {
         nome,
         descricao,
@@ -309,7 +304,7 @@ async function updateReceitaRepo(receitaId, payload) {
                 nome = ${nome},
                 descricao = ${descricao},
                 modo_preparo = ${modo_preparo}
-            WHERE id = ${receitaId}
+            WHERE id = ${receitaId} AND usuario_id = ${usuarioId}
             RETURNING id, nome, descricao, modo_preparo;
         `;
 
@@ -318,6 +313,21 @@ async function updateReceitaRepo(receitaId, payload) {
         console.error('Erro em updateReceitaRepo: ', error);
         throw error;
     }
+}
+
+async function listarPreparosPorUsuario(usuarioId) {
+    return sql`
+        SELECT rp.id, rp.receita_id, rp.data_preparo, r.nome, r.descricao, r.modo_preparo,
+               ROUND(COALESCE(SUM(rpe.quantidade_gasta * i.valor_unitario), 0), 2)::float8 AS custo
+        FROM receita_preparada rp
+        JOIN receita r ON r.id = rp.receita_id
+        LEFT JOIN receita_preparada_estoque rpe ON rpe.receita_preparada_id = rp.id
+        LEFT JOIN estoque e ON e.id = rpe.estoque_id
+        LEFT JOIN item i ON i.id = e.item_id
+        WHERE rp.usuario_id = ${usuarioId}
+        GROUP BY rp.id, r.id
+        ORDER BY rp.data_preparo DESC, rp.id DESC
+    `;
 }
 
 module.exports = {
@@ -330,4 +340,7 @@ module.exports = {
     getReceitaByIdRepo,
     apagarReceitaPorId,
     updateReceitaRepo,
+    getGastoPorReceitaRepo,
+    getGastoReceitaRepo,
+    listarPreparosPorUsuario,
 };

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
+import { apiFetch } from '../../../services/api';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -48,7 +49,6 @@ function PanelNovaCompra() {
     const [itemEditandoId, setItemEditandoId] = useState(null);
     const [itemErrorMsg, setItemErrorMsg] = useState("");
     const blocker = useBlocker(() => loading && !liberarNavegacao.current);
-    const USUARIO_MOCK_ID = 1;
     const busca = filtro.trim().toLowerCase();
     const itensFiltrados = itens.filter(
         (item) => 
@@ -103,11 +103,10 @@ function PanelNovaCompra() {
         setErrorMsg("");
 
         try {
-            const response = await fetch("http://localhost:3000/api/compras", {
+            const response = await apiFetch("/api/compras", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    usuario_id: USUARIO_MOCK_ID,
                     data_compra: compra.data_compra,
                     estabelecimento: compra.estabelecimento.trim(),
                     itens: itensParaEnviar,
