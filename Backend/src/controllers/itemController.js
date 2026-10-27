@@ -3,9 +3,11 @@ const { adicionaItensACompraService } = require('../services/compraService');
 const { validateItem } = require('../middleware/compraValidator');
 const { validateDate } = require('../middleware/generalValidator');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
+const { valorUnitarioRepresentavel, PrecoInvalidoError } = require('../services/precoService');
 const {
   GranularidadeInvalidaError,
   ItemCompraConflitoError,
+  ItemJaUsadoEmReceitaError,
   ItemCompraNaoEncontradoError
 } = require('../repositories/compraRepository');
 
@@ -41,6 +43,9 @@ const validateItemPayload = (body) => {
   if (body.valor_unitario !== undefined &&
       (typeof body.valor_unitario !== 'number' || !Number.isFinite(body.valor_unitario) || body.valor_unitario < 0)) {
     return { isValid: false, message: 'valor_unitario deve ser um número maior ou igual a zero.' };
+  }
+  if (body.valor_unitario !== undefined && !valorUnitarioRepresentavel(body.valor_unitario)) {
+    return { isValid: false, message: 'valor_unitario deve ter até duas casas decimais e caber no campo do banco.' };
   }
   if (body.nome_item !== undefined &&
       (typeof body.nome_item !== 'string' || !body.nome_item.trim() || body.nome_item.length > 100)) {
@@ -151,8 +156,14 @@ async function atualizarItem(req, res) {
         if (erro instanceof ItemCompraConflitoError) {
             return res.status(409).json({ erro: erro.message });
         }
+        if (erro instanceof ItemJaUsadoEmReceitaError) {
+            return res.status(409).json({ erro: erro.message });
+        }
         if (erro instanceof ItemCompraNaoEncontradoError) {
             return res.status(404).json({ erro: erro.message });
+        }
+        if (erro instanceof PrecoInvalidoError) {
+            return res.status(400).json({ erro: erro.message });
         }
         res.status(500).json({
             erro: 'Erro ao atualizar item no banco'

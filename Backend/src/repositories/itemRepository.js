@@ -68,7 +68,7 @@ async function apagarPorId(id) {
         )
         UPDATE compra AS c
         SET valor_total = (
-            SELECT COALESCE(SUM(i.quantidade * i.valor_unitario), 0)
+            SELECT COALESCE(SUM(ROUND(i.quantidade * i.valor_unitario, 2)), 0)
             FROM item i WHERE i.compra_id = c.id AND i.id <> ${id}
         )
         FROM item_apagado AS apagado

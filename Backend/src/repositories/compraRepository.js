@@ -1,7 +1,9 @@
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
-const { calcularValorUnitario } = require('../services/precoService');
+const { validarValorUnitario, PrecoInvalidoError } = require('../services/precoService');
+const { identificarIngredienteCandidato } = require('../services/ingredienteService');
+const { buscarIdsIngredientes } = require('./ingredienteRepository');
 
 class ItemCompraNaoEncontradoError extends Error {
     constructor() {
@@ -31,6 +33,19 @@ class ItemCompraConflitoError extends Error {
     }
 }
 
+class ItemJaUsadoEmReceitaError extends Error {
+    constructor() {
+        super('O nome do item não pode ser alterado após seu uso em uma receita.');
+        this.name = 'ItemJaUsadoEmReceitaError';
+    }
+}
+
+function erroCompraForaDoLimite(erro) {
+    return erro?.code === '22003'
+        ? new PrecoInvalidoError('Um valor da compra ultrapassa o limite do banco.')
+        : erro;
+}
+
 // =============================================================================
 // LISTAGEM
 async function listarComprasUsuario(usuarioId) {
@@ -58,7 +73,7 @@ async function listarCompraPorId(usuarioId, compraId) {
             item.quantidade,
             item.unidade_de_medida,
             item.tipo_medida,
-            ROUND(item.quantidade * item.valor_unitario, 2) AS valor_unitario,
+            item.valor_unitario,
             item.validade_estimada,
             users.username
         FROM compra
@@ -163,10 +178,29 @@ async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate)
             throw new ItemCompraConflitoError();
         }
 
+        const deveRenomear = fieldsToUpdate.nome_item !== undefined &&
+            fieldsToUpdate.nome_item !== atual.nome_item;
+        let ingredienteId = null;
+        if (deveRenomear) {
+            const { rows: [usoEmReceita] } = await client.query(`
+                SELECT 1
+                FROM receita_preparada_estoque
+                WHERE estoque_id = $1
+                LIMIT 1
+            `, [atual.estoque_id]);
+
+            if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
+            [ingredienteId] = await resolverIngredientesDaCompra(client, [
+                { nome_item: fieldsToUpdate.nome_item }
+            ]);
+        }
+
 
         const novoValorUnitario = fieldsToUpdate.valor_unitario !== undefined
-            ? calcularValorUnitario(fieldsToUpdate.valor_unitario, quantidade)
+            ? validarValorUnitario(fieldsToUpdate.valor_unitario)
             : null;
+        const alterouPreco = novoValorUnitario !== null &&
+            novoValorUnitario !== Number(atual.valor_unitario);
 
         const deveAtualizarValidade = Object.prototype.hasOwnProperty.call(fieldsToUpdate, 'validade_estimada') &&
             fieldsToUpdate.validade_estimada !== undefined;
@@ -176,13 +210,16 @@ async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate)
                 unidade_de_medida = $2,
                 valor_unitario = COALESCE($3, valor_unitario),
                 nome_item = COALESCE($4, nome_item),
-                validade_estimada = CASE WHEN $5 THEN $6 ELSE validade_estimada END
+                validade_estimada = CASE WHEN $5 THEN $6 ELSE validade_estimada END,
+                ingrediente_id = CASE WHEN $9 THEN $10 ELSE ingrediente_id END
             WHERE id = $7 AND compra_id = $8
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida,
+                      validade_estimada, ingrediente_id
         `, [
             quantidade, unidade, novoValorUnitario,
             fieldsToUpdate.nome_item ?? null, deveAtualizarValidade,
-            fieldsToUpdate.validade_estimada ?? null, itemId, compraId
+            fieldsToUpdate.validade_estimada ?? null, itemId, compraId,
+            deveRenomear, ingredienteId
         ]);
 
         let estoque = {
@@ -199,21 +236,22 @@ async function atualizarPorCompraId(usuarioId, itemId, compraId, fieldsToUpdate)
             estoque = estoqueAtualizado;
         }
 
-        const { rows: [compra] } = await client.query(`
-            UPDATE compra
-            SET valor_total = (
-                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
-                FROM item WHERE compra_id = $1
-            )
-            WHERE id = $1
-            RETURNING id, valor_total
-        `, [compraId]);
+        const consultaCompra = alterouMedida || alterouPreco
+            ? `UPDATE compra
+               SET valor_total = (
+                   SELECT COALESCE(SUM(ROUND(quantidade * valor_unitario, 2)), 0)
+                   FROM item WHERE compra_id = $1
+               )
+               WHERE id = $1
+               RETURNING id, valor_total`
+            : 'SELECT id, valor_total FROM compra WHERE id = $1';
+        const { rows: [compra] } = await client.query(consultaCompra, [compraId]);
 
         await client.query('COMMIT');
         return { item, compra, estoque };
     } catch (erro) {
         await client.query('ROLLBACK');
-        throw erro;
+        throw erroCompraForaDoLimite(erro);
     } finally {
         client.release();
     }
@@ -245,6 +283,16 @@ async function createCompraVazia(usuarioId, data_compra, estabelecimento) {
     return resultado;
 }
 
+async function resolverIngredientesDaCompra(client, itens) {
+    const candidatos = itens.map((item) => identificarIngredienteCandidato(item.nome_item));
+    const nomesUnicos = [...new Set(candidatos.map(({ nome }) => nome).filter(Boolean))];
+    const nomesObrigatorios = [...new Set(candidatos
+        .filter(({ obrigatorio }) => obrigatorio)
+        .map(({ nome }) => nome))];
+    const idsPorNome = await buscarIdsIngredientes(client, nomesUnicos, nomesObrigatorios);
+    return candidatos.map(({ nome }) => idsPorNome.get(nome) ?? null);
+}
+
 async function createCompraRepo(dadosCompra) {
     const {
         usuario_id,
@@ -259,6 +307,7 @@ async function createCompraRepo(dadosCompra) {
     try {
 
         await client.query('BEGIN');
+        const ingredienteIds = await resolverIngredientesDaCompra(client, itens);
 
         // Cria registro de compra
         let compraId;
@@ -299,14 +348,14 @@ async function createCompraRepo(dadosCompra) {
             compraId = compraIdBranch;
         }
 
-        for (const item of itens) {
+        for (const [indice, item] of itens.entries()) {
 
             // Cria lotes para cada item
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada, ingrediente_id)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                     RETURNING id
                 `,
                 [
@@ -316,7 +365,8 @@ async function createCompraRepo(dadosCompra) {
                     item.unidade_de_medida,
                     item.tipo_medida,
                     item.valor_unitario,
-                    item.validade_estimada
+                    item.validade_estimada,
+                    ingredienteIds[indice]
                 ]
             );
 
@@ -342,7 +392,7 @@ async function createCompraRepo(dadosCompra) {
 
         // Erro detectado, desfaz todas as operações
         await client.query('ROLLBACK');
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
 
         client.release();
@@ -363,6 +413,10 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
     }
 
     const updates = fieldsToUpdate;
+    validarValorUnitario(itemBusca.valor_unitario);
+    if (updates.valor_unitario !== undefined) {
+        validarValorUnitario(updates.valor_unitario);
+    }
 
     const deveAtualizarValidade = updates.validade_estimada !== undefined;
 
@@ -370,6 +424,50 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
 
     try {
         await client.query('BEGIN');
+        let idsParaRenomear = null;
+        let ingredienteId = null;
+        const deveRenomear = updates.nome_item !== undefined &&
+            updates.nome_item !== itemBusca.nome_item;
+
+        if (deveRenomear) {
+            const { rows: itensSelecionados } = await client.query(`
+                SELECT i.id, e.id AS estoque_id
+                FROM item i
+                JOIN estoque e ON e.item_id = i.id
+                JOIN compra c ON c.id = i.compra_id
+                WHERE i.compra_id = $1
+                  AND c.usuario_id = $7 AND e.usuario_id = $7
+                  AND i.nome_item = $2
+                  AND i.quantidade = $3
+                  AND i.unidade_de_medida = $4
+                  AND i.valor_unitario = $5
+                  AND i.validade_estimada IS NOT DISTINCT FROM $6
+                ORDER BY i.id
+                FOR UPDATE OF i, e
+            `, [
+                compraId, itemBusca.nome_item, itemBusca.quantidade,
+                itemBusca.unidade_de_medida, itemBusca.valor_unitario,
+                itemBusca.validade_estimada ?? null, usuarioId
+            ]);
+
+            if (itensSelecionados.length === 0) {
+                throw new ItemCompraNaoEncontradoError();
+            }
+
+            const { rows: [usoEmReceita] } = await client.query(`
+                SELECT 1
+                FROM receita_preparada_estoque
+                WHERE estoque_id = ANY($1::int[])
+                LIMIT 1
+            `, [itensSelecionados.map((item) => item.estoque_id)]);
+
+            if (usoEmReceita) throw new ItemJaUsadoEmReceitaError();
+            idsParaRenomear = itensSelecionados.map((item) => item.id);
+            [ingredienteId] = await resolverIngredientesDaCompra(client, [
+                { nome_item: updates.nome_item }
+            ]);
+        }
+
         const { rows: itensAtualizados } = await client.query(`
             UPDATE item
             SET
@@ -378,18 +476,21 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
                 validade_estimada = CASE
                     WHEN $3 THEN $4
                     ELSE validade_estimada
-                END
+                END,
+                ingrediente_id = CASE WHEN $12 THEN $13 ELSE ingrediente_id END
             WHERE compra_id = $5
               AND nome_item = $6
               AND quantidade = $7
               AND unidade_de_medida = $8
               AND valor_unitario = $9
               AND validade_estimada IS NOT DISTINCT FROM $10
+              AND ($11::int[] IS NULL OR id = ANY($11::int[]))
               AND EXISTS (
                   SELECT 1 FROM compra c
-                  WHERE c.id = item.compra_id AND c.usuario_id = $11
+                  WHERE c.id = item.compra_id AND c.usuario_id = $14
               )
-            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida, validade_estimada;
+            RETURNING id, quantidade, valor_unitario, nome_item, unidade_de_medida, tipo_medida,
+                      validade_estimada, ingrediente_id;
         `, [
             updates.valor_unitario ?? null,
             updates.nome_item ?? null,
@@ -401,6 +502,9 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
             itemBusca.unidade_de_medida,
             itemBusca.valor_unitario,
             itemBusca.validade_estimada ?? null,
+            idsParaRenomear,
+            deveRenomear,
+            ingredienteId,
             usuarioId
         ]);
 
@@ -408,22 +512,24 @@ async function atualizarInstanciasPorCompraId(usuarioId, compraId, itemBusca, fi
             throw new ItemCompraNaoEncontradoError();
         }
 
-        const { rows: [compraAtualizada] } = await client.query(`
-            UPDATE compra
-            SET valor_total = (
-                SELECT ROUND(COALESCE(SUM(quantidade * valor_unitario), 0), 2)
-                FROM item
-                WHERE compra_id = $1
-            )
-            WHERE id = $1
-            RETURNING id, valor_total;
-        `, [compraId]);
+        const alterouPreco = updates.valor_unitario !== undefined &&
+            updates.valor_unitario !== itemBusca.valor_unitario;
+        const consultaCompra = alterouPreco
+            ? `UPDATE compra
+               SET valor_total = (
+                   SELECT COALESCE(SUM(ROUND(quantidade * valor_unitario, 2)), 0)
+                   FROM item WHERE compra_id = $1
+               )
+               WHERE id = $1
+               RETURNING id, valor_total;`
+            : 'SELECT id, valor_total FROM compra WHERE id = $1';
+        const { rows: [compraAtualizada] } = await client.query(consultaCompra, [compraId]);
 
         await client.query('COMMIT');
         return { itens: itensAtualizados, compra: compraAtualizada };
     } catch (err) {
         await client.query('ROLLBACK');
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
         client.release();
     }
@@ -481,15 +587,16 @@ async function adicionaItensACompraRepo(novosItens) {
         }
 
         const compraId = rows[0].id;
+        const ingredienteIds = await resolverIngredientesDaCompra(client, itens);
 
-        for (const item of itens) {
+        for (const [indice, item] of itens.entries()) {
 
             // Cria lotes para cada novo item
             const {
                 rows: [{ id: itemId }],
             } = await client.query(`
-                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO item (compra_id, nome_item, quantidade, unidade_de_medida, tipo_medida, valor_unitario, validade_estimada, ingrediente_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING id              
                 `,
                 [
@@ -499,7 +606,8 @@ async function adicionaItensACompraRepo(novosItens) {
                     item.unidade_de_medida,
                     item.tipo_medida,
                     item.valor_unitario,
-                    item.validade_estimada
+                    item.validade_estimada,
+                    ingredienteIds[indice]
                 ]
             );
 
@@ -529,7 +637,7 @@ async function adicionaItensACompraRepo(novosItens) {
         } catch (rollbackErr) {
             console.error('Falha no rollback:', rollbackErr);
         }
-        throw err;
+        throw erroCompraForaDoLimite(err);
     } finally {
         client.release();
     }
@@ -548,6 +656,7 @@ module.exports = {
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
     ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError,
     apagarCompraPorId,
     adicionaItensACompraRepo
 };

@@ -1,90 +1,6 @@
-const { createIngredienteRepo } = require('../repositories/ingredienteRepository');
-
-const aliasesToNome = {
-    "req": "requeijao",
-    "requeijao": "requeijao",
-    "leite": "leite",
-    "pao": "pao",
-    "sal": "sal",
-    "banana": "banana",
-    "mamao": "mamao",
-    "manteiga": "manteiga",
-    "mant": "manteiga",
-    "margarina": "margarina",
-    "marg": "margarina",
-    "queijo": "queijo",
-    "qjo": "queijo",
-    "qj": "queijo",
-    "iogurte": "iogurte",
-    "iog": "iogurte",
-    "creme de leite": "creme de leite",
-    "cr leite": "creme de leite",
-    "leite condensado": "leite condensado",
-    "lt cond": "leite condensado",
-    "leite integral": "leite",
-    "leite desnatado": "leite",
-    "pao frances": "pao",
-    "pao de forma": "pao de forma",
-    "pao forma": "pao de forma",
-    "farinha": "farinha de trigo",
-    "far trigo": "farinha de trigo",
-    "acucar": "acucar",
-    "acuc": "acucar",
-    "arroz": "arroz",
-    "feijao": "feijao",
-    "fj": "feijao",
-    "macarrao": "macarrao",
-    "macar.": "macarrao",
-    "aveia": "aveia",
-    "oleo": "oleo de soja",
-    "azeite": "azeite de oliva",
-    "az": "azeite de oliva",
-    "vinagre": "vinagre",
-    "pimenta do reino": "pimenta do reino",
-    "pim reino": "pimenta do reino",
-    "frango": "frango",
-    "fgo": "frango",
-    "carne bovina": "carne bovina",
-    "carne": "carne bovina",
-    "carne moida": "carne moida",
-    "carne moída": "carne moida",
-    "linguica": "linguica",
-    "ling": "linguica",
-    "bacon": "bacon",
-    "peixe": "peixe",
-    "maca": "maca",
-    "maçã": "maca",
-    "laranja": "laranja",
-    "lar": "laranja",
-    "uva": "uva",
-    "abacaxi": "abacaxi",
-    "abacax.": "abacaxi",
-    "limao": "limao",
-    "melancia": "melancia",
-    "morango": "morango",
-    "tomate": "tomate",
-    "tom": "tomate",
-    "cebola": "cebola",
-    "ceb": "cebola",
-    "alho": "alho",
-    "batata": "batata",
-    "bat": "batata",
-    "cenoura": "cenoura",
-    "cen": "cenoura",
-    "alface": "alface",
-    "pimentao": "pimentao",
-    "cafe": "cafe",
-    "café": "cafe",
-    "suco": "suco",
-    "refrigerante": "refrigerante",
-    "refri": "refrigerante",
-    "agua": "agua",
-    "água": "agua",
-    "cerveja": "cerveja",
-    "cerv": "cerveja",
-    "ovo" : "ovo",
-    "ovos": "ovo",
-};
+const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { IngredienteError } = require('../errors/IngredienteError');
+const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
 function normalizar(str) {
     return str
@@ -95,9 +11,62 @@ function normalizar(str) {
         .trim();
 }
 
-const map = new Map(
+function validarCatalogoIngredientes(lista = listaIngredientes, aliases = aliasesToNome) {
+    if (!lista || typeof lista !== 'object' || Array.isArray(lista) ||
+        !aliases || typeof aliases !== 'object' || Array.isArray(aliases)) {
+        throw new TypeError('O catálogo e os aliases devem ser dicionários.');
+    }
+
+    const nomes = Object.values(lista);
+    if (nomes.length === 0) {
+        throw new Error('A lista de ingredientes está vazia.');
+    }
+
+    const nomesNormalizados = new Set();
+    for (const [chave, nome] of Object.entries(lista)) {
+        if (typeof nome !== 'string' || !nome.trim() || nome.length > 100 ||
+            normalizar(nome) !== nome) {
+            throw new Error(`Ingrediente inválido no catálogo: ${chave}.`);
+        }
+        if (nomesNormalizados.has(nome)) {
+            throw new Error(`Ingrediente duplicado no catálogo: ${nome}.`);
+        }
+        if (chave !== nome.replace(/ /g, '_')) {
+            throw new Error(`Chave inválida no catálogo: ${chave}.`);
+        }
+        nomesNormalizados.add(nome);
+    }
+
+    const aliasesNormalizados = new Map();
+    for (const [alias, nome] of Object.entries(aliases)) {
+        if (typeof nome !== 'string' || !nomesNormalizados.has(nome) ||
+            !alias.trim() || !normalizar(alias)) {
+            throw new Error(`Alias inválido ou sem ingrediente: ${alias}.`);
+        }
+        const aliasNormalizado = normalizar(alias);
+        const anterior = aliasesNormalizados.get(aliasNormalizado);
+        if (anterior && anterior !== nome) {
+            throw new Error(`Alias aponta para ingredientes distintos: ${alias}.`);
+        }
+        aliasesNormalizados.set(aliasNormalizado, nome);
+    }
+
+    return nomes;
+}
+
+async function garantirIngredientesPadrao() {
+    const nomes = validarCatalogoIngredientes();
+    const { inserirIngredientesPadrao } = require('../repositories/ingredienteRepository');
+    return inserirIngredientesPadrao(nomes);
+}
+
+validarCatalogoIngredientes();
+
+const aliasesCanonicos = new Map(
     Object.entries(aliasesToNome).map(([alias, nome]) => [normalizar(alias), nome])
 );
+const map = new Map(aliasesCanonicos);
+const nomesPadrao = new Set(Object.values(listaIngredientes));
 
 function parseItem(inputStr) {
     return normalizar(
@@ -128,6 +97,21 @@ function adicionarItem(inputStr) {
     return { needsName: false, item: nome };
 }
 
+function identificarIngredientePadrao(nomeBruto) {
+    const { item } = adicionarItem(nomeBruto);
+    return nomesPadrao.has(item) ? item : null;
+}
+
+function identificarIngredienteCandidato(nomeBruto) {
+    const nomePadrao = identificarIngredientePadrao(nomeBruto);
+    const nomeExato = normalizar(nomeBruto);
+
+    return {
+        nome: nomePadrao ?? (nomeExato || null),
+        obrigatorio: nomePadrao !== null
+    };
+}
+
 function resolverNomeItem(rawItem, novoItemNome) {
     let itemFinal = parseItem(novoItemNome);
     itemFinal = buscarNome(itemFinal) ?? itemFinal;                     // Usa nome padrão se o informado for um alias conhecido
@@ -135,6 +119,32 @@ function resolverNomeItem(rawItem, novoItemNome) {
     map.set(rawItem, itemFinal);                                        // Aprende o novo item para próximas vezes
 
     return { needsName: false, item: itemFinal };
+}
+
+function normalizarNomeIngrediente(nome) {
+    const nomeNormalizado = normalizar(nome);
+    return aliasesCanonicos.get(nomeNormalizado) ?? nomeNormalizado;
+}
+
+async function createIngredienteService({ nome }) {
+    return createIngredienteRepo(normalizarNomeIngrediente(nome));
+}
+
+async function updateIngredienteService(ingredienteId, { nome }) {
+    return updateIngredienteRepo(ingredienteId, normalizarNomeIngrediente(nome));
+}
+
+async function deleteIngredienteService(ingredienteId, usuarioId) {
+    if (usuarioId !== 1) {
+        throw new IngredienteError('Apenas o administrador pode excluir ingredientes.', 403);
+    }
+
+    const ingrediente = await deleteIngredienteRepo(ingredienteId);
+    if (!ingrediente) {
+        throw new IngredienteError('Ingrediente não encontrado.', 404);
+    }
+
+    return ingrediente;
 }
 
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
@@ -150,13 +160,15 @@ function resolverNomeItem(rawItem, novoItemNome) {
 
 */
 
-async function createIngredienteService({ nome }) {
-    return createIngredienteRepo(normalizar(nome));
-}
-
 module.exports = {
     adicionarItem,
+    identificarIngredientePadrao,
+    identificarIngredienteCandidato,
     resolverNomeItem,
     createIngredienteService,
+    updateIngredienteService,
+    deleteIngredienteService,
+    validarCatalogoIngredientes,
+    garantirIngredientesPadrao,
     aliasesToNome,
 };

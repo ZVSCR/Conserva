@@ -20,6 +20,19 @@ function validateIngredientePayload(body) {
     return { isValid: errors.length === 0, errors };
 }
 
-module.exports = {
-    validateIngredientePayload,
-};
+function validateIngredienteId(value) {
+    const id = typeof value === 'string' && /^[1-9]\d*$/.test(value)
+        ? Number(value)
+        : null;
+    const isValid = Number.isSafeInteger(id) && id > 0;
+
+    return {
+        isValid,
+        errors: isValid ? [] : [{
+            field: 'ingrediente_id',
+            message: 'Informe um ID de ingrediente inteiro e positivo.'
+        }]
+    };
+}
+
+module.exports = { validateIngredientePayload, validateIngredienteId };

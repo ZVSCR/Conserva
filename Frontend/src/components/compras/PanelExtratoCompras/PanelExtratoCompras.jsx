@@ -119,7 +119,7 @@ function ExtratoCompras() {
         quantidade: Number(linha.quantidade),
         unidade_de_medida: linha.unidade_de_medida,
         valor_unitario: Number(linha.valor_unitario),
-        validade_estimada: linha.validade_estimada?.slice(0, 10) || "",
+        validade_estimada: linha.validade_estimada?.slice(0, 10) || null,
   }))
 );
 
@@ -306,8 +306,8 @@ function ExtratoCompras() {
                       />
                       <input
                         type="date"
-                        value={item.validade_estimada}
-                        onChange={(e) => handleChangeItem(item.id, "validade_estimada", e.target.value)}
+                        value={item.validade_estimada ?? ""}
+                        onChange={(e) => handleChangeItem(item.id, "validade_estimada", e.target.value || null)}
                       />
                     </div>
                   ))}

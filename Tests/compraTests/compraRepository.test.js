@@ -7,6 +7,7 @@ jest.mock('../../Backend/src/config/transactionDatabase', () => ({ connect: jest
 
 const sql = require('../../Backend/src/config/database');
 const pool = require('../../Backend/src/config/transactionDatabase');
+const { PrecoInvalidoError } = require('../../Backend/src/services/precoService');
 const {
     listarComprasUsuario,
     listarCompraPorId,
@@ -16,7 +17,8 @@ const {
     CompraNaoEncontradaError,
     ItemCompraNaoEncontradoError,
     GranularidadeInvalidaError,
-    ItemCompraConflitoError
+    ItemCompraConflitoError,
+    ItemJaUsadoEmReceitaError
 } = require('../../Backend/src/repositories/compraRepository');
 
 describe('compraRepository.listarComprasUsuario', () => {
@@ -97,6 +99,9 @@ describe('compraRepository.listarCompraPorId', () => {
         ).resolves.toEqual(linhas);
         expect(sql).toHaveBeenCalledTimes(1);
         expect(sql.mock.calls[0].slice(1)).toEqual([1, 2]);
+        const consulta = sql.mock.calls[0][0].join(' ');
+        expect(consulta).toMatch(/item\.valor_unitario/);
+        expect(consulta).not.toMatch(/quantidade \* item\.valor_unitario/);
     });
 });
 
@@ -109,7 +114,7 @@ describe('compraRepository.atualizarCompraPorId', () => {
         sql.mockResolvedValue([]);
 
         await expect(
-            atualizarCompraPorId(7, 99, {
+            atualizarCompraPorId(1, 99, {
                 estabelecimento: 'Mercado Central'
             })
         ).rejects.toBeInstanceOf(CompraNaoEncontradaError);
@@ -124,28 +129,31 @@ describe('compraRepository.atualizarCompraPorId', () => {
         sql.mockResolvedValue([compra]);
 
         await expect(
-            atualizarCompraPorId(7, 2, {
+            atualizarCompraPorId(1, 2, {
                 data_compra: '2026-09-19T14:30:00.000Z',
                 estabelecimento: 'Mercado Central'
             })
         ).resolves.toEqual(compra);
-        const [query, ...values] = sql.mock.calls[0];
-        expect(query.join(' ')).toContain('AND usuario_id =');
-        expect(values.slice(-2)).toEqual([2, 7]);
+        expect(sql.mock.calls[0][0].join('?')).toContain('AND usuario_id = ?');
+        expect(sql.mock.calls[0].at(-1)).toBe(1);
     });
 });
 
 describe('compraRepository.atualizarPorCompraId', () => {
-    function prepararCliente(atual) {
+    function prepararCliente(atual, usadoEmReceita = false) {
         const item = { id: 1, quantidade: '3.00', tipo_medida: 'unitaria' };
         const compra = { id: 2, valor_total: '6.00' };
         const estoque = { id: 10, quantidade_disponivel: '3.00' };
         const client = {
             query: jest.fn(async (query) => {
                 if (query.includes('SELECT i.*')) return { rows: atual ? [atual] : [] };
+                if (query.includes('FROM receita_preparada_estoque')) {
+                    return { rows: usadoEmReceita ? [{ '?column?': 1 }] : [] };
+                }
                 if (query.includes('UPDATE item')) return { rows: [item] };
                 if (query.includes('UPDATE estoque')) return { rows: [estoque] };
                 if (query.includes('UPDATE compra')) return { rows: [compra] };
+                if (query.includes('SELECT id, valor_total FROM compra')) return { rows: [compra] };
                 return { rows: [] };
             }),
             release: jest.fn()
@@ -162,7 +170,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
         const { client } = prepararCliente(null);
 
         await expect(
-            atualizarPorCompraId(7, 99, 2, { quantidade: 1 })
+            atualizarPorCompraId(1, 99, 2, { quantidade: 1 })
         ).rejects.toBeInstanceOf(ItemCompraNaoEncontradoError);
         expect(client.query.mock.calls.map(([query]) => query)).toContain('ROLLBACK');
         expect(client.release).toHaveBeenCalledTimes(1);
@@ -175,14 +183,17 @@ describe('compraRepository.atualizarPorCompraId', () => {
         });
 
         await expect(
-            atualizarPorCompraId(7, 1, 2, { quantidade: 3 })
+            atualizarPorCompraId(1, 1, 2, { quantidade: 3 })
         ).resolves.toEqual({ item, compra, estoque });
+        const consultaItem = client.query.mock.calls.find(([query]) => query.includes('SELECT i.*'));
+        expect(consultaItem[0]).toMatch(/c\.usuario_id = \$3 AND e\.usuario_id = \$3/);
+        expect(consultaItem[1]).toEqual([1, 2, 1]);
         expect(client.query.mock.calls.some(([query, values]) =>
             query.includes('UPDATE estoque') && values[0] === 3
         )).toBe(true);
         const [query, values] = client.query.mock.calls[1];
         expect(query).toContain('c.usuario_id = $3');
-        expect(values).toEqual([1, 2, 7]);
+        expect(values).toEqual([1, 2, 1]);
         expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 
@@ -191,9 +202,103 @@ describe('compraRepository.atualizarPorCompraId', () => {
             id: 1, quantidade: '3.00', quantidade_disponivel: '2.00',
             estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
         });
-        await expect(atualizarPorCompraId(7, 1, 2, { quantidade: 4 }))
+        await expect(atualizarPorCompraId(1, 1, 2, { quantidade: 4 }))
             .rejects.toBeInstanceOf(ItemCompraConflitoError);
         expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(false);
+    });
+
+    test('repetir o preço unitário ao salvar não o divide nem altera o saldo', async () => {
+        const { client } = prepararCliente({
+            id: 1, nome_item: 'Produto', quantidade: '3.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
+        });
+
+        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Produto', valor_unitario: 2 });
+
+        const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
+        expect(atualizacao[1][2]).toBe(2);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE estoque'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('FROM receita_preparada_estoque'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE compra'))).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('SELECT id, valor_total FROM compra'))).toBe(true);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
+    });
+
+    test('alterar somente a quantidade preserva o preço unitário existente', async () => {
+        const { client } = prepararCliente({
+            id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
+        });
+
+        await atualizarPorCompraId(1, 1, 2, { quantidade: 3 });
+
+        const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
+        expect(atualizacao[1][0]).toBe(3);
+        expect(atualizacao[1][2]).toBeNull();
+        expect(atualizacao[0]).toMatch(/COALESCE\(\$3, valor_unitario\)/);
+        const total = client.query.mock.calls.find(([query]) => query.includes('UPDATE compra'));
+        expect(total[0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
+    });
+
+    test('desfaz a edição se o novo total não couber em compra.valor_total', async () => {
+        const { client } = prepararCliente({
+            id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        });
+        const consultaOriginal = client.query.getMockImplementation();
+        client.query.mockImplementation((query, values) => {
+            if (query.includes('UPDATE compra')) {
+                return Promise.reject(Object.assign(new Error('numeric field overflow'), { code: '22003' }));
+            }
+            return consultaOriginal(query, values);
+        });
+
+        await expect(atualizarPorCompraId(1, 1, 2, { valor_unitario: 9999999.99 }))
+            .rejects.toBeInstanceOf(PrecoInvalidoError);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
+        expect(client.release).toHaveBeenCalledTimes(1);
+    });
+
+    test('impede renomear item já usado em receita, mesmo com saldo restaurado', async () => {
+        const { client } = prepararCliente({
+            id: 1, nome_item: 'Produto', quantidade: '3.00', quantidade_disponivel: '3.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        }, true);
+
+        await expect(atualizarPorCompraId(1, 1, 2, { nome_item: 'Outro' }))
+            .rejects.toBeInstanceOf(ItemJaUsadoEmReceitaError);
+        expect(client.query.mock.calls.some(([query, values]) =>
+            query.includes('FROM receita_preparada_estoque') && values[0] === 10
+        )).toBe(true);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(false);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
+    });
+
+    test('permite renomear item sem preparo registrado', async () => {
+        const { client } = prepararCliente({
+            id: 1, nome_item: 'Produto', quantidade: '3.00', quantidade_disponivel: '3.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        });
+
+        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Outro' });
+        expect(client.query.mock.calls.some(([query]) =>
+            query.includes('FROM receita_preparada_estoque')
+        )).toBe(true);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(true);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
+    });
+
+    test('permite editar outros campos e repetir o mesmo nome após uso em receita', async () => {
+        const { client } = prepararCliente({
+            id: 1, nome_item: 'Produto', quantidade: '3.00', quantidade_disponivel: '3.00',
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+        }, true);
+
+        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Produto', validade_estimada: null });
+        expect(client.query.mock.calls.some(([query]) =>
+            query.includes('FROM receita_preparada_estoque')
+        )).toBe(false);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 
     test('rejeita fração para lote unitário', async () => {
@@ -201,7 +306,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
             id: 1, quantidade: '3.00', quantidade_disponivel: '3.00',
             estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
         });
-        await expect(atualizarPorCompraId(7, 1, 2, { quantidade: 1.5 }))
+        await expect(atualizarPorCompraId(1, 1, 2, { quantidade: 1.5 }))
             .rejects.toBeInstanceOf(GranularidadeInvalidaError);
     });
 
@@ -210,7 +315,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
             id: 1, quantidade: '0.50', quantidade_disponivel: '0.50',
             estoque_id: 10, tipo_medida: 'variavel', unidade_de_medida: 'kg'
         });
-        await expect(atualizarPorCompraId(7, 1, 2, { unidade_de_medida: 'g' }))
+        await expect(atualizarPorCompraId(1, 1, 2, { unidade_de_medida: 'g' }))
             .rejects.toBeInstanceOf(GranularidadeInvalidaError);
     });
 });
@@ -224,12 +329,21 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         validade_estimada: null
     };
 
-    function prepararTransacao(itens) {
+    function prepararTransacao(itens, { usadoEmReceita = false, selecionados } = {}) {
         const compra = [{ id: 2, valor_total: '18.00' }];
         const client = {
             query: jest.fn(async (query) => {
+                if (query.includes('SELECT i.id, e.id AS estoque_id')) {
+                    return { rows: selecionados ?? itens.map((item) => ({
+                        id: item.id, estoque_id: item.id + 10
+                    })) };
+                }
+                if (query.includes('FROM receita_preparada_estoque')) {
+                    return { rows: usadoEmReceita ? [{ '?column?': 1 }] : [] };
+                }
                 if (query.includes('UPDATE item')) return { rows: itens };
                 if (query.includes('UPDATE compra')) return { rows: compra };
+                if (query.includes('SELECT id, valor_total FROM compra')) return { rows: compra };
                 return { rows: [] };
             }),
             release: jest.fn()
@@ -247,7 +361,7 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         { unidade_de_medida: 'g' },
         { tipo_medida: 'unitaria' }
     ])('rejeita alteração coletiva da granularidade no repositório', async (updates) => {
-        await expect(atualizarInstanciasPorCompraId(7, 2, itemBusca, updates))
+        await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, updates))
             .rejects.toBeInstanceOf(GranularidadeInvalidaError);
         expect(pool.connect).not.toHaveBeenCalled();
     });
@@ -259,37 +373,65 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         ];
         const { client, compra } = prepararTransacao(itens);
 
-        await expect(atualizarInstanciasPorCompraId(7, 2, itemBusca, {
+        await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, {
             nome_item: 'Outro', valor_unitario: 18
         })).resolves.toEqual({ itens, compra: compra[0] });
 
         const consultas = client.query.mock.calls;
-        expect(consultas).toHaveLength(4);
-        const setClause = consultas[1][0].split('SET')[1].split('WHERE')[0];
+        expect(consultas).toHaveLength(7);
+        expect(consultas[3][1]).toEqual([['outro']]);
+        const setClause = consultas[4][0].split('SET')[1].split('WHERE')[0];
         expect(setClause).not.toMatch(/\bquantidade\s*=/i);
         expect(setClause).not.toMatch(/\bunidade_de_medida\s*=/i);
-        expect(consultas.map(([query]) => query).join(' ')).not.toMatch(/\bestoque\b/i);
-        expect(consultas[1][1]).toContain('kg');
-        expect(consultas[1][1]).toContain(false);
-        expect(consultas[1][0]).toContain('c.usuario_id = $11');
-        expect(consultas[1][1].at(-1)).toBe(7);
-        expect(consultas[2][0]).toMatch(/SUM\(quantidade \* valor_unitario\)/);
-        expect(consultas[3][0]).toBe('COMMIT');
+        expect(consultas[4][0]).not.toMatch(/UPDATE estoque/i);
+        expect(consultas[4][1]).toContain('kg');
+        expect(consultas[4][1]).toContain(false);
+        expect(consultas[4][1][10]).toEqual([1, 2]);
+        expect(consultas[4][1].slice(-3)).toEqual([true, null, 1]);
+        expect(consultas[4][0]).toMatch(/c\.usuario_id = \$14/);
+        expect(consultas[1][0]).toMatch(/c\.usuario_id = \$7 AND e\.usuario_id = \$7/);
+        expect(consultas[4][1][0]).toBe(18);
+        expect(consultas[4][1][8]).toBe(20);
+        expect(consultas[5][0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
+        expect(consultas[6][0]).toBe('COMMIT');
         expect(client.release).toHaveBeenCalledTimes(1);
+    });
+
+    test('cancela renomeação coletiva se qualquer embalagem foi usada em receita', async () => {
+        const { client } = prepararTransacao([{ id: 1 }, { id: 2 }], { usadoEmReceita: true });
+
+        await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, { nome_item: 'Outro' }))
+            .rejects.toBeInstanceOf(ItemJaUsadoEmReceitaError);
+        expect(client.query.mock.calls.some(([query, values]) =>
+            query.includes('FROM receita_preparada_estoque') &&
+            JSON.stringify(values[0]) === JSON.stringify([11, 12])
+        )).toBe(true);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE item'))).toBe(false);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
+    });
+
+    test('não consulta histórico ao editar outros campos ou repetir o nome coletivo', async () => {
+        const { client } = prepararTransacao([{ id: 1 }], { usadoEmReceita: true });
+        await atualizarInstanciasPorCompraId(1, 2, itemBusca, { nome_item: 'Produto' });
+        expect(client.query.mock.calls.some(([query]) =>
+            query.includes('FROM receita_preparada_estoque')
+        )).toBe(false);
+        expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE compra'))).toBe(false);
+        expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 
     test('permite remover validade explicitamente sem perder esse sinal', async () => {
         const { client } = prepararTransacao([{ id: 1 }]);
-        await atualizarInstanciasPorCompraId(7, 2, itemBusca, { validade_estimada: null });
+        await atualizarInstanciasPorCompraId(1, 2, itemBusca, { validade_estimada: null });
         expect(client.query.mock.calls[1][1]).toContain(true);
     });
 
     test('retorna não encontrado quando o seletor não corresponde a itens', async () => {
         const { client } = prepararTransacao([]);
-        await expect(atualizarInstanciasPorCompraId(7, 2, itemBusca, { nome_item: 'Outro' }))
+        await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, { nome_item: 'Outro' }))
             .rejects.toBeInstanceOf(ItemCompraNaoEncontradoError);
         expect(client.query.mock.calls.map(([query]) => query)).toEqual([
-            'BEGIN', expect.stringContaining('UPDATE item'), 'ROLLBACK'
+            'BEGIN', expect.stringContaining('SELECT i.id, e.id AS estoque_id'), 'ROLLBACK'
         ]);
         expect(client.release).toHaveBeenCalledTimes(1);
     });

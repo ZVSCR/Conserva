@@ -29,4 +29,5 @@ test('remoção recompõe o total sem incluir o item apagado', async () => {
     await expect(apagarPorId(10)).resolves.toEqual({ id: 10 });
     const [partes] = sql.mock.calls[0];
     expect(partes.join('?')).toContain('i.id <> ?');
+    expect(partes.join('?')).toMatch(/SUM\(ROUND\(i\.quantidade \* i\.valor_unitario, 2\)\)/);
 });
