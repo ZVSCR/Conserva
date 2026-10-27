@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
+import { useAuth } from "../../../contexts/useAuth";
+import { apiFetch } from "../../../services/api";
 
 function PanelUserData() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -28,12 +31,13 @@ function PanelUserData() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/users/me", {
+        const response = await apiFetch("/api/users/me", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
 
         const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erro ao buscar dados.');
 
         const userData = {
           username: data.data.username || "",
@@ -99,7 +103,7 @@ function PanelUserData() {
     if (formData.tipo) payload.tipo = formData.tipo;
 
     try {
-      const response = await fetch("http://localhost:3000/api/users/me", {
+      const response = await apiFetch("/api/users/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -121,6 +125,7 @@ function PanelUserData() {
         email: formData.email,
         tipo: formData.tipo,
       };
+      setUser((currentUser) => currentUser ? { ...currentUser, ...updatedOriginals } : currentUser);
       setInitialData(updatedOriginals);
 
       // Limpa os campos de senha

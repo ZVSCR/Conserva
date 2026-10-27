@@ -1,35 +1,29 @@
 const compraUser = require('../../Backend/src/middleware/compraUser');
+const { createSessionToken, SESSION_COOKIE_NAME } = require('../../Backend/src/config/session');
 
-test.each(['GET', 'PATCH', 'DELETE'])('%s usa o ID informado na consulta', (method) => {
-    const req = { method, query: { usuario_id: '42' } };
+beforeEach(() => {
+    process.env.SESSION_SECRET = 'test-secret-with-at-least-thirty-two-characters';
+});
+
+function response() {
+    return { set: jest.fn(), status: jest.fn().mockReturnThis(), json: jest.fn() };
+}
+
+test.each(['GET', 'POST', 'PATCH', 'DELETE'])('%s usa a sessão e ignora usuario_id da consulta e do corpo', async (method) => {
+    const req = { method, headers: { cookie: `${SESSION_COOKIE_NAME}=${createSessionToken(42)}` },
+        query: { usuario_id: '1' }, body: { usuario_id: 7 } };
     const next = jest.fn();
-    compraUser(req, {}, next);
+    await compraUser(req, response(), next);
+    expect(req.user.id).toBe(42);
     expect(req.compraUsuarioId).toBe(42);
     expect(next).toHaveBeenCalledTimes(1);
 });
 
-test('POST usa o ID do corpo, não da consulta', () => {
-    const req = { method: 'POST', body: { usuario_id: 42 }, query: { usuario_id: '1' } };
+test.each([undefined, null, 0, -1, '42'])('identificação %s no corpo não cria uma sessão', async (usuario_id) => {
+    const req = { method: 'POST', headers: {}, body: { usuario_id } };
+    const res = response();
     const next = jest.fn();
-    compraUser(req, {}, next);
-    expect(req.compraUsuarioId).toBe(42);
-    expect(next).toHaveBeenCalledTimes(1);
-});
-
-test.each([undefined, null, 0, -1, 1.5, '42', {}, []])('POST rejeita ID inválido %s', (usuario_id) => {
-    const req = { method: 'POST', body: { usuario_id } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    const next = jest.fn();
-    compraUser(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(next).not.toHaveBeenCalled();
-});
-
-test('rejeita IDs de consulta repetidos', () => {
-    const req = { method: 'GET', query: { usuario_id: ['7', '42'] } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    const next = jest.fn();
-    compraUser(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(400);
+    await compraUser(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(next).not.toHaveBeenCalled();
 });

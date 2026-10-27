@@ -20,32 +20,32 @@ describe('updateReceitaService', () => {
         };
         updateReceitaRepo.mockResolvedValue(receita);
 
-        await expect(updateReceitaService(7, { ...payloadValido, nome: '  Bolo novo  ' }))
+        await expect(updateReceitaService(7, { ...payloadValido, nome: '  Bolo novo  ' }, 7))
             .resolves.toEqual(receita);
 
         expect(updateReceitaRepo).toHaveBeenCalledTimes(1);
-        expect(updateReceitaRepo).toHaveBeenCalledWith(7, payloadValido);
+        expect(updateReceitaRepo).toHaveBeenCalledWith(7, payloadValido, 7);
     });
 
     test('encaminha valores inalterados junto ao campo modificado', async () => {
         const payload = { ...payloadValido, descricao: 'Nova descrição' };
         updateReceitaRepo.mockResolvedValue({ id: 7, ...payload });
 
-        await updateReceitaService(7, payload);
+        await updateReceitaService(7, payload, 7);
 
-        expect(updateReceitaRepo).toHaveBeenCalledWith(7, payload);
+        expect(updateReceitaRepo).toHaveBeenCalledWith(7, payload, 7);
     });
 
     test('propaga ausência da receita', async () => {
         updateReceitaRepo.mockResolvedValue(null);
 
-        await expect(updateReceitaService(999, payloadValido)).resolves.toBeNull();
+        await expect(updateReceitaService(999, payloadValido, 7)).resolves.toBeNull();
     });
 
     test('propaga falha de persistência', async () => {
         const erro = new Error('Falha de conexão');
         updateReceitaRepo.mockRejectedValue(erro);
 
-        await expect(updateReceitaService(7, payloadValido)).rejects.toBe(erro);
+        await expect(updateReceitaService(7, payloadValido, 7)).rejects.toBe(erro);
     });
 });

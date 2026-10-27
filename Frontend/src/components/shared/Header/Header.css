@@ -19,3 +19,21 @@
     text-align: center;
     width: 100%;
 }
+
+.Header__account {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.Header__account button {
+    cursor: pointer;
+}
+
+.Header__error {
+    color: red;
+    text-align: right;
+}
