@@ -11,16 +11,20 @@ async function createReceitaService(usuarioId, payload) {
     const {
         nome,
         descricao,
-        modo_preparo
+        modo_preparo,
+        ingredientes
     } = payload;
 
     const normalizedNome = nome.trim();
+    const normalizedDescricao = descricao.trim();
+    const normalizedModoPreparo = modo_preparo.trim();
 
     return createReceitaRepo({
         usuario_id: usuarioId,
         nome: normalizedNome,
-        descricao,
-        modo_preparo
+        descricao: normalizedDescricao,
+        modo_preparo: normalizedModoPreparo,
+        ingredientes
     });
 }
 

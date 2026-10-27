@@ -13,7 +13,11 @@ function createValidPayload() {
     return {
         nome: 'Bolo de Fubá',
         descricao: 'Bolo simples e gostoso. Tempo de preparo: 60min',
-        modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.'
+        modo_preparo: 'Misture os ingredientes, leve ao forno e aguarde.',
+        ingredientes: [
+            { nome: 'fuba', quantidade: 13, unidade_de_medida: 'kg' },
+            { nome: 'bolo', quantidade: 22, unidade_de_medida: 'un' }
+        ]
     };
 }
 

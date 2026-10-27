@@ -1,7 +1,14 @@
 // Importa validação de campos
 const {
-    validateString
+    validateString,
+    validateNumber
 } = require('./generalValidator');
+
+const {
+    quantidadeRepresentavel
+} = require('../services/granularidadeService');
+
+const UNIDADES_DE_MEDIDA = new Set(['un', 'kg', 'g', 'L', 'mL']);
 
 function validateNome(nome) {
 
@@ -51,7 +58,117 @@ function validateModoPreparo(modoPreparo) {
     });
 }
 
-function validateReceitaPayload(payload) {
+function validateIngrediente(ingrediente, index) {
+
+    const errors = [];
+    const fieldPrefix = `ingredientes[${index}]`;
+
+    if (
+        ingrediente === undefined ||
+        ingrediente === null ||
+        Array.isArray(ingrediente) ||
+        typeof ingrediente !== 'object'
+    ) {
+        return [{
+            field: fieldPrefix,
+            message: `Ingrediente ${index + 1} não é um objeto válido.`
+        }];
+    }
+
+    const {
+        nome,
+        quantidade,
+        unidade_de_medida
+    } = ingrediente;
+
+    errors.push(...validateString({
+        value: nome,
+        field: `${fieldPrefix}.nome`,
+        maxLength: 100,
+        messages: {
+            required: `Nome do ingrediente ${index + 1} é obrigatório.`,
+            type: `Formato do nome do ingrediente ${index + 1} é inválido.`,
+            blank: `Nome do ingrediente ${index + 1} não pode conter apenas espaços.`,
+            maxLength: `Nome do ingrediente ${index + 1} deve possuir no máximo 100 caracteres.`
+        }
+    }));
+
+    errors.push(...validateNumber({
+        value: quantidade,
+        field: `${fieldPrefix}.quantidade`,
+        messages: {
+            required: `Quantidade do ingrediente ${index + 1} é obrigatória.`,
+            type: `Formato da quantidade do ingrediente ${index + 1} é inválido.`,
+            positive: `Quantidade do ingrediente ${index + 1} deve ser maior que zero.`
+        }
+    }));
+
+    if (typeof quantidade === 'number' && Number.isFinite(quantidade) &&
+        quantidade > 0 && !quantidadeRepresentavel(quantidade)) {
+
+        errors.push({
+            field: `${fieldPrefix}.quantidade`,
+            message: 'Quantidade deve ter até duas casas decimais e ser no máximo 9.999.999,99.'
+        });
+    }
+
+    errors.push(...validateString({
+        value: unidade_de_medida,
+        field: `${fieldPrefix}.unidade_de_medida`,
+        maxLength: 20,
+        messages: {
+            required: `Unidade de medida do ingrediente ${index + 1} é obrigatória.`,
+            type: `Formato da unidade de medida do ingrediente ${index + 1} é inválido.`,
+            blank: `Unidade de medida do ingrediente ${index + 1} não pode conter apenas espaços.`,
+            maxLength: `Unidade de medida do ingrediente ${index + 1} deve possuir no máximo 20 caracteres.`
+        }
+    }));
+
+    if (typeof unidade_de_medida === 'string' && unidade_de_medida.trim() &&
+        !UNIDADES_DE_MEDIDA.has(unidade_de_medida)) {
+
+        errors.push({
+            field: `${fieldPrefix}.unidade_de_medida`,
+            message: 'Unidade de medida deve ser un, kg, g, L ou mL.'
+        });
+    }
+
+    return errors;
+}
+
+function validateIngredientes(ingredientes) {
+
+    if (ingredientes === undefined || ingredientes === null) {
+        return [{
+            field: 'ingredientes',
+            message: 'A receita deve conter ao menos um ingrediente.'
+        }];
+    }
+
+    if (!Array.isArray(ingredientes)) {
+        return [{
+            field: 'ingredientes',
+            message: 'Formato de ingredientes inválido. Deve ser um array.'
+        }];
+    }
+
+    const errors = [];
+
+    if (ingredientes.length === 0) {
+        errors.push({
+            field: 'ingredientes',
+            message: 'A receita deve conter ao menos um ingrediente.'
+        });
+    }
+
+    ingredientes.forEach((ingrediente, index) => {
+        errors.push(...validateIngrediente(ingrediente, index));
+    });
+
+    return errors;
+}
+
+function validateReceitaPayload(payload, validateIngredients = false) {
 
     const errors = [];
 
@@ -83,6 +200,10 @@ function validateReceitaPayload(payload) {
     errors.push(...validateNome(nome));
     errors.push(...validateDescricao(descricao));
     errors.push(...validateModoPreparo(modo_preparo));
+
+    if (validateIngredients) {
+        errors.push(...validateIngredientes(payload.ingredientes));
+    }
 
     return {
         isValid: errors.length === 0,

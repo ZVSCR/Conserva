@@ -41,7 +41,7 @@ async function createReceita(req, res) {
         const {
             isValid,
             errors
-        } = validateReceitaPayload(req.body);
+        } = validateReceitaPayload(req.body, true); // Ingredientes precisam ser validados
 
         // Retorna mensagem e status 400 se payload não é válido
         if (!isValid) {
