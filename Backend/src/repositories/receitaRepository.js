@@ -1,6 +1,10 @@
 const sql = require('../config/database');
 const pool = require('../config/transactionDatabase');
 
+const {
+    identificarIngredienteCandidato
+} = require('../services/ingredienteService');
+
 class ReceitaNaoEncontradaError extends Error {
     constructor() {
         super('Receita não encontrada.');
@@ -30,26 +34,110 @@ async function createReceitaRepo(payload) {
         usuario_id,
         nome,
         descricao,
-        modo_preparo
+        modo_preparo,
+        ingredientes
     } = payload;
 
-    try {
+    if (!Array.isArray(ingredientes) || ingredientes.length === 0) {
+        throw new TypeError('A receita deve conter pelo menos um ingrediente.');
+    }
 
-        const [receitaCriada] = await sql`
-            INSERT INTO receita(usuario_id, nome, descricao, modo_preparo)
-            VALUES (${usuario_id}, ${nome}, ${descricao}, ${modo_preparo})
+    // Mapei ingredientes e seus atributos, convertendo aliases para 
+    // o nome canônico, e mantendo somente a primeira ocorrência, pois 
+    // receita_ingrediente admite um vínculo por ingrediente.
+
+    const ingredientesUnicos = new Map();
+    for (const ingrediente of ingredientes) {
+        const nomeCanonico = identificarIngredienteCandidato(ingrediente.nome).nome;
+        if (!ingredientesUnicos.has(nomeCanonico)) {
+            ingredientesUnicos.set(nomeCanonico, {
+                quantidade: ingrediente.quantidade,
+                unidade_de_medida: ingrediente.unidade_de_medida
+            });
+        }
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const { rows: [receitaCriada] } = await client.query(`
+            INSERT INTO receita (usuario_id, nome, descricao, modo_preparo)
+            VALUES ($1, $2, $3, $4)
             RETURNING id
-        `;
+        `, [usuario_id, nome, descricao, modo_preparo]);
 
         if (!receitaCriada) {
+
             throw new Error('Falha ao criar receita: nenhum registro retornado.');
         }
 
-        return { id: receitaCriada.id };
-    } catch (error) {
+        for (const [nomeIngrediente, dados] of ingredientesUnicos) {
 
+            let { rows: [ingrediente] } = await client.query(`
+                SELECT id
+                FROM ingrediente
+                WHERE nome = $1
+            `, [nomeIngrediente]);
+
+            if (!ingrediente) {
+
+                ({ rows: [ingrediente] } = await client.query(`
+                    INSERT INTO ingrediente (nome)
+                    VALUES ($1)
+                    ON CONFLICT (nome) DO NOTHING
+                    RETURNING id
+                `, [nomeIngrediente]));
+
+                // Caso de concorrência:
+                // Outra transação pode ter criado o mesmo ingrediente depois
+                // da consulta inicial. Nesse caso, reutiliza o registro criado.
+
+                if (!ingrediente) {
+
+                    ({ rows: [ingrediente] } = await client.query(`
+                        SELECT id
+                        FROM ingrediente
+                        WHERE nome = $1
+                    `, [nomeIngrediente]));
+                }
+            }
+
+            if (!ingrediente) {
+
+                throw new Error(`Falha ao localizar ou criar ingrediente: ${nomeIngrediente}.`);
+            }
+
+            await client.query(`
+                INSERT INTO receita_ingrediente
+                    (receita_id, ingrediente_id, quantidade, unidade_de_medida)
+                VALUES ($1, $2, $3, $4)
+            `, [
+                receitaCriada.id,
+                ingrediente.id,
+                dados.quantidade,
+                dados.unidade_de_medida
+            ]);
+        }
+
+        await client.query('COMMIT');
+        return { id: receitaCriada.id };
+
+    } catch (error) {
+        try {
+
+            await client.query('ROLLBACK');
+        } catch (rollbackError) {
+
+            console.error('Falha no rollback de createReceitaRepo:', rollbackError);
+        }
         console.error('Erro em createReceitaRepo:', error);
         throw error;
+
+    } finally {
+
+        client.release();
     }
 }
 
@@ -331,10 +419,10 @@ async function listarPreparosPorUsuario(usuarioId) {
 }
 
 module.exports = {
-    createReceitaRepo, 
-    prepararReceitaRepo, 
-    ReceitaNaoEncontradaError, 
-    ReceitaSemIngredientesError, 
+    createReceitaRepo,
+    prepararReceitaRepo,
+    ReceitaNaoEncontradaError,
+    ReceitaSemIngredientesError,
     IngredientesInsuficientesError,
     listReceitasRepo,
     getReceitaByIdRepo,

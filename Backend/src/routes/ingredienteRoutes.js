@@ -10,7 +10,7 @@ ingredienteRouter.route('/')
     .get(listIngredientes);
 
 ingredienteRouter.route('/:id')
-    .patch(ingredienteUser, patchIngredienteById)
-    .delete(ingredienteUser, deleteIngrediente);
+    .patch(patchIngredienteById)
+    .delete(deleteIngrediente);
 
 module.exports = ingredienteRouter;
