@@ -45,6 +45,18 @@
     height: 45px;
 }
 
+.addAnimating {
+    animation: addPulse 180ms ease-out;
+}
+
+@keyframes addPulse {
+    50% { transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .addAnimating { animation-duration: 1ms; }
+}
+
 .item:disabled {
     cursor: not-allowed;
 }
