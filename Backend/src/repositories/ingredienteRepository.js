@@ -65,4 +65,20 @@ async function deleteIngredienteRepo(id) {
     return ingrediente;
 }
 
-module.exports = { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
+async function listIngredientesRepo() {
+    const ingredientes = await sql`
+        SELECT id, nome
+        FROM ingrediente
+        ORDER BY nome
+    `;
+    return ingredientes;
+}
+
+module.exports = { 
+    createIngredienteRepo,
+    updateIngredienteRepo,
+    deleteIngredienteRepo,
+    inserirIngredientesPadrao,
+    buscarIdsIngredientes,
+    listIngredientesRepo,
+};

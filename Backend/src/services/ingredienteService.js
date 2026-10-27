@@ -1,4 +1,4 @@
-const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo } = require('../repositories/ingredienteRepository');
+const { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo, listIngredientesRepo } = require('../repositories/ingredienteRepository');
 const { IngredienteError } = require('../errors/IngredienteError');
 const { listaIngredientes, aliasesToNome } = require('../data/ingredientes');
 
@@ -147,6 +147,10 @@ async function deleteIngredienteService(ingredienteId, usuarioId) {
     return ingrediente;
 }
 
+async function listIngredientesService(){
+    return listIngredientesRepo();
+}
+
 /* EXEMPLO DE CHAMADA DO MAPEAMENTO
 
     const raw = await ask('Adicione um item:\n');
@@ -171,4 +175,5 @@ module.exports = {
     validarCatalogoIngredientes,
     garantirIngredientesPadrao,
     aliasesToNome,
+    listIngredientesService,
 };
