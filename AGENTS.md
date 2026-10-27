@@ -27,3 +27,10 @@ Prefer the project's conventional commit pattern in Portuguese, using an indicat
 ## Configuration & Secrets
 
 Keep credentials in ignored `.env` files; do not commit database URLs, tokens, or passwords. Check `Backend/src/config/` before changing database configuration, and keep test credentials isolated from development data.
+
+## Pending Work for the Next Sprint
+
+- Replace the client-provided `?usuario_id` used by ingredient PATCH/DELETE with the authenticated session identity. Today a client can impersonate administrator ID 1; add authorization tests for that case.
+- Decide how to persist the mapping from standard ingredient names and aliases to ingredient IDs after an administrator renames a standard ingredient. The current static catalog still searches for the old name during purchases.
+- Revisit the initial ingredient load: it intentionally seeds only an empty table to preserve renames, so it does not fill a partially populated catalog. Resolve this together with the persistent mapping above.
+- Confirm the scope of the recipe update task before implementing it. The existing `PATCH /api/receitas/:id` updates basic fields, does not update recipe ingredients, and currently does not check recipe ownership.
