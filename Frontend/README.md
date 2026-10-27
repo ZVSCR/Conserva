@@ -28,14 +28,10 @@ Abra um terminal e navegue até a pasta do frontend para instalar as dependênci
    npm install
    ```
 3. **Configurar o endereço da API:**
-   * O arquivo `Frontend/.env` contém a configuração local e não é enviado ao Git. Para criar o seu arquivo em outra máquina, copie o modelo, estando dentro de `Frontend/`:
-     ```bash
-     cp .env.example .env
-     ```
-   * Configure `VITE_API_BASE_URL=http://localhost:3000`, substituindo o endereço caso necessário. Não acrescente `/api`: as chamadas já incluem esse caminho.
-   * Todas as chamadas da interface usam `src/services/apiConfig.js`. Sem a variável, o endereço padrão continua sendo `http://localhost:3000`.
-   * Reinicie o Vite depois de alterar o `.env`. Para a versão compilada, execute novamente `npm run build`.
-   * Variáveis `VITE_` são públicas no navegador. Credenciais do banco e chaves de sessão pertencem exclusivamente ao backend.
+   * Copie `Frontend/.env.example` para `Frontend/.env` e configure `VITE_API_BASE_URL=http://localhost:3000`, substituindo o endereço caso necessário. Não acrescente `/api` ao endereço.
+   * Todas as chamadas utilizam `src/services/api.js`. Sem a variável, o endereço padrão é `http://localhost:3000`.
+   * Reinicie o Vite após alterar o `.env`; para a versão compilada, execute novamente `npm run build`.
+   * Variáveis `VITE_` são públicas no navegador. Credenciais do banco e a chave de sessão pertencem exclusivamente ao backend.
 4. **Iniciar o servidor local:**
    ```bash
    npm run dev

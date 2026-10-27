@@ -1,7 +1,7 @@
-import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
 import "./PanelExtratoCompras.css";
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../../services/api';
 
 
 function ExtratoCompras() {
@@ -16,10 +16,11 @@ function ExtratoCompras() {
   const [erroSalvar, setErroSalvar] = useState("");
 
   const navigate = useNavigate();
+  
   // Busca as compras do usuário para exibir em scroll
   const fetchComprasComItens = async () => {
     try {
-      const response = await apiFetch(`/api/compras`, {
+      const response = await apiFetch('/api/compras', {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -329,8 +330,8 @@ function ExtratoCompras() {
         )}
       </div>
 
-      <div className="extrato-footer">
-        <button type="button" className="btn btn-cancel" onClick={() => navigate('/estoque')}>
+      <div className="extrato-footer"> 
+        <button type="button" className="btn btn-cancel" onClick={() => navigate('/estoque')}> 
           CANCELAR
         </button>
         <button type="button" className="btn btn-concluir" onClick={() => navigate('/estoque')}>

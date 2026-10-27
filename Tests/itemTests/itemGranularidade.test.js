@@ -35,14 +35,14 @@ test('criação direta usa o serviço compartilhado de compras', async () => {
         valor_unitario: 20
     };
     const res = resposta();
-    await criarItemHandler({ body }, res);
+    await criarItemHandler({ user: { id: 7 }, body }, res);
     expect(adicionaItensACompraService).toHaveBeenCalledWith(7, 42, { itens: [body] });
     expect(res.status).toHaveBeenCalledWith(201);
 });
 
 test('criação direta exige uma compra de destino', async () => {
     const res = resposta();
-    await criarItemHandler({ body: { usuario_id: 7 } }, res);
+    await criarItemHandler({ user: { id: 7 }, body: { usuario_id: 7 } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(adicionaItensACompraService).not.toHaveBeenCalled();
 });
@@ -53,15 +53,15 @@ test('criação direta rejeita fração de item unitário', async () => {
         unidade_de_medida: 'un', tipo_medida: 'unitaria', valor_unitario: 2
     };
     const res = resposta();
-    await criarItemHandler({ body }, res);
+    await criarItemHandler({ user: { id: 7 }, body }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(adicionaItensACompraService).not.toHaveBeenCalled();
 });
 
 test('edição direta preserva a rota de nome e usa atualização compartilhada', async () => {
     const res = resposta();
-    await atualizarItem({ params: { id: '10' }, body: { nome_item: 'Novo nome' } }, res);
-    expect(atualizarPorId).toHaveBeenCalledWith(10, expect.objectContaining({ nome_item: 'Novo nome' }));
+    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { nome_item: 'Novo nome' } }, res);
+    expect(atualizarPorId).toHaveBeenCalledWith(10, expect.objectContaining({ nome_item: 'Novo nome' }), 7);
     expect(res.status).toHaveBeenCalledWith(200);
 });
 
@@ -70,7 +70,7 @@ test('edição direta retorna 409 ao renomear item usado em receita', async () =
     atualizarPorId.mockRejectedValue(new ItemJaUsadoEmReceitaError('Item já usado em receita'));
     const res = resposta();
 
-    await atualizarItem({ params: { id: '10' }, body: { nome_item: 'Outro' } }, res);
+    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { nome_item: 'Outro' } }, res);
 
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({ erro: 'Item já usado em receita' });
@@ -78,14 +78,14 @@ test('edição direta retorna 409 ao renomear item usado em receita', async () =
 
 test('edição direta não permite alterar a classificação de um item existente', async () => {
     const res = resposta();
-    await atualizarItem({ params: { id: '10' }, body: { tipo_medida: 'unitaria' } }, res);
+    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { tipo_medida: 'unitaria' } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(atualizarPorId).not.toHaveBeenCalled();
 });
 
 test('edição direta rejeita preço que não cabe no campo do banco', async () => {
     const res = resposta();
-    await atualizarItem({ params: { id: '10' }, body: { valor_unitario: 1.234 } }, res);
+    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { valor_unitario: 1.234 } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(atualizarPorId).not.toHaveBeenCalled();
 });

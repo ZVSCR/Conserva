@@ -30,7 +30,7 @@ function responseMock() {
 
 async function executar(id, body) {
     const res = responseMock();
-    await patchReceitaById({ params: { id }, body }, res);
+    await patchReceitaById({ params: { id }, body, user: { id: 7 } }, res);
     return res;
 }
 
@@ -91,7 +91,7 @@ describe('patchReceitaById', () => {
         const res = await executar('7', body);
 
         expect(updateReceitaService).toHaveBeenCalledTimes(1);
-        expect(updateReceitaService).toHaveBeenCalledWith(7, body);
+        expect(updateReceitaService).toHaveBeenCalledWith(7, body, 7);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             message: 'Receita atualizada com sucesso',
@@ -104,7 +104,7 @@ describe('patchReceitaById', () => {
 
         const res = await executar('2147483647', payloadValido);
 
-        expect(updateReceitaService).toHaveBeenCalledWith(2147483647, payloadValido);
+        expect(updateReceitaService).toHaveBeenCalledWith(2147483647, payloadValido, 7);
         expect(res.status).toHaveBeenCalledWith(200);
     });
 

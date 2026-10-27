@@ -9,7 +9,7 @@ O servidor é uma API Express em CommonJS. [`index.js`](../../Backend/src/index.
 | Diretório | Responsabilidade | Exemplo |
 | --- | --- | --- |
 | [`routes/`](../../Backend/src/routes) | Define caminho, método e handler. | `receitaRoutes.js` monta o catálogo e o preparo. |
-| [`middleware/`](../../Backend/src/middleware) | Validação e identificação provisória de usuário. | `receitaUser.js`, `compraValidator.js`. |
+| [`middleware/`](../../Backend/src/middleware) | Validação e autenticação por cookie. | `requireAuth.js`, `compraValidator.js`. |
 | [`controllers/`](../../Backend/src/controllers) | Lê a requisição e envia respostas HTTP. | `receitaController.js`. |
 | [`services/`](../../Backend/src/services) | Aplica regras que não pertencem à camada HTTP ou SQL. | `receitaPreparoService.js` planeja o consumo dos lotes. |
 | [`repositories/`](../../Backend/src/repositories) | Executa consultas e transações. | `receitaRepository.js`. |
@@ -26,7 +26,7 @@ Nem toda operação percorre todas as camadas: algumas rotas chamam o repository
 | `/api/receitas` | Cadastro, consulta, edição, exclusão, disponibilidade, preparo e gastos. |
 | `/api/ingredientes` | Cadastro de ingredientes. |
 
-Confira métodos e parâmetros nos arquivos de `routes/`; esta tabela documenta apenas os prefixos. `receitaUser` e `compraUser` recebem um ID informado pelo cliente, e há rotas que usam `mockAuth` com usuário fixo. Essas peças **não verificam a identidade do solicitante**; a autenticação efetiva e as regras de autorização ainda precisam ser integradas antes de confiar nesses IDs.
+Confira métodos e parâmetros nos arquivos de `routes/`; esta tabela documenta apenas os prefixos. As rotas pessoais usam o ID verificado pelo cookie assinado. [Autenticação e autorização](autenticacao.md) descreve o contrato atual.
 
 ## Evolução
 
@@ -34,5 +34,6 @@ Confira métodos e parâmetros nos arquivos de `routes/`; esta tabela documenta 
 2. Ainda em setembro, controllers e repositories de compras, itens, estoque e usuários passaram a concentrar as operações dessas áreas (`b9735d1`, `c5234e4`).
 3. Em outubro, a área de receitas ganhou criação (`fb6904a`), preparo transacional e verificação de disponibilidade (`c95dd12`), leitura, exclusão, edição e gastos (`e7cf9da`, `3faa9d4`, `0b6c3cd`, `cac45c7`).
 4. Em 13–15/10, a autenticação existente foi reorganizada em validator, service e repository (`3f540eb`). Em 17–19/10, ingredientes e identificação de usuário nas receitas entraram na API (`82ac830`, `feb95ea`).
+5. Em 26/10, `feat/sessionlogin` adicionou o cookie de login; a integração seguinte vinculou compras, estoque, itens e receitas ao usuário autenticado e reservou alterações de ingredientes ao administrador.
 
 Os testes estão em [`Tests/`](../../Tests), por domínio. Para executá-los: `npm test -- --runInBand`; testes que exigem banco devem usar `TEST_DATABASE_URL` separado do banco de desenvolvimento.

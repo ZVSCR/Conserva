@@ -1,4 +1,4 @@
-import { apiFetch } from '../../services/apiClient.js';
+import { apiFetch } from '../../services/api.js';
 import { useState, useEffect } from 'react';
 
 import './Estoque.css';

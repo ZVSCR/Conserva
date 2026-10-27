@@ -6,6 +6,8 @@
 
 **Conserva** é uma ferramenta web de gerenciamento de estoque alimentício e sugestão de receitas, com foco em **consumo consciente** — reduzindo desperdício de alimentos e ajudando o usuário a entender melhor seus gastos com comida.
 
+Para executar o login, copie `Backend/.env.example` para `Backend/.env` e preencha `DATABASE_URL` e uma `SESSION_SECRET` aleatória com pelo menos 32 caracteres. Ajuste `FRONTEND_URL` se o Vite usar outra origem. Instale as dependências com `npm install` e `npm --prefix Frontend install`; inicie a API com `node Backend/src/index.js` e o frontend com `npm --prefix Frontend run dev`. A API lê `Backend/.env` mesmo quando iniciada da raiz. Configure `Frontend/.env` com `VITE_API_BASE_URL` se a API não estiver em `http://localhost:3000`. Consulte [autenticação por cookie](Docs/backend/autenticacao.md) para o contrato das rotas.
+
 O usuário fotografa a nota fiscal de uma compra; o sistema reconhece os itens, quantidades e valores automaticamente, registra a despesa (como um extrato bancário) e atualiza o estoque. A partir do estoque disponível, o sistema sugere receitas, permite marcar o quanto de cada ingrediente foi consumido, e calcula o custo médio de cada refeição preparada.
 
 ## 2. Público-Alvo

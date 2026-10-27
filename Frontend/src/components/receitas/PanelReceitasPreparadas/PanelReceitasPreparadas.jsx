@@ -1,10 +1,10 @@
-import { apiFetch } from '../../../services/apiClient.js';
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import './PanelReceitasPreparadas.css';
 
-const API_URL = `/api/receitas/preparadas`;
+const API_URL = '/api/receitas/preparadas';
 
 function formatarData(valor) {
     if (!valor) return 'Data não informada';

@@ -1,24 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '../../../context/useAuth';
+import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
 import styles from './AppHeader.module.css';
 
 function AppHeader() {
     const { user, logout } = useAuth();
-    const [leaving, setLeaving] = useState(false);
+    const navigate = useNavigate();
     const [error, setError] = useState('');
 
     async function handleLogout() {
-        if (leaving) return;
-        setLeaving(true);
-        setError('');
         try {
             await logout();
-        } catch (failure) {
-            setError(failure.message);
-        } finally {
-            setLeaving(false);
+            navigate('/login', { replace: true });
+        } catch {
+            setError('Não foi possível encerrar a sessão.');
         }
     }
 
@@ -30,7 +26,7 @@ function AppHeader() {
                 <Link to="/alterar-dados" className={styles.profile} aria-label="Dados do perfil">
                     <img src={perfil} alt="" />
                 </Link>
-                <button type="button" onClick={handleLogout} disabled={leaving}>{leaving ? 'Saindo...' : 'Sair'}</button>
+                <button type="button" onClick={handleLogout}>Sair</button>
                 {error && <span role="alert">{error}</span>}
             </div>
         </header>

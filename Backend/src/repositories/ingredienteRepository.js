@@ -11,7 +11,7 @@ async function createIngredienteRepo(nome) {
     return ingrediente;
 }
 
-async function updateIngredienteRepo(ingredienteId, nome) {
+async function updateIngredienteRepo(ingredienteId, { nome }) {
     const [ingrediente] = await sql`
         UPDATE ingrediente
         SET nome = ${nome}
@@ -31,6 +31,8 @@ async function inserirIngredientesPadrao(nomes) {
         INSERT INTO ingrediente (nome)
         SELECT DISTINCT nome
         FROM unnest($1::text[]) AS nomes(nome)
+        -- shortcut: a carga inicial só preenche um catálogo vazio; catálogos parciais exigem identificação persistente dos nomes padrão.
+        WHERE NOT EXISTS (SELECT 1 FROM ingrediente)
         ON CONFLICT (nome) DO NOTHING
         RETURNING id
     `, [nomes]);
@@ -65,4 +67,20 @@ async function deleteIngredienteRepo(id) {
     return ingrediente;
 }
 
-module.exports = { createIngredienteRepo, updateIngredienteRepo, deleteIngredienteRepo, inserirIngredientesPadrao, buscarIdsIngredientes };
+async function listIngredientesRepo() {
+    const ingredientes = await sql`
+        SELECT id, nome
+        FROM ingrediente
+        ORDER BY nome
+    `;
+    return ingredientes;
+}
+
+module.exports = { 
+    createIngredienteRepo,
+    updateIngredienteRepo,
+    deleteIngredienteRepo,
+    inserirIngredientesPadrao,
+    buscarIdsIngredientes,
+    listIngredientesRepo,
+};

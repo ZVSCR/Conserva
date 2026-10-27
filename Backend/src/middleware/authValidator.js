@@ -4,7 +4,7 @@ const { validateString } = require('./generalValidator');
 function validateUsername(username) {
 
     // Username é obrigatório, não nulo, e com limite de 50 caracteres
-    return validateString({
+    const errors = validateString({
         value: username,
         field: 'username',
         maxLength: 50,
@@ -15,6 +15,10 @@ function validateUsername(username) {
             maxLength: 'Username deve possuir no máximo 50 caracteres.'
         }
     });
+    if (errors.length === 0 && username.includes('@')) {
+        errors.push({ field: 'username', message: 'Nome de usuário não pode conter @.' });
+    }
+    return errors;
 }
 
 function validateEmail(email) {

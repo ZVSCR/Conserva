@@ -1,7 +1,7 @@
-import { apiFetch } from '../../../services/apiClient.js';
+import { apiFetch } from '../../../services/api.js';
 import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
-import { useAuth } from "../../../context/useAuth";
+import { useAuth } from "../../../contexts/useAuth";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
 
@@ -38,6 +38,7 @@ function PanelUserData() {
         });
 
         const data = await response.json();
+        if (!response.ok) throw new Error(getApiErrorMessage(data, 'Erro ao buscar dados.'));
 
         const userData = {
           username: data.data.username || "",
@@ -116,7 +117,7 @@ function PanelUserData() {
         return;
       }
 
-      await refreshSession();
+      await refreshSession({ silent: true });
       navigate('/estoque');
 
       // Atualiza também os dados originais com o que acabou de ser salvo com sucesso
@@ -140,6 +141,8 @@ function PanelUserData() {
       setLoading(false);
     }
   };
+
+  if (fetching) return <p role="status">Carregando dados do perfil...</p>;
 
   return (
     <div className="panel-data">

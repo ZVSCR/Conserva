@@ -1,6 +1,6 @@
-import { apiFetch } from '../../../services/apiClient.js';
 import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
+import { apiFetch } from '../../../services/api';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -48,9 +48,10 @@ function PanelNovaCompra() {
     const [item, setItem] = useState(novoItemVazio);
     const [itemEditandoId, setItemEditandoId] = useState(null);
     const [itemErrorMsg, setItemErrorMsg] = useState("");
-    const blocker = useBlocker(() => loading && !liberarNavegacao.current);    const busca = filtro.trim().toLowerCase();
+    const blocker = useBlocker(() => loading && !liberarNavegacao.current);
+    const busca = filtro.trim().toLowerCase();
     const itensFiltrados = itens.filter(
-        (item) =>
+        (item) => 
         item.nome_item.toLowerCase().includes(busca) ||
         item.valor_unitario.toString().includes(busca) ||
         item.quantidade.toString().includes(busca)
@@ -102,10 +103,11 @@ function PanelNovaCompra() {
         setErrorMsg("");
 
         try {
-            const response = await apiFetch(`/api/compras`, {
+            const response = await apiFetch("/api/compras", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({                    data_compra: compra.data_compra,
+                body: JSON.stringify({
+                    data_compra: compra.data_compra,
                     estabelecimento: compra.estabelecimento.trim(),
                     itens: itensParaEnviar,
                 }),
@@ -149,7 +151,7 @@ function PanelNovaCompra() {
         setErrorMsg("");
         setModalEstabelecimentoAberto(false);
     }
-
+    
     function alterarItem(event) {
         const { name, value } = event.target;
         setItem((atual) => ({ ...atual, [name]: value }));
@@ -223,7 +225,7 @@ function PanelNovaCompra() {
         setErrorMsg("");
         fecharModalItem();
     }
-
+    
     return (
         <div className="compra-container">
             <h2 className="compra-titulo">Itens comprados</h2>
@@ -300,7 +302,7 @@ function PanelNovaCompra() {
                         +
                     </button>
                 </div>
-
+                
                 <button type="button" className="btn btn-cancela-acao" onClick={() => navigate("/home")} disabled={loading}>
                     CANCELAR
                 </button>
@@ -331,15 +333,15 @@ function PanelNovaCompra() {
 
                         {estabelecimentoErrorMsg && <p className="item-modal-erro" role="alert">{estabelecimentoErrorMsg}</p>}
 
-                        <button
-                            type="button"
-                            className="btn btn-cancela-editar-nome-estabelecimento"
+                        <button 
+                            type="button" 
+                            className="btn btn-cancela-editar-nome-estabelecimento" 
                             onClick={() => setModalEstabelecimentoAberto(false)}
                         >
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
+                        <button 
+                            type="submit" 
                             className="btn btn-altera-nome-estabelecimento"
                         >
                             Concluir
@@ -412,15 +414,15 @@ function PanelNovaCompra() {
 
                     {itemErrorMsg && <p className="item-modal-erro" role="alert">{itemErrorMsg}</p>}
 
-                    <button
-                        type="button"
-                        className="btn btn-cancela-novo-item"
+                    <button 
+                        type="button" 
+                        className="btn btn-cancela-novo-item" 
                         onClick={fecharModalItem}
                     >
                         Cancelar
                     </button>
-                    <button
-                        type="submit"
+                    <button 
+                        type="submit" 
                         className="btn btn-adiciona-novo-item"
                     >
                         {itemEditandoId === null ? "Adicionar" : "Salvar alterações"}

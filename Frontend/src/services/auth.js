@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from './apiErrors.js';
-import { apiFetch } from './apiClient.js';
+import { apiFetch } from './api.js';
 
 export class AuthRequestError extends Error {
   constructor(message, status) {
@@ -55,8 +55,8 @@ export async function loginUser({ identifier, password }) {
 
 export async function loadSession({ signal } = {}) {
   try {
-    const data = await authRequest('/api/users/me', { signal });
-    return publicUser(data?.data);
+    const data = await authRequest('/api/auth/me', { signal });
+    return publicUser(data?.user);
   } catch (error) {
     if (error instanceof AuthRequestError && error.status === 401) return null;
     throw error;

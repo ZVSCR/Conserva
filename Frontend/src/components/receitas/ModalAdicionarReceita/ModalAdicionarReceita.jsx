@@ -1,5 +1,5 @@
-import { apiFetch } from '../../../services/apiClient.js';
 import { useState } from "react";
+import { apiFetch } from '../../../services/api';
 import "./ModalAdicionarReceita.css";
 
 function ModalAdicionarReceita({ onClose, onCreated }) {
@@ -36,10 +36,11 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
         setErrorMsg("");
         setEnviando(true);
         try {
-            const response = await apiFetch(`/api/receitas/`, {
+            const response = await apiFetch("/api/receitas/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({                    nome: receita.nome,
+                body: JSON.stringify({
+                    nome: receita.nome,
                     descricao: receita.descricao,
                     modo_preparo: receita.modo_preparo,
                     // ingredientes
