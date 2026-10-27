@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from '../../../services/api';
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
+import ModalEditarReceita from "../ModalEditarReceita/ModalEditarReceita";
 import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque";
 import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
 
@@ -14,6 +15,7 @@ function PanelViewReceita() {
     const [preparando, setPreparando] = useState(false);
     const [mensagemPreparo, setMensagemPreparo] = useState("");
     const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    const [receitaEditando, setReceitaEditando] = useState(null);
     const [receitaExcluindo, setReceitaExcluindo] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
     const [erroExclusao, setErroExclusao] = useState("");
@@ -91,6 +93,16 @@ function PanelViewReceita() {
     const fecharModalNovaReceita = () => {
         setModalNovaReceitaAberto(false);
     }
+
+    const fecharModalEditarReceita = () => {
+        setReceitaEditando(null);
+    };
+
+    const atualizarReceitaNaLista = (receitaAtualizada) => {
+        setReceitas((atuais) => atuais.map((receita) =>
+            receita.id === receitaAtualizada.id ? receitaAtualizada : receita
+        ));
+    };
 
     const confirmarExclusao = async () => {
         if (!receitaExcluindo || excluindo) return;
@@ -203,6 +215,7 @@ function PanelViewReceita() {
                             </button>
                             <EllipsisMenuReceita
                                 rotulo={`Opções da receita ${receita.nome}`}
+                                onModificar={() => setReceitaEditando(receita)}
                                 onExcluir={() => {
                                     setErroExclusao("");
                                     setReceitaExcluindo(receita);
@@ -274,6 +287,16 @@ function PanelViewReceita() {
             {modalNovaReceitaAberto && (
                 <div className="modal-nova-receita">
                     <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas}/>
+                </div>
+            )}
+
+            {receitaEditando && (
+                <div className="modal-nova-receita">
+                    <ModalEditarReceita
+                        receita={receitaEditando}
+                        onClose={fecharModalEditarReceita}
+                        onUpdated={atualizarReceitaNaLista}
+                    />
                 </div>
             )}
         </div>
