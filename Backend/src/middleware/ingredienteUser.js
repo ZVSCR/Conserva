@@ -14,6 +14,7 @@ module.exports = function ingredienteUser(req, res, next) {
             }]
         });
     }
+}
 
 module.exports = function ingredienteUser(req, res, next) {
     return requireAuth(req, res, () => {
