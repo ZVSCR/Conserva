@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../context/useAuth';
+import { useAuth } from '../../../contexts/useAuth';
 import './PanelLogin.css'
 function PanelLogin() {
     const { login, user, status, sessionError } = useAuth();
@@ -26,7 +26,7 @@ function PanelLogin() {
         }
     }
 
-    if (user && status === 'authenticated') return <Navigate to="/estoque" replace />;
+    if (user && status === 'authenticated') return <Navigate to="/home" replace />;
 
     return (
         <div className="panel-login">

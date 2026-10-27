@@ -76,8 +76,8 @@ const updateUserPreferences = async (req, res, next) => {
 
 const listarGastosUsuarios = async (req, res, next) => {
   try {
-    const gastos = await userRepository.buscarGastosTotaisPorUsuario(req.user.id);
-
+    const gastos = await userRepository.buscarGastosTotaisPorUsuario();
+    
     return res.status(200).json({
       status: 'success',
       data: gastos
@@ -90,7 +90,9 @@ const listarGastosUsuarios = async (req, res, next) => {
 
 const getUserData = async (req, res) => {
   try {
-    const usuario = req.user;
+    const userId = req.user.id;
+
+    const usuario = await userRepository.findUserDataById(userId);
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });

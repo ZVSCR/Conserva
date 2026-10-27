@@ -1,2 +1,8 @@
-// Compatibilidade com os roteadores existentes: a identidade vem da sessão.
-module.exports = require('./requireAuth');
+const requireAuth = require('./requireAuth');
+
+module.exports = function compraUser(req, res, next) {
+    return requireAuth(req, res, () => {
+        req.compraUsuarioId = req.user.id;
+        next();
+    });
+};

@@ -1,5 +1,5 @@
-import { apiFetch } from '../../../services/apiClient.js';
 import { useState, useEffect } from "react";
+import { apiFetch } from '../../../services/api';
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque";
@@ -13,7 +13,7 @@ function PanelViewReceita() {
     const [receitaExpandidaId, setReceitaExpandidaId] = useState(null);
     const [preparando, setPreparando] = useState(false);
     const [mensagemPreparo, setMensagemPreparo] = useState("");
-    // Identificação temporária, seguindo o mesmo padrão de Compras.    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
+    const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
     const [receitaExcluindo, setReceitaExcluindo] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
     const [erroExclusao, setErroExclusao] = useState("");
@@ -22,7 +22,7 @@ function PanelViewReceita() {
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
         try {
-            const response = await apiFetch(`/api/receitas`, {
+            const response = await apiFetch('/api/receitas', {
                 method: "GET",
             });
 

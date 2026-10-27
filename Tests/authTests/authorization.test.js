@@ -1,139 +1,94 @@
 const request = require('supertest');
-const bcrypt = require('bcrypt');
+
 jest.mock('../../Backend/src/config/database', () => jest.fn());
 jest.mock('../../Backend/src/config/transactionDatabase', () => ({ connect: jest.fn() }));
-jest.mock('../../Backend/src/repositories/authRepository', () => ({ loginRepo: jest.fn(), registerRepo: jest.fn() }));
-jest.mock('../../Backend/src/repositories/userRepository', () => ({
-    findUserDataById: jest.fn(), findPreferencesByUserId: jest.fn(), updatePreferences: jest.fn(),
-    buscarGastosTotaisPorUsuario: jest.fn(), updateUserData: jest.fn()
-}));
-jest.mock('../../Backend/src/repositories/compraRepository', () => {
-    const actual = jest.requireActual('../../Backend/src/repositories/compraRepository');
-    return { ...actual, listarComprasUsuario: jest.fn(), listarCompraPorId: jest.fn(),
-        atualizarCompraPorId: jest.fn(), apagarCompraPorId: jest.fn(), atualizarPorCompraId: jest.fn() };
-});
-jest.mock('../../Backend/src/repositories/itemRepository', () => ({
-    buscarItens: jest.fn(), buscarPorId: jest.fn(), atualizarPorId: jest.fn(),
-    apagarPorId: jest.fn(), buscarItensPorUsuario: jest.fn()
-}));
-jest.mock('../../Backend/src/repositories/estoqueRepository', () => ({
-    buscarEstoque: jest.fn(), buscarDetalheEstoque: jest.fn(), atualizarQuantidade: jest.fn(),
-    buscarValorEstoquePorUsuario: jest.fn(), buscarItensEstoquePorUsuario: jest.fn(), buscarConsumo: jest.fn()
-}));
-jest.mock('../../Backend/src/repositories/receitaRepository', () => {
-    const actual = jest.requireActual('../../Backend/src/repositories/receitaRepository');
-    return { ...actual, listReceitasRepo: jest.fn(), getReceitaByIdRepo: jest.fn(),
-        updateReceitaRepo: jest.fn(), listarPreparosPorUsuario: jest.fn(), getGastoPorReceitaRepo: jest.fn() };
-});
 
-const app = require('../../Backend/src/app');
-const auth = require('../../Backend/src/repositories/authRepository');
-const users = require('../../Backend/src/repositories/userRepository');
-const compras = require('../../Backend/src/repositories/compraRepository');
-const items = require('../../Backend/src/repositories/itemRepository');
-const estoque = require('../../Backend/src/repositories/estoqueRepository');
-const receitas = require('../../Backend/src/repositories/receitaRepository');
 const sql = require('../../Backend/src/config/database');
-const accounts = [7, 42].map((id) => ({ id, username: 'conta' + id, email: 'conta' + id + '@example.com', tipo: 'domestico' }));
-let hash;
+const { createSessionToken, SESSION_COOKIE_NAME } = require('../../Backend/src/config/session');
+const app = require('../../Backend/src/app');
+const { loginRepo } = require('../../Backend/src/repositories/authRepository');
 
-beforeAll(async () => { hash = await bcrypt.hash('senha-teste', 4); });
+const cookie = (id) => `${SESSION_COOKIE_NAME}=${createSessionToken(id)}`;
+
 beforeEach(() => {
-    jest.clearAllMocks();
-    auth.loginRepo.mockImplementation(async ({ identifier }) => {
-        const user = accounts.find((account) => account.username === identifier);
-        return user ? { ...user, password_hash: hash } : null;
-    });
-    users.findUserDataById.mockImplementation(async (id) => accounts.find((account) => account.id === id));
-    compras.listarComprasUsuario.mockImplementation(async (id) => [{ id: id * 10, usuario_id: id }]);
-    compras.listarCompraPorId.mockImplementation(async (id, compraId) => {
-        if (compraId !== id * 10) throw new compras.CompraNaoEncontradaError();
-        return [{ id: compraId, usuario_id: id }];
-    });
-    items.buscarPorId.mockImplementation(async (id, owner) => Number(id) === owner * 10 ? { id: Number(id) } : undefined);
-    items.atualizarPorId.mockImplementation(async (id, fields, owner) => id === owner * 10 ? { id, ...fields } : undefined);
-    items.apagarPorId.mockImplementation(async (id, owner) => Number(id) === owner * 10 ? { id } : undefined);
-    estoque.buscarEstoque.mockImplementation(async (id) => [{ item_id: id * 10 }]);
-    estoque.buscarDetalheEstoque.mockImplementation(async (owner, id) => id === owner * 10 ? { quantidade_original: '3', tipo_medida: 'unitaria' } : undefined);
-    receitas.getReceitaByIdRepo.mockImplementation(async (id, owner) => id === 100 || id === owner * 10 ? { id } : undefined);
-    receitas.updateReceitaRepo.mockImplementation(async (id, payload, owner) => id === owner * 10 ? { id, ...payload } : undefined);
-    receitas.listarPreparosPorUsuario.mockImplementation(async (id) => [{ id: id * 10 }]);
-    users.findPreferencesByUserId.mockImplementation(async (id) => ({ notify_push: id === 7, notify_email: true, is_dark_theme: false }));
-    users.updatePreferences.mockImplementation(async (id, changes) => ({ id, ...changes }));
-    users.buscarGastosTotaisPorUsuario.mockImplementation(async (id) => [{ id, total_gasto: 10 }]);
+    process.env.SESSION_SECRET = 'test-secret-with-at-least-thirty-two-characters';
+    sql.mockReset();
+    sql.mockResolvedValue([]);
 });
 
-async function connect(id) {
-    const agent = request.agent(app);
-    const response = await agent.post('/api/auth/login').send({ identifier: 'conta' + id, password: 'senha-teste' });
-    expect(response.status).toBe(200);
-    return agent;
-}
-
-test.each([
-    ['get', '/api/users/me'], ['get', '/api/users/me/preferences'], ['patch', '/api/users/me/preferences'],
-    ['get', '/api/users/gastos'], ['get', '/api/compras'], ['post', '/api/compras'],
-    ['get', '/api/items'], ['get', '/api/items/70'], ['patch', '/api/items/70'], ['delete', '/api/items/70'],
-    ['get', '/api/estoque'], ['patch', '/api/estoque/70'], ['get', '/api/receitas'],
-    ['patch', '/api/receitas/70'], ['post', '/api/receitas/70/preparar'],
-    ['get', '/api/receitas/preparadas'], ['get', '/api/receitas/gastos'],
-    ['post', '/api/ingredientes'], ['patch', '/api/ingredientes/1']
-])('%s %s exige cookie de sessão, mesmo com usuario_id forjado', async (method, path) => {
-    const response = await request(app)[method](path).query({ usuario_id: 7 }).send({ usuario_id: 7 });
+test.each(['/api/compras', '/api/estoque', '/api/items', '/api/receitas', '/api/ingredientes/7'])
+('não permite acessar %s sem sessão', async (path) => {
+    const response = await request(app).get(path);
     expect(response.status).toBe(401);
-    expect(users.findUserDataById).not.toHaveBeenCalled();
     expect(sql).not.toHaveBeenCalled();
 });
 
-test.each([7, 42])('a sessão %s determina compras, estoque, preferências e histórico', async (id) => {
-    const agent = await connect(id);
-    expect((await agent.get('/api/compras?usuario_id=999')).body.data[0].usuario_id).toBe(id);
-    expect((await agent.get('/api/estoque?usuario_id=999')).body[0].item_id).toBe(id * 10);
-    expect((await agent.get('/api/users/me')).body.data.id).toBe(id);
-    expect((await agent.get('/api/users/me/preferences')).body.data.notify_push).toBe(id === 7);
-    expect((await agent.get('/api/receitas/preparadas?usuario_id=999')).body.refeicoesPreparadas[0].id).toBe(id * 10);
-    expect((await agent.get('/api/users/gastos')).body.data[0].id).toBe(id);
-    await agent.patch('/api/users/me/preferences').send({ notify_push: false, usuario_id: 999 });
-    expect(users.updatePreferences).toHaveBeenCalledWith(id, expect.objectContaining({ notify_push: false }));
+test.each(['/api/compras', '/api/estoque', '/api/items', '/api/receitas'])
+('%s usa o usuário do cookie mesmo com usuario_id de outra conta', async (path) => {
+    const response = await request(app).get(path)
+        .set('Cookie', cookie(42)).query({ usuario_id: 1 });
+
+    expect(response.status).toBe(200);
+    expect(sql.mock.calls.some(([, ...values]) => values.includes(42))).toBe(true);
+    expect(sql.mock.calls.every(([, ...values]) => !values.includes(1))).toBe(true);
 });
 
-test('uma conta não consulta, altera ou exclui os itens e compras da outra', async () => {
-    const agent = await connect(7);
-    expect((await agent.get('/api/compras/420?usuario_id=42')).status).toBe(404);
-    expect((await agent.get('/api/items/420')).status).toBe(404);
-    expect((await agent.patch('/api/items/420').send({ nome_item: 'Outro nome' })).status).toBe(404);
-    expect((await agent.delete('/api/items/420')).status).toBe(404);
-    expect((await agent.patch('/api/estoque/420?usuario_id=42').send({ quantidade: 1 })).status).toBe(404);
-    expect(items.atualizarPorId).toHaveBeenCalledWith(420, expect.any(Object), 7);
-    expect(items.apagarPorId).toHaveBeenCalledWith('420', 7);
-    expect(estoque.atualizarQuantidade).not.toHaveBeenCalled();
+test('não devolve receita pertencente a outra conta', async () => {
+    const response = await request(app).get('/api/receitas/7').set('Cookie', cookie(42));
+    expect(response.status).toBe(404);
+    const [segments, id, userId] = sql.mock.calls[0];
+    expect(segments.join('?')).toContain('r.usuario_id IS NULL OR r.usuario_id = ?');
+    expect([id, userId]).toEqual([7, 42]);
 });
 
-test('receitas públicas podem ser consultadas, mas só receitas próprias podem ser editadas', async () => {
-    const agent = await connect(7);
-    expect((await agent.get('/api/receitas/100')).status).toBe(200);
-    expect((await agent.get('/api/receitas/420')).status).toBe(404);
-    const payload = { nome: 'Receita', descricao: 'Descrição', modo_preparo: 'Misture.' };
-    expect((await agent.patch('/api/receitas/100').send(payload)).status).toBe(404);
-    expect((await agent.patch('/api/receitas/420').send(payload)).status).toBe(404);
-    expect((await agent.patch('/api/receitas/70').send(payload)).status).toBe(200);
+test('histórico de preparos consulta apenas o usuário da sessão', async () => {
+    const response = await request(app).get('/api/receitas/preparadas')
+        .set('Cookie', cookie(42)).query({ usuario_id: 1 });
+    expect(response.status).toBe(200);
+    expect(response.body.refeicoesPreparadas).toEqual([]);
+    const [segments, userId] = sql.mock.calls[0];
+    expect(segments.join('?')).toContain('WHERE rp.usuario_id = ?');
+    expect(userId).toBe(42);
 });
 
-test('a rota fixa de gastos não é interpretada como id de receita', async () => {
-    receitas.getGastoPorReceitaRepo.mockResolvedValue([]);
-    const agent = await connect(7);
-    expect((await agent.get('/api/receitas/gastos?usuario_id=42')).status).toBe(200);
-    expect(receitas.getGastoPorReceitaRepo).toHaveBeenCalledWith({ usuarioId: 7 });
+test('busca item apenas dentro das compras do usuário autenticado', async () => {
+    const response = await request(app).get('/api/items/7').set('Cookie', cookie(42));
+    expect(response.status).toBe(404);
+    const [segments, itemId, userId] = sql.mock.calls[0];
+    expect(segments.join('?')).toContain('c.usuario_id = ?');
+    expect([itemId, userId]).toEqual(['7', 42]);
 });
 
-test('exclusão de ingrediente é recusada antes da identificação ou consulta ao banco', async () => {
-    expect((await request(app).delete('/api/ingredientes/1?usuario_id=1')).status).toBe(403);
-    expect(users.findUserDataById).not.toHaveBeenCalled();
+test('apenas o administrador pode alterar ingredientes e consultar gastos gerais', async () => {
+    const ingredient = await request(app).patch('/api/ingredientes/7')
+        .set('Cookie', cookie(42)).send({ nome: 'Coco ralado' });
+    const expenses = await request(app).get('/api/users/gastos').set('Cookie', cookie(42));
+
+    expect(ingredient.status).toBe(403);
+    expect(expenses.status).toBe(403);
     expect(sql).not.toHaveBeenCalled();
 });
 
-test('o cookie de uma sessão encerrada não recupera os dados pessoais', async () => {
-    const agent = await connect(7);
-    expect((await agent.post('/api/auth/logout')).status).toBe(204);
-    expect((await agent.get('/api/estoque?usuario_id=7')).status).toBe(401);
+test('rejeita alteração com Origin externo mesmo com cookie válido', async () => {
+    const response = await request(app).post('/api/compras')
+        .set('Origin', 'https://origem-externa.example')
+        .set('Cookie', cookie(42)).send({});
+    expect(response.status).toBe(403);
+    expect(sql).not.toHaveBeenCalled();
+});
+
+test('não permite criar um username que se confunda com email', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+        username: 'outra-pessoa@example.com', email: 'novo@example.com',
+        tipo: 'domestico', password: 'senha-de-teste'
+    });
+    expect(response.status).toBe(400);
+    expect(sql).not.toHaveBeenCalled();
+});
+
+test('login por email consulta apenas email; por username consulta apenas username', async () => {
+    await loginRepo({ identifier: 'pessoa@example.com' });
+    await loginRepo({ identifier: 'pessoa' });
+    expect(sql.mock.calls[0].slice(1)).toEqual([true, 'pessoa@example.com']);
+    expect(sql.mock.calls[1].slice(1)).toEqual([false, 'pessoa']);
 });

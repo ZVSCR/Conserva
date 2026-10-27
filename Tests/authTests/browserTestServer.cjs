@@ -1,17 +1,14 @@
-// QA local: backend real, contas/estoques fictícios e sessões somente em memória.
-// Não inicia index.js e substitui as conexões antes de carregar o aplicativo.
+// QA local: backend real com JWT da main, contas e estoques somente em memória.
 const path = require('node:path');
-const { MemoryStore } = require('express-session');
+const jwt = require('jsonwebtoken');
 const root = path.resolve(__dirname, '../..');
 const users = [];
-const store = new MemoryStore();
 
 function replaceModule(relativePath, exports) {
     const filename = require.resolve(path.join(root, relativePath));
     require.cache[filename] = { id: filename, filename, loaded: true, exports };
 }
 
-replaceModule('Backend/src/config/sessionStore.js', () => store);
 replaceModule('Backend/src/config/transactionDatabase.js', {});
 replaceModule('Backend/src/config/database.js', async (strings, ...values) => {
     const sql = strings.join('?');
@@ -21,19 +18,26 @@ replaceModule('Backend/src/config/database.js', async (strings, ...values) => {
             error.code = '23505';
             throw error;
         }
-        const user = { id: users.length + 10, username: values[0], email: values[1], tipo: values[2], password_hash: values[3] };
+        const user = { id: users.length + 10, username: values[0], email: values[1], tipo: values[2], password_hash: values[3], notify_push: false, notify_email: true, is_dark_theme: false };
         users.push(user);
         const { password_hash, ...publicUser } = user;
         return [publicUser];
     }
-    if (sql.includes('LOWER(username)')) {
-        return users.filter((user) => user.username === values[0]);
-    }
-    if (sql.includes('LOWER(email)')) {
-        return users.filter((user) => user.email === values[0]);
-    }
-    if (sql.includes('SELECT notify_push')) {
-        return [{ notify_push: false, notify_email: true, is_dark_theme: false }];
+    if (sql.includes('LOWER(')) return users.filter((user) => user[values[0] ? 'email' : 'username'] === values[1]);
+    if (sql.includes('UPDATE users')) {
+        const user = users.find((user) => user.id === values.at(-1));
+        if (!user) return [];
+        if (sql.includes('notify_push = CASE')) {
+            ['notify_push', 'notify_email', 'is_dark_theme'].forEach((field, index) => {
+                if (values[index * 2]) user[field] = values[index * 2 + 1];
+            });
+        } else {
+            ['username', 'email', 'tipo', 'password_hash'].forEach((field, index) => {
+                if (values[index] != null) user[field] = values[index];
+            });
+        }
+        const { password_hash, ...publicUser } = user;
+        return [publicUser];
     }
     if (sql.includes('FROM users') && sql.includes('WHERE id')) {
         return users.filter((user) => user.id === values[0]).map(({ password_hash, ...user }) => user);
@@ -47,10 +51,14 @@ replaceModule('Backend/src/config/database.js', async (strings, ...values) => {
 });
 
 process.env.SESSION_SECRET = 'chave-temporaria-de-qa-local-sem-acesso-ao-banco';
-process.env.FRONTEND_ORIGIN = 'http://localhost:5178';
-process.env.SESSION_MAX_AGE_MS = '86400000';
+process.env.FRONTEND_URL = 'http://localhost:5178';
 process.env.NODE_ENV = 'development';
 const app = require('../../Backend/src/app');
-// Existe apenas neste processo de QA, para simular a expiração sem esperar 24h.
-app.post('/__qa/expire-sessions', (_req, res) => store.clear(() => res.sendStatus(204)));
-app.listen(3107, '127.0.0.1', () => console.log('QA: http://localhost:3107 (dados somente em memória)'));
+const { SESSION_COOKIE_NAME, getSessionCookieOptions } = require('../../Backend/src/config/session');
+// Existe somente neste servidor de QA. Instala um JWT já expirado no navegador.
+app.get('/__qa/expire-session', (_req, res) => {
+    const token = jwt.sign({}, process.env.SESSION_SECRET, { subject: String(users[0]?.id ?? 10), expiresIn: -1 });
+    res.cookie(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
+    res.redirect('http://localhost:5178/home');
+});
+app.listen(3107, '127.0.0.1', () => console.log('QA JWT: http://localhost:3107 (dados somente em memória)'));

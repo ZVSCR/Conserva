@@ -1,8 +1,8 @@
 const express = require('express');
 const itemRouter = express.Router();
 const { listarItens, listarPorId, atualizarItem, apagarId, criarItemHandler, listarItensGastos } = require('../controllers/itemController');
-
 const requireAuth = require('../middleware/requireAuth');
+
 itemRouter.use(requireAuth);
 
 // Nova rota específica para os gastos do usuário logado

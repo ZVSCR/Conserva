@@ -2,13 +2,13 @@ const bcrypt = require('bcrypt');
 
 const {
     registerRepo,
-    loginRepo
+    loginRepo,
+    findUserByIdRepo
 } = require('../repositories/authRepository');
 
 const {
     AuthError
 } = require('../errors/AuthError');
-
 // Configura o custo computacional do bcrypt
 const SALT_ROUNDS = 12;
 
@@ -78,7 +78,12 @@ async function loginService(user) {
     };
 }
 
+async function getUserByIdService(id) {
+    return findUserByIdRepo(id);
+}
+
 module.exports = {
     registerService,
-    loginService
+    loginService,
+    getUserByIdService
 };

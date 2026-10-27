@@ -8,7 +8,7 @@ const {
     listarPreparos,
     getGastoPorReceita,
     getGastoReceita,
-    verificarReceita,
+    verificarReceita, 
     prepararReceita,
     listReceitas,
     getReceitaById,
@@ -17,7 +17,6 @@ const {
 } = require('../controllers/receitaController');
 
 receitaRouter.use(receitaUser);
-// Rotas fixas precisam vir antes de /:id.
 receitaRouter.get('/gastos', getGastoPorReceita);
 receitaRouter.get('/preparadas', listarPreparos);
 
@@ -37,8 +36,6 @@ receitaRouter.route('/:id')
 
 receitaRouter.route('/:receitaId')
     .delete(apagarReceita);
-
-// Gasto acumulado de todas as receitas (rota fixa antes das rotas com :id)
 
 // Gasto de uma receita, detalhado por preparo
 receitaRouter.route('/:id/gasto')

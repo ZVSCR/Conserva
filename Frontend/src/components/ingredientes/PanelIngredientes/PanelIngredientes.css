@@ -1,0 +1,206 @@
+.ingredientes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(100% - 40px, 500px);
+  box-sizing: border-box;
+  margin: 40px auto;
+  padding: 20px;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  color-scheme: dark;
+}
+
+/* Mesma regra da tela de compras: o Register.css define altura global para as divs do #root */
+#root .ingredientes-container,
+#root .ingredientes-container div {
+  height: auto;
+}
+
+.ingredientes-titulo {
+  margin: 0;
+  font-size: 24px;
+  text-align: center;
+}
+
+.ingredientes-erro,
+.ingredientes-modal-erro {
+  margin: 0;
+  color: #ffb4b4;
+  font-size: 14px;
+}
+
+.ingredientes-container input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #424549;
+  border-radius: 6px;
+  background: #2b2d31;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+
+.ingredientes-container input:focus-visible,
+.ingredientes-container button:focus-visible {
+  outline: 2px solid #57f287;
+  outline-offset: 2px;
+}
+
+.ingredientes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ingredientes-vazio {
+  margin: 0;
+  padding: 15px;
+  color: #8e9297;
+  text-align: center;
+}
+
+.ingredientes-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 15px;
+  border: 1px solid #424549;
+  border-radius: 8px;
+  background: #2b2d31;
+}
+
+.ingredientes-nome {
+  margin: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.ingredientes-acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.ingredientes-container button {
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ingredientes-container button:hover {
+  filter: brightness(1.12);
+}
+
+.ingredientes-container button:disabled {
+  cursor: default;
+  opacity: 0.65;
+  filter: none;
+}
+
+.ingredientes-container .ingredientes-btn-editar,
+.ingredientes-container .ingredientes-btn-excluir {
+  min-height: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.ingredientes-container .ingredientes-btn-editar {
+  color: #57f287;
+}
+
+.ingredientes-container .ingredientes-btn-excluir {
+  color: #ff7b7b;
+}
+
+.ingredientes-container .ingredientes-btn-editar:hover,
+.ingredientes-container .ingredientes-btn-excluir:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ingredientes-container .ingredientes-btn-novo {
+  align-self: flex-end;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  background: #3ba55d;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.ingredientes-rodape {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ingredientes-container .ingredientes-btn-cancelar,
+.ingredientes-container .ingredientes-btn-secundario {
+  background: #4f545c;
+  font-weight: bold;
+}
+
+.ingredientes-container .ingredientes-btn-concluir,
+.ingredientes-container .ingredientes-btn-primario {
+  background: #3ba55d;
+  font-weight: bold;
+}
+
+.ingredientes-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.ingredientes-modal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 420px);
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #424549;
+  border-radius: 8px;
+  background: #2b2d31;
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.ingredientes-modal h2,
+.ingredientes-modal label,
+.ingredientes-modal-texto,
+.ingredientes-modal-erro {
+  grid-column: 1 / -1;
+}
+
+.ingredientes-modal h2 {
+  margin: 0 0 10px;
+}
+
+.ingredientes-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ingredientes-modal-texto {
+  margin: 0;
+  color: #b9bbbe;
+}

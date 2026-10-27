@@ -26,17 +26,7 @@
 .account {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
     gap: 12px;
-    color: #242424;
-}
-
-.account button {
-    padding: 8px 12px;
-    border: 1px solid #47aa4e;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .profile img {

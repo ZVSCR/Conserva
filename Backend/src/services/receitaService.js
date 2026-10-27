@@ -71,7 +71,7 @@ async function updateReceitaService(receitaId, payload, usuarioId) {
             descricao,
             modo_preparo
         },
-        usuarioId,
+        usuarioId
     );
 }
 

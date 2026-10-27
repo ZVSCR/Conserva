@@ -1,7 +1,8 @@
 jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
     inserirIngredientesPadrao: jest.fn(),
     createIngredienteRepo: jest.fn(),
-    deleteIngredienteRepo: jest.fn()
+    deleteIngredienteRepo: jest.fn(),
+    updateIngredienteRepo: jest.fn()
 }));
 
 const { listaIngredientes, aliasesToNome } = require('../../Backend/src/data/ingredientes');
@@ -15,8 +16,8 @@ const {
     createIngredienteService
 } = require('../../Backend/src/services/ingredienteService');
 
-const { deleteIngredienteService } = require('../../Backend/src/services/ingredienteService');
-const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+const { deleteIngredienteService, updateIngredienteService } = require('../../Backend/src/services/ingredienteService');
+const { deleteIngredienteRepo, updateIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -42,6 +43,37 @@ describe('exclusão de ingrediente', () => {
         const erro = new Error('Banco indisponível');
         deleteIngredienteRepo.mockRejectedValue(erro);
         await expect(deleteIngredienteService(12, 1)).rejects.toBe(erro);
+    });
+});
+
+describe('atualização de ingrediente', () => {
+    test('administrador normaliza nome e mantém o mesmo ID', async () => {
+        updateIngredienteRepo.mockResolvedValue({ id: 12, nome: 'ovo' });
+
+        await expect(updateIngredienteService(12, { nome: '  Ovos  ' }, 1))
+            .resolves.toEqual({ id: 12, nome: 'ovo' });
+        expect(updateIngredienteRepo).toHaveBeenCalledWith(12, { nome: 'ovo' });
+    });
+
+    test('administrador normaliza um nome fora do catálogo', async () => {
+        updateIngredienteRepo.mockResolvedValue({ id: 12, nome: 'coco ralado' });
+
+        await expect(updateIngredienteService(12, { nome: '  Coco Ralado  ' }, 1))
+            .resolves.toEqual({ id: 12, nome: 'coco ralado' });
+        expect(updateIngredienteRepo).toHaveBeenCalledWith(12, { nome: 'coco ralado' });
+    });
+
+    test('usuário comum não atualiza ingrediente', async () => {
+        await expect(updateIngredienteService(12, { nome: 'novo nome' }, 2))
+            .rejects.toMatchObject({ statusCode: 403 });
+        expect(updateIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('ingrediente inexistente gera erro de domínio', async () => {
+        updateIngredienteRepo.mockResolvedValue(undefined);
+
+        await expect(updateIngredienteService(12, { nome: 'novo nome' }, 1))
+            .rejects.toMatchObject({ statusCode: 404 });
     });
 });
 

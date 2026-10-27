@@ -5,7 +5,7 @@ const { atualizarPorCompraId } = require('./compraRepository');
 // LISTAGEM  -- Alterei pra ocultar a senha do usuario e mostrar o id dos itens
 async function buscarItens(usuarioId) {
     const query = await sql`
-        SELECT
+        SELECT 
             item.id AS item_id,
             item.nome_item,
             item.quantidade,

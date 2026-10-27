@@ -1,14 +1,13 @@
-import { apiFetch } from './apiClient.js';
+import { apiFetch } from './api';
 
 const preferenceFields = ['notify_email', 'notify_push', 'is_dark_theme'];
 const allowedFields = new Set(preferenceFields);
-const preferencesUrl = `/api/users/me/preferences`;
 
 async function requestPreferences(options) {
   let response;
 
   try {
-    response = await apiFetch(preferencesUrl, options);
+    response = await apiFetch('/api/users/me/preferences', options);
   } catch {
     throw new Error('Não foi possível conectar ao servidor.');
   }

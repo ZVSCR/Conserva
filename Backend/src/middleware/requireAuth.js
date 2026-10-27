@@ -1,24 +1,42 @@
-const { findUserDataById } = require('../repositories/userRepository');
-const { clearSessionCookie } = require('../config/session');
+const jwt = require('jsonwebtoken');
+const {
+    getSessionSecret,
+    readSessionToken,
+    clearSessionCookie
+} = require('../config/session');
 
-module.exports = async function requireAuth(req, res, next) {
+function requireAuth(req, res, next) {
     res.set('Cache-Control', 'no-store');
-    if (!Number.isSafeInteger(req.session?.userId) || req.session.userId <= 0) {
-        return res.status(401).json({ error: 'Faça login para continuar.' });
+    const token = readSessionToken(req);
+
+    if (!token) {
+        return res.status(401).json({ error: 'É necessário entrar na sua conta.' });
+    }
+
+    let secret;
+    try {
+        secret = getSessionSecret();
+    } catch (error) {
+        console.error('Configuração da sessão inválida:', error);
+        return res.status(500).json({ error: 'A autenticação não está configurada corretamente.' });
     }
 
     try {
-        const user = await findUserDataById(req.session.userId);
-        if (!user) {
-            await new Promise((resolve, reject) => req.session.destroy((error) => error ? reject(error) : resolve()));
+        const payload = jwt.verify(token, secret);
+
+        const userId = Number(payload.sub);
+        if (typeof payload.sub !== 'string' || !/^[1-9]\d*$/.test(payload.sub) ||
+            !Number.isSafeInteger(userId)) {
             clearSessionCookie(res);
-            return res.status(401).json({ error: 'A sessão não corresponde a um usuário existente.' });
+            return res.status(401).json({ error: 'Sessão inválida. Entre novamente.' });
         }
 
-        req.user = user;
+        req.user = { id: userId };
         return next();
     } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-        return res.status(503).json({ error: 'Não foi possível verificar a sessão.' });
+        clearSessionCookie(res);
+        return res.status(401).json({ error: 'Sessão expirada ou inválida. Entre novamente.' });
     }
-};
+}
+
+module.exports = requireAuth;

@@ -1,48 +1,59 @@
-const session = require('express-session');
-const createSessionStore = require('./sessionStore');
-require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
-const SESSION_COOKIE_NAME = 'conservia.sid';
+const SESSION_COOKIE_NAME = 'conservia_session';
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
-function getSessionConfig(env = process.env) {
-    if (!env.SESSION_SECRET || Buffer.byteLength(env.SESSION_SECRET) < 32) {
-        throw new Error('Configure SESSION_SECRET com uma chave aleatória de pelo menos 32 bytes.');
+function getSessionSecret() {
+    const secret = process.env.SESSION_SECRET;
+
+    if (!secret || secret.length < 32) {
+        throw new Error('SESSION_SECRET must contain at least 32 characters.');
     }
 
-    const maxAge = Number(env.SESSION_MAX_AGE_MS || 86400000);
-    if (!Number.isSafeInteger(maxAge) || maxAge <= 0) {
-        throw new Error('SESSION_MAX_AGE_MS deve ser um inteiro positivo.');
-    }
+    return secret;
+}
 
-    const frontendOrigin = env.FRONTEND_ORIGIN || 'http://localhost:5173';
-    const originUrl = new URL(frontendOrigin);
-    if (!['http:', 'https:'].includes(originUrl.protocol) || originUrl.origin !== frontendOrigin) {
-        throw new Error('FRONTEND_ORIGIN deve conter apenas a origem do frontend, sem caminho ou barra final.');
-    }
-
+function getSessionCookieOptions() {
     return {
-        secret: env.SESSION_SECRET,
-        frontendOrigin,
-        cookie: { httpOnly: true, sameSite: 'lax', secure: env.NODE_ENV === 'production', path: '/', maxAge }
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: SESSION_DURATION_MS
     };
 }
 
-function createSessionMiddleware({ store, env } = {}) {
-    const config = getSessionConfig(env);
-    return session({
-        name: SESSION_COOKIE_NAME,
-        secret: config.secret,
-        store: store ?? createSessionStore(),
-        resave: false,
-        saveUninitialized: false,
-        rolling: false,
-        cookie: config.cookie
+function createSessionToken(userId) {
+    return jwt.sign({}, getSessionSecret(), {
+        subject: String(userId),
+        expiresIn: '7d'
     });
 }
 
-function clearSessionCookie(res) {
-    const { maxAge, ...cookie } = getSessionConfig().cookie;
-    res.clearCookie(SESSION_COOKIE_NAME, cookie);
+function readSessionToken(req) {
+    const cookieHeader = req.headers.cookie || '';
+    const sessionCookie = cookieHeader
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(`${SESSION_COOKIE_NAME}=`));
+
+    if (!sessionCookie) {
+        return null;
+    }
+
+    return sessionCookie.slice(SESSION_COOKIE_NAME.length + 1);
 }
 
-module.exports = { createSessionMiddleware, getSessionConfig, clearSessionCookie, SESSION_COOKIE_NAME };
+function clearSessionCookie(res) {
+    const { maxAge, ...cookieOptions } = getSessionCookieOptions();
+    res.clearCookie(SESSION_COOKIE_NAME, cookieOptions);
+}
+
+module.exports = {
+    SESSION_COOKIE_NAME,
+    createSessionToken,
+    getSessionCookieOptions,
+    getSessionSecret,
+    readSessionToken,
+    clearSessionCookie
+};
