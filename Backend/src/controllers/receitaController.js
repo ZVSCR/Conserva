@@ -16,8 +16,8 @@ const {
 const {
     listReceitasRepo,
     getReceitaByIdRepo,
-    listarPreparosPorUsuario,
-    apagarReceitaPorId
+    apagarReceitaPorId,
+    listarPreparosPorUsuario
 } = require('../repositories/receitaRepository')
 
 // Converte valor para inteiro positivo; retorna null se inválido
@@ -51,7 +51,7 @@ async function createReceita(req, res) {
         }
 
         // Chama serviço para criar a receita
-        const receita = await createReceitaService(req.user.id, req.body);
+        const receita = await createReceitaService(req.receitaUsuarioId, req.body);
 
         // Retorna mensagem de criação status 201 se receita foi inserida no BD
         return res.status(201).json({
@@ -76,13 +76,22 @@ async function getGastoPorReceita(req, res) {
 
     try {
 
-        const usuarioId = req.user.id;
-        const receitas = await getGastoPorReceitaService({ usuarioId });
+        const receitas = await getGastoPorReceitaService({ usuarioId: req.user.id });
 
         return res.status(200).json({ receitas });
     } catch (error) {
         console.error('Erro ao consultar gasto por receita:', error);
-        return res.status(500).json({ error: 'Erro ao consultar gastos das receitas.' });
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
+async function listarPreparos(req, res) {
+    try {
+        const refeicoesPreparadas = await listarPreparosPorUsuario(req.user.id);
+        return res.status(200).json({ refeicoesPreparadas });
+    } catch (error) {
+        console.error('Erro ao listar refeições preparadas:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 }
 const {
@@ -118,7 +127,7 @@ async function verificarReceita(req, res) {
             return res.status(400).json({ erro: 'receitaId deve ser um inteiro positivo.' });
         }
 
-        const plano = await verificarReceitaService(req.user.id, receitaId);
+        const plano = await verificarReceitaService(req.receitaUsuarioId, receitaId);
 
         return res.status(200).json({
             status: 'success',
@@ -136,7 +145,7 @@ async function prepararReceita(req, res) {
             return res.status(400).json({ erro: 'receitaId deve ser um inteiro positivo.' });
         }
 
-        const resultado = await prepararReceitaService(req.user.id, receitaId);
+        const resultado = await prepararReceitaService(req.receitaUsuarioId, receitaId);
 
         return res.status(201).json({
             status: 'success',
@@ -150,7 +159,7 @@ async function prepararReceita(req, res) {
 
 async function listReceitas(req, res) {
     try {
-        const receitas = await listReceitasRepo(req.user.id);
+        const receitas = await listReceitasRepo(req.receitaUsuarioId);
 
         return res.status(200).json({
             receitas
@@ -181,15 +190,14 @@ async function getGastoReceita(req, res) {
             });
         }
 
-        const usuarioId = req.user.id;
-        const gasto = await getGastoReceitaService({ receitaId, usuarioId });
+        const gasto = await getGastoReceitaService({ receitaId, usuarioId: req.user.id });
 
         if (!gasto) {
             return res.status(404).json({
                 error: 'Receita não encontrada.'
             });
         }
-        return res.status(200).json({ receita: gasto });
+        return res.status(200).json({ gasto });
     } catch (error) {
         console.error('Erro ao buscar receita:', error);
 
@@ -248,7 +256,7 @@ async function apagarReceita(req, res) {
             });
         }
 
-        const receitaRemovida = await apagarReceitaPorId(req.user.id, receitaId);
+        const receitaRemovida = await apagarReceitaPorId(req.receitaUsuarioId, receitaId);
 
         return res.status(200).json({
             status: 'success',
@@ -324,16 +332,6 @@ async function patchIngredienteReceitaById(req, res) {
 // remove um ingrediente da receita
 async function deleteIngredienteReceitaById(req, res) {
 
-}
-
-async function listarPreparos(req, res) {
-    try {
-        const refeicoesPreparadas = await listarPreparosPorUsuario(req.user.id);
-        return res.status(200).json({ refeicoesPreparadas });
-    } catch (error) {
-        console.error('Erro ao listar preparos:', error);
-        return res.status(500).json({ error: 'Erro ao consultar histórico de refeições.' });
-    }
 }
 
 module.exports = {

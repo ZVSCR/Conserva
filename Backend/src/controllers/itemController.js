@@ -100,9 +100,8 @@ async function listarPorId(req, res) {
 // =============================================================================
 async function listarItensGastos(req, res) {
     try {
-        // Identidade confirmada pela sessão.
         const usuarioId = req.user.id;
-
+        
         const items = await buscarItensPorUsuario(usuarioId);
         res.json(items);
     } catch (erro) {

@@ -1,18 +1,16 @@
 const express = require('express');
 const ingredienteRouter = express.Router();
-const { createIngrediente, patchIngredienteById } = require('../controllers/ingredienteController');
-const requireAuth = require('../middleware/requireAuth');
+const { createIngrediente, patchIngredienteById, deleteIngrediente, listIngredientes } = require('../controllers/ingredienteController');
+const ingredienteUser = require('../middleware/ingredienteUser');
 
-// Operação desativada por decisão do grupo, antes de qualquer acesso ao banco.
-ingredienteRouter.delete('/:id', (_req, res) => res.status(403).json({
-    error: 'A exclusão de ingredientes está indisponível.'
-}));
-ingredienteRouter.use(requireAuth);
+ingredienteRouter.use(ingredienteUser);
 
 ingredienteRouter.route('/')
-    .post(createIngrediente);
+    .post(createIngrediente)
+    .get(listIngredientes);
 
 ingredienteRouter.route('/:id')
-    .patch(patchIngredienteById);
+    .patch(ingredienteUser, patchIngredienteById)
+    .delete(ingredienteUser, deleteIngrediente);
 
 module.exports = ingredienteRouter;

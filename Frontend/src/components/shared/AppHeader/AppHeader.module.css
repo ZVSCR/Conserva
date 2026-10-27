@@ -23,6 +23,12 @@
     justify-content: center;
 }
 
+.account {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .profile img {
     display: block;
     width: 42px;

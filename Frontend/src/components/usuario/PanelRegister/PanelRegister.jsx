@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { API_BASE_URL } from '../../../services/api';
+import { useNavigate } from 'react-router-dom';
 import "./PanelRegister.css";
 
 function PanelRegister() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    tipo: "adm", // Defina o valor padrão de acordo com o papel no painel
+    tipo: "domestico",
   });
 
   const [loading, setLoading] = useState(false);
@@ -26,7 +29,7 @@ function PanelRegister() {
     setErrorMsg("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -39,8 +42,7 @@ function PanelRegister() {
         return;
       }
 
-      console.log("Painel: Usuário criado com sucesso:", data.user);
-      // Aqui você pode redirecionar ou limpar o formulário
+      navigate('/login', { replace: true });
     } catch (err) {
       console.error("Erro na requisição:", err);
       setErrorMsg("Não foi possível conectar ao servidor.");

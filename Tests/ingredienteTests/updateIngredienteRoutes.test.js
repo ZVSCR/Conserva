@@ -1,4 +1,5 @@
 const request = require('supertest');
+jest.mock('../../Backend/src/middleware/requireAuth', () => require('../helpers/authenticatedUser')(1));
 
 // Exercita rota, controlador, serviço e repositório sem acessar o banco real.
 jest.mock('../../Backend/src/config/database', () => jest.fn());
@@ -18,7 +19,7 @@ describe('PATCH /api/ingredientes/:id', () => {
         const ingrediente = { id: 7, nome: normalizado };
         sql.mockResolvedValue([ingrediente]);
 
-        const response = await request(app).patch('/api/ingredientes/7').send({ nome });
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1').send({ nome });
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
@@ -33,7 +34,7 @@ describe('PATCH /api/ingredientes/:id', () => {
 
     test.each(['0', '-1', 'abc', '1.5', '01', '1e2', '2147483648', '9007199254740992'])(
         'rejeita id inválido ou fora do limite SERIAL: %s', async (id) => {
-            const response = await request(app).patch(`/api/ingredientes/${id}`)
+            const response = await request(app).patch(`/api/ingredientes/${id}?usuario_id=1`)
                 .send({ nome: 'Coco ralado' });
 
             expect(response.status).toBe(400);
@@ -46,7 +47,7 @@ describe('PATCH /api/ingredientes/:id', () => {
         {}, { nome: null }, { nome: 42 }, { nome: false }, { nome: [] },
         { nome: '' }, { nome: '   ' }, { nome: '!!!' }, { nome: 'x'.repeat(101) }
     ])('rejeita nome inválido sem consultar o banco: %p', async (body) => {
-        const response = await request(app).patch('/api/ingredientes/7').send(body);
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1').send(body);
 
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(expect.arrayContaining([
@@ -56,7 +57,7 @@ describe('PATCH /api/ingredientes/:id', () => {
     });
 
     test.each([[], 'texto', null])('rejeita corpo não objeto: %p', async (body) => {
-        const response = await request(app).patch('/api/ingredientes/7')
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1')
             .set('Content-Type', 'application/json').send(JSON.stringify(body));
 
         expect(response.status).toBe(400);
@@ -64,7 +65,7 @@ describe('PATCH /api/ingredientes/:id', () => {
     });
 
     test('rejeita corpo ausente', async () => {
-        const response = await request(app).patch('/api/ingredientes/7');
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1');
         expect(response.status).toBe(400);
         expect(sql).not.toHaveBeenCalled();
     });
@@ -73,7 +74,7 @@ describe('PATCH /api/ingredientes/:id', () => {
         const ingrediente = { id: 2147483647, nome: 'x'.repeat(100) };
         sql.mockResolvedValue([ingrediente]);
 
-        const response = await request(app).patch('/api/ingredientes/2147483647')
+        const response = await request(app).patch('/api/ingredientes/2147483647?usuario_id=1')
             .send({ nome: ingrediente.nome });
 
         expect(response.status).toBe(200);
@@ -83,7 +84,7 @@ describe('PATCH /api/ingredientes/:id', () => {
     test('mantém o ID e aceita salvar o mesmo nome', async () => {
         sql.mockResolvedValue([{ id: 7, nome: 'ovo' }]);
 
-        const response = await request(app).patch('/api/ingredientes/7')
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1')
             .send({ nome: 'ovo' });
 
         expect(response.status).toBe(200);
@@ -93,7 +94,7 @@ describe('PATCH /api/ingredientes/:id', () => {
     test('retorna 404 quando o ingrediente não existe', async () => {
         sql.mockResolvedValue([]);
 
-        const response = await request(app).patch('/api/ingredientes/999')
+        const response = await request(app).patch('/api/ingredientes/999?usuario_id=1')
             .send({ nome: 'Coco ralado' });
 
         expect(response.status).toBe(404);
@@ -103,7 +104,7 @@ describe('PATCH /api/ingredientes/:id', () => {
     test('retorna 409 quando o nome normalizado já pertence a outro ingrediente', async () => {
         sql.mockRejectedValue(Object.assign(new Error('Duplicado'), { code: '23505' }));
 
-        const response = await request(app).patch('/api/ingredientes/7')
+        const response = await request(app).patch('/api/ingredientes/7?usuario_id=1')
             .send({ nome: 'Ovos' });
 
         expect(response.status).toBe(409);
@@ -116,7 +117,7 @@ describe('PATCH /api/ingredientes/:id', () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         try {
-            const response = await request(app).patch('/api/ingredientes/7')
+            const response = await request(app).patch('/api/ingredientes/7?usuario_id=1')
                 .send({ nome: 'Coco ralado' });
 
             expect(response.status).toBe(500);

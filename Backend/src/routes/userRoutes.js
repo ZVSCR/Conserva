@@ -5,8 +5,10 @@ const requireAuth = require('../middleware/requireAuth');
 
 userRouter.use(requireAuth);
 
-userRouter.route('/gastos')
-    .get(userController.listarGastosUsuarios);
+userRouter.get('/gastos', (req, res, next) => {
+    if (req.user.id !== 1) return res.status(403).json({ error: 'Apenas o administrador pode consultar gastos gerais.' });
+    next();
+}, userController.listarGastosUsuarios);
 
 userRouter.route('/me')
     .get(userController.getUserData)

@@ -1,8 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { createSessionMiddleware, getSessionConfig } = require('./config/session');
-const sessionOrigin = require('./middleware/sessionOrigin');
-const requireAuth = require('./middleware/requireAuth');
 const sql = require('./config/database');                 // Importa conexão com o banco de dados
 const userRoutes = require('./routes/userRoutes');        // Importa rotas de operações de usuário
 const itemsRoutes = require('./routes/itemRoutes');       // Importa rotas de manipulação de itens
@@ -14,17 +11,31 @@ const ingredienteRoutes = require('./routes/ingredienteRoutes'); // Importa rota
 
 const app = express();
 
-app.use(cors({ origin: getSessionConfig().frontendOrigin, credentials: true }));
-app.use(express.json());
-const sessionMiddleware = createSessionMiddleware();
-app.use((req, res, next) => sessionMiddleware(req, res, (error) => {
-  if (error) {
-    console.error('Erro no armazenamento da sessão:', error);
-    return res.status(503).json({ error: 'Não foi possível acessar a sessão.' });
+const frontendOrigin = process.env.FRONTEND_URL;
+const isAllowedOrigin = (origin) => {
+  const isLocalDevelopmentOrigin = process.env.NODE_ENV !== 'production'
+    && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '');
+  return !origin || isLocalDevelopmentOrigin || (frontendOrigin && origin === frontendOrigin);
+};
+
+app.use('/api', (req, res, next) => {
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !isAllowedOrigin(req.get('Origin'))) {
+    return res.status(403).json({ error: 'Origem não autorizada.' });
   }
-  return next();
+  next();
+});
+
+app.use(cors({
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Origem não autorizada para acessar a API.'));
+  },
+  credentials: true
 }));
-app.use('/api', sessionOrigin);
+app.use(express.json());
 app.use('/api/users', userRoutes);        // Rota para operações de usuário
 app.use('/api/items', itemsRoutes);       // Rota para itens do estoque
 app.use('/api/auth', authRoutes);         // Rota para autenticação de usuário
@@ -40,7 +51,7 @@ app.get('/', (req, res) => {
 });
 
 // Rota de teste
-app.get('/api/teste-banco', requireAuth, async (req, res) => {
+app.get('/api/teste-banco', async (req, res) => {
   try {
     // Executa uma query simples só para ver se responde
     const resultado = await sql`SELECT NOW() AS horaNoBanco;`;

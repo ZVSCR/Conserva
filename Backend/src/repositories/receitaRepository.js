@@ -58,7 +58,7 @@ async function createReceitaRepo(payload) {
 // (ambos na unidade do item, então não há conversão de medida)
 
 // Lista todas as receitas com quantidade de preparos e gasto total acumulado.
-// Receitas visíveis ao usuário; gastos somente dos seus próprios preparos.
+// Receitas nunca preparadas aparecem com gasto 0.
 async function getGastoPorReceitaRepo({ usuarioId }) {
 
     try {
@@ -201,7 +201,7 @@ async function listReceitasRepo(usuarioId) {
 }
 
 // Retorna o gasto de uma receita, detalhado por preparo.
-// Retorna null se a receita não existe ou não é visível ao usuário.
+// Retorna null se a receita não existe ou não está visível ao usuário.
 async function getGastoReceitaRepo({ receitaId, usuarioId }) {
 
     try {
@@ -331,10 +331,10 @@ async function listarPreparosPorUsuario(usuarioId) {
 }
 
 module.exports = {
-    createReceitaRepo,
-    prepararReceitaRepo,
-    ReceitaNaoEncontradaError,
-    ReceitaSemIngredientesError,
+    createReceitaRepo, 
+    prepararReceitaRepo, 
+    ReceitaNaoEncontradaError, 
+    ReceitaSemIngredientesError, 
     IngredientesInsuficientesError,
     listReceitasRepo,
     getReceitaByIdRepo,
