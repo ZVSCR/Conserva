@@ -32,7 +32,7 @@ describe('POST /api/auth/register', () => {
             .post('/api/auth/register')
             .send({
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -45,7 +45,7 @@ describe('POST /api/auth/register', () => {
             .post('/api/auth/register')
             .send({
                 username: 'fulano',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -72,7 +72,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
             });
 
         expect(response.status).toBe(400);
@@ -85,7 +85,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: '   ',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -99,7 +99,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'odkekod',
                 email: '   ',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -127,7 +127,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 123,
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -141,7 +141,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'ijfeijfie',
                 email: 949389389,
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -169,7 +169,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'okwdoekokdeo',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 432423
             });
 
@@ -183,7 +183,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'a'.repeat(150),
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -197,7 +197,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'odoekokekfoe',
                 email: 'a'.repeat(150),
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -230,7 +230,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'amd',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -249,7 +249,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -264,7 +264,7 @@ describe('POST /api/auth/register', () => {
                 id: 1,
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 created_at: new Date()
             }
         ]);
@@ -274,7 +274,7 @@ describe('POST /api/auth/register', () => {
             .send({
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password: 'senha'
             });
 
@@ -393,7 +393,7 @@ describe('POST /api/auth/login', () => {
                 id: 1,
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password_hash: hash
             }
         ]);
@@ -416,7 +416,7 @@ describe('POST /api/auth/login', () => {
                 id: 1,
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password_hash: hash
             }
         ]);
@@ -433,7 +433,7 @@ describe('POST /api/auth/login', () => {
             id: 1,
             username: 'fulano',
             email: 'email@dofulano.com',
-            tipo: 'adm'
+            tipo: 'domestico'
         });
         // Segurança de resposta
         expect(response.body.user).not.toHaveProperty('password_hash');
@@ -446,7 +446,7 @@ describe('POST /api/auth/login', () => {
                 id: 1,
                 username: 'fulano',
                 email: 'email@dofulano.com',
-                tipo: 'adm',
+                tipo: 'domestico',
                 password_hash: hash
             }
         ]);
@@ -463,7 +463,7 @@ describe('POST /api/auth/login', () => {
             id: 1,
             username: 'fulano',
             email: 'email@dofulano.com',
-            tipo: 'adm'
+            tipo: 'domestico'
         });
         // Segurança de resposta
         expect(response.body.user).not.toHaveProperty('password_hash');
