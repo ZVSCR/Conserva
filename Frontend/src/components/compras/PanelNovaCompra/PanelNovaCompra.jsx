@@ -368,7 +368,7 @@ function PanelNovaCompra() {
                         />
                     </label>
                     <label>
-                        Preço unitário
+                        Preço total do item
                         <input
                             name="valor_unitario"
                             type="number"
