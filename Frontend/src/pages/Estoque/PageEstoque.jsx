@@ -27,7 +27,8 @@ function PageEstoque(){
                     id: item.item_id,
                     nome: item.nome_item,
                     quantidade: Number(item.quantidade_disponivel),
-                    quantidadeOriginal: Number(item.quantidade_original)
+                    quantidadeOriginal: Number(item.quantidade_original),
+                    unidade: item.unidade_de_medida
                 }))
             );
         })
