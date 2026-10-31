@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import PopupBase from "../PopupBase/PopupBase";
 import "./EllipsisMenuReceita.css";
 
-function EllipsisMenuReceita({ onClick, onModificar, onExcluir, rotulo = "Opções da receita" }) {
+function EllipsisMenuReceita({ onClick, onPreparar, onModificar, onExcluir, rotulo = "Opções da receita" }) {
     const popupId = useId();
     const botaoRef = useRef(null);
     const popupRef = useRef(null);
@@ -72,7 +72,13 @@ function EllipsisMenuReceita({ onClick, onModificar, onExcluir, rotulo = "Opçõ
                 onToggle={posicionarPopup}
             >
                 <PopupBase linhas={[
-                    "Preparar",
+                    {
+                        texto: "Preparar",
+                        onClick: onPreparar ? () => {
+                            popupRef.current.hidePopover();
+                            onPreparar();
+                        } : undefined,
+                    },
                     {
                         texto: "Modificar",
                         onClick: onModificar ? () => {

@@ -133,6 +133,8 @@ function PanelViewReceita() {
     };
 
     const prepararReceita = async (receitaId) => {
+        if (preparando) return;
+
         setPreparando(true);
         setMensagemPreparo("");
 
@@ -171,6 +173,9 @@ function PanelViewReceita() {
             <h2 className="receita-title">Catálogo de Receitas</h2>
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
+            {(preparando || mensagemPreparo) && (
+                <p role="status">{preparando ? "Preparando..." : mensagemPreparo}</p>
+            )}
 
             <div className="receita-actions">
                 <button
@@ -215,6 +220,7 @@ function PanelViewReceita() {
                             </button>
                             <EllipsisMenuReceita
                                 rotulo={`Opções da receita ${receita.nome}`}
+                                onPreparar={preparando ? undefined : () => prepararReceita(receita.id)}
                                 onModificar={() => setReceitaEditando(receita)}
                                 onExcluir={() => {
                                     setErroExclusao("");
@@ -260,14 +266,6 @@ function PanelViewReceita() {
                             {receitaExpandida.modo_preparo || "Modo de preparo não informado."}
                         </p>
 
-                        <button
-                            type="button"
-                            disabled={preparando}
-                            onClick={() => prepararReceita(receitaExpandida.id)}
-                        >
-                            {preparando ? "Preparando..." : "Preparar receita e atualizar estoque"}
-                        </button>
-                        {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
                 </div>
             )}
