@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./PanelExtratoCompras.css";
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../../services/api';
@@ -7,6 +7,7 @@ import EditarCompra from "../EditarCompra/EditarCompra";
 
 function ExtratoCompras() {
   const [compras, setCompras] = useState([]);
+  const [totalArmazenado, setTotalArmazenado] = useState(0);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [busca, setBusca] = useState("");
@@ -17,7 +18,7 @@ function ExtratoCompras() {
   // Busca as compras do usuário para exibir em scroll
   const fetchComprasComItens = async () => {
     try {
-      const response = await apiFetch('/api/compras', {
+      const response = await apiFetch('/api/compras?resumo=true', {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -29,27 +30,12 @@ function ExtratoCompras() {
         return;
       }
 
-      const listaCompras = data.data || data;
-
-      const comprasComQuantidade = await Promise.all(
-        listaCompras.map(async (compra) => {
-          try {
-            const resItens = await apiFetch(`/api/compras/${compra.id}`);
-            const dataItens = await resItens.json();
-            const itens = dataItens.data || dataItens;
-
-            return {
-              ...compra,
-              quantidadeItens: Array.isArray(itens) ? itens.length : 0,
-            };
-          } catch (err) {
-            console.error(`Erro ao buscar itens da compra ${compra.id}:`, err);
-            return { ...compra, quantidadeItens: 0 };
-          }
-        })
-      );
-
-      setCompras(comprasComQuantidade);
+      setCompras(data.data.map((compra) => ({
+        ...compra,
+        quantidadeItens: Number(compra.quantidade_itens),
+      })));
+      setTotalArmazenado(Number(data.gasto_total));
+      setErrorMsg("");
     } catch (err) {
       console.error("Erro na requisição:", err);
       setErrorMsg("Não foi possível conectar ao servidor para carregar as compras.");
@@ -75,13 +61,16 @@ function ExtratoCompras() {
   };
 
   // Barra de busca das compras via texto
-  const comprasFiltradas = compras.filter(
+  const comprasFiltradas = useMemo(() => compras.filter(
     (compra) =>
-      (compra.estabelecimento && compra.estabelecimento.toLowerCase().includes(busca.toLowerCase())) ||
+      busca === "" || (compra.estabelecimento && compra.estabelecimento.toLowerCase().includes(busca.toLowerCase())) ||
       (compra.data_compra && formatarData(compra.data_compra).includes(busca))
-  );
+  ), [compras, busca]);
 
-  const gastoTotal = comprasFiltradas.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
+  const gastoTotal = useMemo(() => busca === ""
+    ? totalArmazenado
+    : comprasFiltradas.reduce((acc, item) => acc + Math.round(Number(item.valor_total || 0) * 100), 0) / 100,
+  [busca, totalArmazenado, comprasFiltradas]);
 
   // Abre o card e carrega os dados detalhados pra edição
   const handleEditar = (id) => {
@@ -100,7 +89,7 @@ function ExtratoCompras() {
         return;
       }
 
-      setCompras(compras.filter((compra) => compra.id !== id));
+      await fetchComprasComItens();
     } catch (err) {
       console.error("Erro ao conectar com o servidor para exclusão:", err);
     }
