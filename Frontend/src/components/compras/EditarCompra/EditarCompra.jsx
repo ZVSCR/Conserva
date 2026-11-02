@@ -7,10 +7,9 @@ const MAX_VALOR_DECIMAL = 9999999.99;
 const ATE_DUAS_CASAS = /^\d+(?:\.\d{1,2})?$/;
 const UNIDADES_VARIAVEIS = ["kg", "g", "L", "mL"];
 const CAMPOS_COMPRA = ["data_compra", "estabelecimento"];
-const CAMPOS_ITEM = ["nome_item", "quantidade", "unidade_de_medida", "valor_unitario", "validade_estimada"];
+const CAMPOS_ITEM = ["nome_item", "quantidade", "unidade_de_medida", "preco_total_item", "validade_estimada"];
 
-// A operação ainda está ocorrendo via quantidade * preço informado, qualquer coisa muda na próxima
-const ROTULO_PRECO = "Preço unitário do item";
+const ROTULO_PRECO = "Preço total do item";
 
 function paraInputData(valor) {
     return valor ? String(valor).slice(0, 10) : "";
@@ -97,7 +96,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                     nome_item: linha.nome_item,
                     quantidade: Number(linha.quantidade),
                     unidade_de_medida: linha.unidade_de_medida,
-                    valor_unitario: Number(linha.valor_unitario),
+                    preco_total_item: Number(linha.preco_total_item),
                     validade_estimada: paraInputData(linha.validade_estimada) || null,
                 }));
 
@@ -153,7 +152,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         setItemEditandoId(item.id);
         setItemModal({
             nome_item: item.nome_item,
-            valor_unitario: String(item.valor_unitario),
+            preco_total_item: String(item.preco_total_item),
             quantidade: String(item.quantidade),
             unidade_de_medida: item.unidade_de_medida,
             validade_estimada: item.validade_estimada ?? "",
@@ -183,7 +182,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         }
 
         const quantidade = Number(itemModal.quantidade);
-        const valorUnitario = Number(itemModal.valor_unitario);
+        const precoTotal = Number(itemModal.preco_total_item);
 
         if (!ATE_DUAS_CASAS.test(itemModal.quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
             setItemModalErro("A quantidade deve ser maior que zero, ter até duas casas decimais e não ultrapassar 9.999.999,99.");
@@ -193,7 +192,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
             setItemModalErro("Itens em unidades precisam de quantidade inteira.");
             return;
         }
-        if (!ATE_DUAS_CASAS.test(itemModal.valor_unitario) || valorUnitario > MAX_VALOR_DECIMAL) {
+        if (!ATE_DUAS_CASAS.test(itemModal.preco_total_item) || precoTotal > MAX_VALOR_DECIMAL) {
             setItemModalErro("O preço deve ter até duas casas decimais e não ultrapassar R$ 9.999.999,99.");
             return;
         }
@@ -206,7 +205,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                           nome_item: nome,
                           quantidade,
                           unidade_de_medida: itemModal.unidade_de_medida,
-                          valor_unitario: valorUnitario,
+                          preco_total_item: precoTotal,
                           validade_estimada: itemModal.validade_estimada || null,
                       }
                     : atual
@@ -238,6 +237,10 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         for (const item of itens) {
             const original = itensOriginais.find((o) => o.id === item.id);
             const camposItem = camposAlterados(item, original, CAMPOS_ITEM);
+            if (item.unidade_de_medida !== original.unidade_de_medida) {
+                camposItem.quantidade = item.quantidade;
+                camposItem.preco_total_item = item.preco_total_item;
+            }
             if (Object.keys(camposItem).length > 0) {
                 alteracoes.push({
                     descricao: `Item "${original.nome_item}"`,
@@ -322,7 +325,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                                 {itemFoiAlterado(item) && <span className="editar-compra-tag">alterado</span>}
                             </h5>
                             <p className="editar-compra-item-detalhe">
-                                {formatarMoeda(item.valor_unitario)} ·{" "}
+                                {formatarMoeda(item.preco_total_item)} ·{" "}
                                 {item.quantidade.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} {item.unidade_de_medida}
                             </p>
                             <p className="editar-compra-item-detalhe">
@@ -446,12 +449,12 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                             <label>
                                 {ROTULO_PRECO}
                                 <input
-                                    name="valor_unitario"
+                                    name="preco_total_item"
                                     type="number"
                                     min="0"
                                     max={MAX_VALOR_DECIMAL}
                                     step="0.01"
-                                    value={itemModal.valor_unitario}
+                                    value={itemModal.preco_total_item}
                                     onChange={alterarItemModal}
                                     required
                                 />

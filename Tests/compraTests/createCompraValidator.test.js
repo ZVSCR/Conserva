@@ -7,7 +7,7 @@ function createValidItem(overrides = {}) {
         nome_item: 'Arroz',
         quantidade: 2,
         unidade_de_medida: 'kg',
-        valor_unitario: 8.5,
+        preco_total_item: 8.5,
         validade_estimada: '2027-03-01',
         ...overrides
     };
@@ -419,14 +419,14 @@ describe('validateCreateCompraPayload', () => {
     describe('valor unitário', () => {
         test.each([undefined, null])(
             'deve rejeitar valor unitário ausente: %p',
-            (valor_unitario) => {
+            (preco_total_item) => {
                 expectSingleError(
                     createValidPayload({
-                        itens: [createValidItem({ valor_unitario })]
+                        itens: [createValidItem({ preco_total_item })]
                     }),
                     {
-                        field: 'itens[0].valor_unitario',
-                        message: 'Valor unitário do item 1 é obrigatório.'
+                        field: 'itens[0].preco_total_item',
+                        message: 'Preço total do item 1 é obrigatório.'
                     }
                 );
             }
@@ -434,13 +434,13 @@ describe('validateCreateCompraPayload', () => {
 
         test.each(['8.5', true, {}, [], NaN, Infinity, -Infinity])(
             'deve rejeitar valor unitário que não seja número finito: %p',
-            (valor_unitario) => {
+            (preco_total_item) => {
                 expectSingleError(
                     createValidPayload({
-                        itens: [createValidItem({ valor_unitario })]
+                        itens: [createValidItem({ preco_total_item })]
                     }),
                     {
-                        field: 'itens[0].valor_unitario',
+                        field: 'itens[0].preco_total_item',
                         message: 'Formato de valor unitário do item 1 é inválido.'
                     }
                 );
@@ -449,14 +449,14 @@ describe('validateCreateCompraPayload', () => {
 
         test.each([-0.01, -1])(
             'deve rejeitar valor unitário negativo: %p',
-            (valor_unitario) => {
+            (preco_total_item) => {
                 expectSingleError(
                     createValidPayload({
-                        itens: [createValidItem({ valor_unitario })]
+                        itens: [createValidItem({ preco_total_item })]
                     }),
                     {
-                        field: 'itens[0].valor_unitario',
-                        message: 'Valor unitário do item 1 deve ser maior ou igual a zero.'
+                        field: 'itens[0].preco_total_item',
+                        message: 'Preço total do item 1 deve ser maior ou igual a zero.'
                     }
                 );
             }
@@ -464,9 +464,9 @@ describe('validateCreateCompraPayload', () => {
 
         test.each([0, 0.01, 100])(
             'deve aceitar valor unitário não negativo: %p',
-            (valor_unitario) => {
+            (preco_total_item) => {
                 const payload = createValidPayload({
-                    itens: [createValidItem({ valor_unitario })]
+                    itens: [createValidItem({ preco_total_item })]
                 });
 
                 expect(validateCreateCompraPayload(payload).isValid).toBe(true);
@@ -475,12 +475,12 @@ describe('validateCreateCompraPayload', () => {
 
         test.each([0.001, 10000000])(
             'deve rejeitar valor que não cabe em numeric(9, 2): %p',
-            (valor_unitario) => {
+            (preco_total_item) => {
                 expectSingleError(
-                    createValidPayload({ itens: [createValidItem({ valor_unitario })] }),
+                    createValidPayload({ itens: [createValidItem({ preco_total_item })] }),
                     {
-                        field: 'itens[0].valor_unitario',
-                        message: 'Valor unitário do item 1 deve ter até duas casas decimais e caber no campo do banco.'
+                        field: 'itens[0].preco_total_item',
+                        message: 'Preço total do item 1 deve ter até duas casas decimais e caber no campo do banco.'
                     }
                 );
             }
@@ -578,7 +578,7 @@ describe('validateCreateCompraPayload', () => {
                         nome_item: '   ',
                         quantidade: 0,
                         unidade_de_medida: '   ',
-                        valor_unitario: -1,
+                        preco_total_item: -1,
                         validade_estimada: '2027-02-29'
                     }),
                     null
@@ -610,8 +610,8 @@ describe('validateCreateCompraPayload', () => {
                     message: 'Unidade de medida do item 1 não pode conter apenas espaços'
                 },
                 {
-                    field: 'itens[0].valor_unitario',
-                    message: 'Valor unitário do item 1 deve ser maior ou igual a zero.'
+                    field: 'itens[0].preco_total_item',
+                    message: 'Preço total do item 1 deve ser maior ou igual a zero.'
                 },
                 {
                     field: 'itens[0].validade_estimada',
