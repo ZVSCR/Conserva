@@ -79,20 +79,20 @@ function EllipsisMenuReceita({ onClick, onPreparar, onModificar, onExcluir, rotu
                             onPreparar();
                         } : undefined,
                     },
-                    {
+                    ...(onModificar ? [{
                         texto: "Modificar",
                         onClick: onModificar ? () => {
                             popupRef.current.hidePopover();
                             onModificar();
                         } : undefined,
-                    },
-                    {
+                    }] : []),
+                    ...(onExcluir ? [{
                         texto: "Excluir",
                         onClick: onExcluir ? () => {
                             popupRef.current.hidePopover();
                             onExcluir();
                         } : undefined,
-                    },
+                    }] : []),
                 ]} />
             </div>
         </>

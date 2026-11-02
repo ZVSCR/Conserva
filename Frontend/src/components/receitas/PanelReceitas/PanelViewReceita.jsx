@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from '../../../services/api';
+import { useAuth } from '../../../contexts/useAuth';
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 import ModalEditarReceita from "../ModalEditarReceita/ModalEditarReceita";
@@ -7,6 +8,7 @@ import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirPr
 import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
 
 function PanelViewReceita() {
+    const { user } = useAuth();
     const [receitas, setReceitas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
@@ -100,9 +102,11 @@ function PanelViewReceita() {
 
     const atualizarReceitaNaLista = (receitaAtualizada) => {
         setReceitas((atuais) => atuais.map((receita) =>
-            receita.id === receitaAtualizada.id ? receitaAtualizada : receita
+            receita.id === receitaAtualizada.id ? { ...receita, ...receitaAtualizada } : receita
         ));
     };
+
+    const podeGerenciarReceita = (receita) => user != null && receita.usuario_id === user.id;
 
     const confirmarExclusao = async () => {
         if (!receitaExcluindo || excluindo) return;
@@ -221,11 +225,11 @@ function PanelViewReceita() {
                             <EllipsisMenuReceita
                                 rotulo={`Opções da receita ${receita.nome}`}
                                 onPreparar={preparando ? undefined : () => prepararReceita(receita.id)}
-                                onModificar={() => setReceitaEditando(receita)}
-                                onExcluir={() => {
+                                onModificar={podeGerenciarReceita(receita) ? () => setReceitaEditando(receita) : undefined}
+                                onExcluir={podeGerenciarReceita(receita) ? () => {
                                     setErroExclusao("");
                                     setReceitaExcluindo(receita);
-                                }}
+                                } : undefined}
                             />
                         </div>
                     ))

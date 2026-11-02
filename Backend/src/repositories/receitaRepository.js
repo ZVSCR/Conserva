@@ -241,6 +241,7 @@ async function listReceitasRepo(usuarioId) {
         const receitas = await sql`
             SELECT
                 r.id,
+                r.usuario_id,
                 r.nome,
                 r.descricao,
                 r.modo_preparo,
