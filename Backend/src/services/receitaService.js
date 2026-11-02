@@ -3,7 +3,8 @@ const {
     getGastoPorReceitaRepo,
     getGastoReceitaRepo,
     updateReceitaRepo,
-    inserirIngredienteReceitaRepo
+    inserirIngredienteReceitaRepo,
+    removerIngredienteReceitaRepo
 } = require('../repositories/receitaRepository');
 
 // Recebe o payload validado, normaliza o nome e envia para inserção SQL
@@ -89,7 +90,12 @@ async function inserirIngredienteReceitaService(receitaId, payload, usuarioId) {
     }, usuarioId);
 }
 
+async function removerIngredienteReceitaService(receitaId, ingredienteId, usuarioId) {
+    return removerIngredienteReceitaRepo(receitaId, ingredienteId, usuarioId);
+}
+
 module.exports = {
+    removerIngredienteReceitaService,
     inserirIngredienteReceitaService,
     createReceitaService,
     getGastoPorReceitaService,

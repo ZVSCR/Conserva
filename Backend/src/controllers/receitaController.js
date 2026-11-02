@@ -11,6 +11,7 @@ const {
     createReceitaService,
     updateReceitaService,
     inserirIngredienteReceitaService,
+    removerIngredienteReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService
 } = require('../services/receitaService');
@@ -358,7 +359,28 @@ async function patchIngredienteReceitaById(req, res) {
 
 // remove um ingrediente da receita
 async function deleteIngredienteReceitaById(req, res) {
+    try {
+        const receitaId = parsePositiveIntegerParam(req.params.id);
+        const ingredienteId = parsePositiveIntegerParam(req.params.ingredienteId);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
+        if (ingredienteId === null || ingredienteId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'ingredienteId deve ser um inteiro positivo.' });
+        }
 
+        const ingredienteRemovido = await removerIngredienteReceitaService(receitaId, ingredienteId, req.user.id);
+        if (!ingredienteRemovido) {
+            return res.status(404).json({ erro: 'Ingrediente não encontrado nesta receita.' });
+        }
+        return res.status(200).json({
+            message: 'Ingrediente removido da receita com sucesso.',
+            ingredienteRemovido
+        });
+    } catch (error) {
+        console.error('Erro ao remover ingrediente da receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 module.exports = {

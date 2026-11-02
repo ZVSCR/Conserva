@@ -422,6 +422,20 @@ async function inserirIngredienteReceitaRepo(receitaId, payload, usuarioId) {
     }
 }
 
+// Remove somente o vínculo, desde que a receita pertença ao usuário.
+async function removerIngredienteReceitaRepo(receitaId, ingredienteId, usuarioId) {
+    const [ingredienteRemovido] = await sql`
+        DELETE FROM receita_ingrediente ri
+        USING receita r
+        WHERE ri.receita_id = r.id
+          AND ri.receita_id = ${receitaId}
+          AND ri.ingrediente_id = ${ingredienteId}
+          AND r.usuario_id = ${usuarioId}
+        RETURNING ri.receita_id, ri.ingrediente_id, ri.quantidade, ri.unidade_de_medida;
+    `;
+    return ingredienteRemovido;
+}
+
 async function listarPreparosPorUsuario(usuarioId) {
     return sql`
         SELECT rp.id, rp.receita_id, rp.data_preparo, r.nome, r.descricao, r.modo_preparo,
@@ -438,6 +452,7 @@ async function listarPreparosPorUsuario(usuarioId) {
 }
 
 module.exports = {
+    removerIngredienteReceitaRepo,
     IngredienteNaoEncontradoError,
     inserirIngredienteReceitaRepo,
     createReceitaRepo,
