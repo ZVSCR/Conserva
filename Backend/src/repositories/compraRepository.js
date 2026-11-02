@@ -48,6 +48,25 @@ function erroCompraForaDoLimite(erro) {
 
 // =============================================================================
 // LISTAGEM
+async function listarExtratoUsuario(usuarioId) {
+    const [extrato] = await sql`
+        SELECT u.gasto_total,
+               COALESCE((
+                   SELECT json_agg(linha ORDER BY linha.id)
+                   FROM (
+                       SELECT c.*, COUNT(i.id) AS quantidade_itens
+                       FROM compra c
+                       LEFT JOIN item i ON i.compra_id = c.id
+                       WHERE c.usuario_id = u.id
+                       GROUP BY c.id
+                   ) linha
+               ), '[]'::json) AS compras
+        FROM users u
+        WHERE u.id = ${usuarioId}
+    `;
+    return extrato ?? { gasto_total: '0.00', compras: [] };
+}
+
 async function listarComprasUsuario(usuarioId) {
     const compras = await sql`
         SELECT
@@ -612,6 +631,7 @@ async function adicionaItensACompraRepo(novosItens) {
 }
 
 module.exports = {
+    listarExtratoUsuario,
     listarComprasUsuario,
     listarComprasUsuarioData,
     listarCompraPorId,

@@ -1,4 +1,5 @@
 const {
+    listarExtratoUsuario,
     listarComprasUsuario,
     listarComprasUsuarioData,
     listarCompraPorId,
@@ -274,6 +275,14 @@ const validateAtualizacaoCompraPayload = (body) => {
 
 async function listarCompras(req, res) {
     try {
+        if (req.query.resumo === 'true') {
+            const extrato = await listarExtratoUsuario(req.compraUsuarioId);
+            return res.status(200).json({
+                status: 'success',
+                data: extrato.compras,
+                gasto_total: extrato.gasto_total
+            });
+        }
         const compras = await listarComprasUsuario(req.compraUsuarioId);
         return res.status(200).json({
             status: 'success',
