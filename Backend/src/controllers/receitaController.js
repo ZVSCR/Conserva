@@ -2,13 +2,18 @@ const SERIAL_UPPER_LIMIT = 2_147_483_647;
 
 // Recebe middleware
 const {
-    validateReceitaPayload
+    validateReceitaPayload,
+    validateIngredienteReceitaPayload,
+    validateQuantidadeIngredienteReceitaPayload
 } = require('../middleware/receitaValidator');
 
 // Recebe service
 const {
     createReceitaService,
     updateReceitaService,
+    inserirIngredienteReceitaService,
+    removerIngredienteReceitaService,
+    atualizarQuantidadeIngredienteReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService
 } = require('../services/receitaService');
@@ -96,6 +101,7 @@ async function listarPreparos(req, res) {
 }
 const {
     ReceitaNaoEncontradaError,
+    IngredienteNaoEncontradoError,
     ReceitaSemIngredientesError,
     IngredientesInsuficientesError
 } = require('../repositories/receitaRepository');
@@ -321,17 +327,82 @@ async function patchReceitaById(req, res) {
 
 // adiciona um ingrediente na receita
 async function postIngredienteReceitaById(req, res) {
+    try {
+        const { id } = req.params;
+        const receitaId = parsePositiveIntegerParam(id);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
 
+        const { isValid, errors } = validateIngredienteReceitaPayload(req.body);
+        if (!isValid) return res.status(400).json({ errors });
+
+        const ingrediente = await inserirIngredienteReceitaService(receitaId, req.body, req.user.id);
+        return res.status(201).json({
+            message: 'Ingrediente adicionado à receita com sucesso.',
+            ingrediente
+        });
+    } catch (error) {
+        if (error instanceof ReceitaNaoEncontradaError || error instanceof IngredienteNaoEncontradoError) {
+            return res.status(404).json({ erro: error.message });
+        }
+        if (error.code === '23505') {
+            return res.status(409).json({ erro: 'Ingrediente já cadastrado nesta receita.' });
+        }
+        console.error('Erro ao adicionar ingrediente à receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 // atualiza um ingrediente da receita
 async function patchIngredienteReceitaById(req, res) {
+    try {
+        const receitaId = parsePositiveIntegerParam(req.params.id);
+        const ingredienteId = parsePositiveIntegerParam(req.params.ingredienteId);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
+        if (ingredienteId === null || ingredienteId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'ingredienteId deve ser um inteiro positivo.' });
+        }
+        const { isValid, errors } = validateQuantidadeIngredienteReceitaPayload(req.body);
+        if (!isValid) return res.status(400).json({ errors });
 
+        const ingredienteAtualizado = await atualizarQuantidadeIngredienteReceitaService(receitaId, ingredienteId, req.body, req.user.id);
+        if (!ingredienteAtualizado) {
+            return res.status(404).json({ erro: 'Ingrediente não encontrado nesta receita.' });
+        }
+        return res.status(200).json({ message: 'Quantidade atualizada com sucesso.', ingredienteAtualizado });
+    } catch (error) {
+        console.error('Erro ao atualizar quantidade do ingrediente da receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 // remove um ingrediente da receita
 async function deleteIngredienteReceitaById(req, res) {
+    try {
+        const receitaId = parsePositiveIntegerParam(req.params.id);
+        const ingredienteId = parsePositiveIntegerParam(req.params.ingredienteId);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
+        if (ingredienteId === null || ingredienteId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'ingredienteId deve ser um inteiro positivo.' });
+        }
 
+        const ingredienteRemovido = await removerIngredienteReceitaService(receitaId, ingredienteId, req.user.id);
+        if (!ingredienteRemovido) {
+            return res.status(404).json({ erro: 'Ingrediente não encontrado nesta receita.' });
+        }
+        return res.status(200).json({
+            message: 'Ingrediente removido da receita com sucesso.',
+            ingredienteRemovido
+        });
+    } catch (error) {
+        console.error('Erro ao remover ingrediente da receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 module.exports = {

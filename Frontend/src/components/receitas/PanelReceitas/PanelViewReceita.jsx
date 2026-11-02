@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from '../../../services/api';
+import { useAuth } from '../../../contexts/useAuth';
 import "./PanelViewReceita.css";
 import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceita";
 import ModalEditarReceita from "../ModalEditarReceita/ModalEditarReceita";
@@ -7,6 +8,7 @@ import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirPr
 import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
 
 function PanelViewReceita() {
+    const { user } = useAuth();
     const [receitas, setReceitas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
@@ -100,9 +102,13 @@ function PanelViewReceita() {
 
     const atualizarReceitaNaLista = (receitaAtualizada) => {
         setReceitas((atuais) => atuais.map((receita) =>
-            receita.id === receitaAtualizada.id ? receitaAtualizada : receita
+            receita.id === receitaAtualizada.id ? { ...receita, ...receitaAtualizada } : receita
         ));
     };
+
+    const podeGerenciarReceita = (receita) => user != null && (
+        receita.usuario_id === user.id || (user.id === 1 && receita.usuario_id === null)
+    );
 
     const confirmarExclusao = async () => {
         if (!receitaExcluindo || excluindo) return;
@@ -133,6 +139,8 @@ function PanelViewReceita() {
     };
 
     const prepararReceita = async (receitaId) => {
+        if (preparando) return;
+
         setPreparando(true);
         setMensagemPreparo("");
 
@@ -171,6 +179,9 @@ function PanelViewReceita() {
             <h2 className="receita-title">Catálogo de Receitas</h2>
 
             {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
+            {(preparando || mensagemPreparo) && (
+                <p role="status">{preparando ? "Preparando..." : mensagemPreparo}</p>
+            )}
 
             <div className="receita-actions">
                 <button
@@ -215,11 +226,12 @@ function PanelViewReceita() {
                             </button>
                             <EllipsisMenuReceita
                                 rotulo={`Opções da receita ${receita.nome}`}
-                                onModificar={() => setReceitaEditando(receita)}
-                                onExcluir={() => {
+                                onPreparar={preparando ? undefined : () => prepararReceita(receita.id)}
+                                onModificar={podeGerenciarReceita(receita) ? () => setReceitaEditando(receita) : undefined}
+                                onExcluir={podeGerenciarReceita(receita) ? () => {
                                     setErroExclusao("");
                                     setReceitaExcluindo(receita);
-                                }}
+                                } : undefined}
                             />
                         </div>
                     ))
@@ -260,14 +272,6 @@ function PanelViewReceita() {
                             {receitaExpandida.modo_preparo || "Modo de preparo não informado."}
                         </p>
 
-                        <button
-                            type="button"
-                            disabled={preparando}
-                            onClick={() => prepararReceita(receitaExpandida.id)}
-                        >
-                            {preparando ? "Preparando..." : "Preparar receita e atualizar estoque"}
-                        </button>
-                        {mensagemPreparo && <p role="status">{mensagemPreparo}</p>}
                     </div>
                 </div>
             )}

@@ -20,13 +20,11 @@ const payload = {
 describe('receitaRepository.createReceitaRepo', () => {
     let client;
     let ingredientesNoBanco;
-    let proximoIngredienteId;
     let consoleSpy;
 
     beforeEach(() => {
         jest.clearAllMocks();
         ingredientesNoBanco = new Map();
-        proximoIngredienteId = 100;
         client = {
             query: jest.fn(async (consulta, valores = []) => {
                 if (consulta === 'BEGIN' || consulta === 'COMMIT' || consulta === 'ROLLBACK') {
@@ -40,15 +38,6 @@ describe('receitaRepository.createReceitaRepo', () => {
                 if (consulta.includes('SELECT id') && consulta.includes('FROM ingrediente')) {
                     const ingrediente = ingredientesNoBanco.get(valores[0]);
                     return { rows: ingrediente ? [{ id: ingrediente.id }] : [] };
-                }
-
-                if (consulta.includes('INSERT INTO ingrediente')) {
-                    const [nome] = valores;
-                    if (ingredientesNoBanco.has(nome)) return { rows: [] };
-
-                    const ingrediente = { id: proximoIngredienteId++ };
-                    ingredientesNoBanco.set(nome, ingrediente);
-                    return { rows: [{ id: ingrediente.id }] };
                 }
 
                 if (consulta.includes('INSERT INTO receita_ingrediente')) {
@@ -68,6 +57,8 @@ describe('receitaRepository.createReceitaRepo', () => {
     });
 
     test('cria receita e associa ingredientes na mesma transação', async () => {
+        ingredientesNoBanco.set('fuba', { id: 88 });
+        ingredientesNoBanco.set('bolo', { id: 89 });
         await expect(createReceitaRepo(payload)).resolves.toEqual({ id: 42 });
 
         expect(client.query.mock.calls[0][0]).toBe('BEGIN');
@@ -111,14 +102,38 @@ describe('receitaRepository.createReceitaRepo', () => {
         client.query.mockImplementation(async (consulta, valores = []) => {
             if (consulta.includes('INSERT INTO receita_ingrediente')) throw falha;
             if (consulta.includes('INSERT INTO receita (')) return { rows: [{ id: 42 }] };
-            if (consulta.includes('FROM ingrediente')) return { rows: [] };
-            if (consulta.includes('INSERT INTO ingrediente')) return { rows: [{ id: 100 }] };
+            if (consulta.includes('FROM ingrediente')) return { rows: [{ id: 100 }] };
             return { rows: [] };
         });
 
         await expect(createReceitaRepo(payload)).rejects.toBe(falha);
         expect(client.query.mock.calls.map(([query]) => query)).toContain('ROLLBACK');
         expect(client.query.mock.calls.map(([query]) => query)).not.toContain('COMMIT');
+        expect(client.release).toHaveBeenCalledTimes(1);
+    });
+
+    test('ignora ingrediente ausente e vincula somente o ingrediente já cadastrado', async () => {
+        ingredientesNoBanco.set('bolo', { id: 89 });
+
+        await expect(createReceitaRepo(payload)).resolves.toEqual({ id: 42 });
+
+        const associacoes = client.query.mock.calls.filter(([query]) => query.includes('INSERT INTO receita_ingrediente'));
+        expect(associacoes).toHaveLength(1);
+        expect(associacoes[0][1]).toEqual([42, 89, 22, 'un']);
+        expect(client.query.mock.calls.some(([query]) => query.includes('INSERT INTO ingrediente'))).toBe(false);
+        expect(client.query).toHaveBeenCalledWith('COMMIT');
+        expect(client.query).not.toHaveBeenCalledWith('ROLLBACK');
+    });
+
+    test('mantém a receita mesmo quando nenhum ingrediente existe no catálogo', async () => {
+        await expect(createReceitaRepo(payload)).resolves.toEqual({ id: 42 });
+
+        const insercoes = client.query.mock.calls.filter(([query]) => query.includes('INSERT INTO'));
+        expect(insercoes).toHaveLength(1);
+        expect(insercoes[0][0]).toContain('INSERT INTO receita (');
+        expect(ingredientesNoBanco.size).toBe(0);
+        expect(client.query).toHaveBeenCalledWith('COMMIT');
+        expect(client.query).not.toHaveBeenCalledWith('ROLLBACK');
         expect(client.release).toHaveBeenCalledTimes(1);
     });
 
