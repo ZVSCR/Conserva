@@ -303,7 +303,7 @@ function PanelNovaCompra() {
                     </button>
                 </div>
                 
-                <button type="button" className="btn btn-cancela-acao" onClick={() => navigate("/home")} disabled={loading}>
+                <button type="button" className="btn btn-cancela-acao" onClick={() => navigate("/estoque")} disabled={loading}>
                     CANCELAR
                 </button>
                 <button type="submit" className="btn btn-post-compra" disabled={loading || compraRegistrada}>
