@@ -14,12 +14,10 @@ function getSessionSecret() {
 }
 
 function getSessionCookieOptions() {
-    const isProducion = process.env.NONDE_ENV === 'production';
-
     return {
         httpOnly: true,
-        secure: isProducion,
-        sameSite: isProduction ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         maxAge: SESSION_DURATION_MS
     };
