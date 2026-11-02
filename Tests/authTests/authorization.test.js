@@ -37,7 +37,7 @@ test('não devolve receita pertencente a outra conta', async () => {
     const response = await request(app).get('/api/receitas/7').set('Cookie', cookie(42));
     expect(response.status).toBe(404);
     const [segments, id, userId] = sql.mock.calls[0];
-    expect(segments.join('?')).toContain('r.usuario_id IS NULL OR r.usuario_id = ?');
+    expect(segments.join('?')).toContain('r.usuario_id IS NULL OR r.usuario_id = 1 OR r.usuario_id = ?');
     expect([id, userId]).toEqual([7, 42]);
 });
 

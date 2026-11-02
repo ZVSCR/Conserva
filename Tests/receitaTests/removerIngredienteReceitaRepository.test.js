@@ -19,7 +19,8 @@ test('exclui somente o vínculo específico e restringe a operação ao dono da 
     expect(query).toContain('ri.receita_id = ?');
     expect(query).toContain('ri.ingrediente_id = ?');
     expect(query).toContain('r.usuario_id = ?');
-    expect(values).toEqual([9, 88, 7]);
+    expect(query).toContain('(r.usuario_id = ? OR (r.usuario_id IS NULL AND ? = 1))');
+    expect(values).toEqual([9, 88, 7, 7]);
 });
 
 test('retorna undefined quando o vínculo não existe ou a receita não pertence ao usuário', async () => {

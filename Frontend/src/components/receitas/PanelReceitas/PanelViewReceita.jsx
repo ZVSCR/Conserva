@@ -106,7 +106,9 @@ function PanelViewReceita() {
         ));
     };
 
-    const podeGerenciarReceita = (receita) => user != null && receita.usuario_id === user.id;
+    const podeGerenciarReceita = (receita) => user != null && (
+        receita.usuario_id === user.id || (user.id === 1 && receita.usuario_id === null)
+    );
 
     const confirmarExclusao = async () => {
         if (!receitaExcluindo || excluindo) return;

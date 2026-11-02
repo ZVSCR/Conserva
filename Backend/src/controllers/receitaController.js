@@ -3,7 +3,8 @@ const SERIAL_UPPER_LIMIT = 2_147_483_647;
 // Recebe middleware
 const {
     validateReceitaPayload,
-    validateIngredienteReceitaPayload
+    validateIngredienteReceitaPayload,
+    validateQuantidadeIngredienteReceitaPayload
 } = require('../middleware/receitaValidator');
 
 // Recebe service
@@ -12,6 +13,7 @@ const {
     updateReceitaService,
     inserirIngredienteReceitaService,
     removerIngredienteReceitaService,
+    atualizarQuantidadeIngredienteReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService
 } = require('../services/receitaService');
@@ -354,7 +356,27 @@ async function postIngredienteReceitaById(req, res) {
 
 // atualiza um ingrediente da receita
 async function patchIngredienteReceitaById(req, res) {
+    try {
+        const receitaId = parsePositiveIntegerParam(req.params.id);
+        const ingredienteId = parsePositiveIntegerParam(req.params.ingredienteId);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
+        if (ingredienteId === null || ingredienteId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'ingredienteId deve ser um inteiro positivo.' });
+        }
+        const { isValid, errors } = validateQuantidadeIngredienteReceitaPayload(req.body);
+        if (!isValid) return res.status(400).json({ errors });
 
+        const ingredienteAtualizado = await atualizarQuantidadeIngredienteReceitaService(receitaId, ingredienteId, req.body, req.user.id);
+        if (!ingredienteAtualizado) {
+            return res.status(404).json({ erro: 'Ingrediente não encontrado nesta receita.' });
+        }
+        return res.status(200).json({ message: 'Quantidade atualizada com sucesso.', ingredienteAtualizado });
+    } catch (error) {
+        console.error('Erro ao atualizar quantidade do ingrediente da receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 // remove um ingrediente da receita

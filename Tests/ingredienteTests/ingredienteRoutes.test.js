@@ -8,7 +8,8 @@ jest.mock('../../Backend/src/repositories/ingredienteRepository', () => ({
     inserirIngredientesPadrao: jest.fn(),
     buscarIdsIngredientes: jest.fn(),
     deleteIngredienteRepo: jest.fn(),
-    updateIngredienteRepo: jest.fn()
+    updateIngredienteRepo: jest.fn(),
+    listIngredientesRepo: jest.fn()
 }));
 
 const { createIngredienteRepo, updateIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
@@ -17,6 +18,30 @@ const app = require('../../Backend/src/app');
 beforeEach(() => jest.clearAllMocks());
 
 const { deleteIngredienteRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+
+describe('GET /api/ingredientes', () => {
+    test.each([1, 7])('sessão %s pode consultar o catálogo sem poder cadastrar novos ingredientes', async (usuarioId) => {
+        const { listIngredientesRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+        listIngredientesRepo.mockResolvedValue([{ id: 88, nome: 'fuba' }]);
+        const response = await request(app).get('/api/ingredientes').set('X-Test-User', String(usuarioId));
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({ ingredientes: [{ id: 88, nome: 'fuba' }] });
+        expect(createIngredienteRepo).not.toHaveBeenCalled();
+    });
+
+    test('consulta exige sessão', async () => {
+        const { listIngredientesRepo } = require('../../Backend/src/repositories/ingredienteRepository');
+        expect((await request(app).get('/api/ingredientes').set('X-Test-User', 'anonymous')).status).toBe(401);
+        expect(listIngredientesRepo).not.toHaveBeenCalled();
+    });
+
+    test('usuário comum continua sem permissão para cadastrar ingrediente global', async () => {
+        const response = await request(app).post('/api/ingredientes').set('X-Test-User', '7')
+            .send({ nome: 'ingrediente novo' });
+        expect(response.status).toBe(403);
+        expect(createIngredienteRepo).not.toHaveBeenCalled();
+    });
+});
 
 describe('DELETE /api/ingredientes/:id', () => {
     test('administrador recebe 204 ao excluir ingrediente', async () => {
@@ -152,7 +177,7 @@ describe('PATCH /api/ingredientes/:id', () => {
 
     test('rejeita usuário não administrador sem atualizar o banco', async () => {
         const response = await request(app)
-            .patch('/api/ingredientes/12?usuario_id=2')
+            .patch('/api/ingredientes/12?usuario_id=1').set('X-Test-User', '2')
             .send({ nome: 'novo nome' });
 
         expect(response.status).toBe(403);
@@ -161,10 +186,10 @@ describe('PATCH /api/ingredientes/:id', () => {
 
     test('rejeita identificação ausente sem atualizar o banco', async () => {
         const response = await request(app)
-            .patch('/api/ingredientes/12')
+            .patch('/api/ingredientes/12').set('X-Test-User', 'anonymous')
             .send({ nome: 'novo nome' });
 
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(401);
         expect(updateIngredienteRepo).not.toHaveBeenCalled();
     });
 

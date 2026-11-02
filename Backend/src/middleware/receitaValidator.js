@@ -103,24 +103,7 @@ function validateIngrediente(ingrediente, index, porId = false) {
         }));
     }
 
-    errors.push(...validateNumber({
-        value: quantidade,
-        field: `${fieldPrefix}.quantidade`,
-        messages: {
-            required: `Quantidade do ingrediente ${index + 1} é obrigatória.`,
-            type: `Formato da quantidade do ingrediente ${index + 1} é inválido.`,
-            positive: `Quantidade do ingrediente ${index + 1} deve ser maior que zero.`
-        }
-    }));
-
-    if (typeof quantidade === 'number' && Number.isFinite(quantidade) &&
-        quantidade > 0 && !quantidadeRepresentavel(quantidade)) {
-
-        errors.push({
-            field: `${fieldPrefix}.quantidade`,
-            message: 'Quantidade deve ter até duas casas decimais e ser no máximo 9.999.999,99.'
-        });
-    }
+    errors.push(...validateQuantidadeIngrediente(quantidade, `${fieldPrefix}.quantidade`, index));
 
     errors.push(...validateString({
         value: unidade_de_medida,
@@ -140,6 +123,29 @@ function validateIngrediente(ingrediente, index, porId = false) {
         errors.push({
             field: `${fieldPrefix}.unidade_de_medida`,
             message: 'Unidade de medida deve ser un, kg, g, L ou mL.'
+        });
+    }
+
+    return errors;
+}
+
+function validateQuantidadeIngrediente(quantidade, field, index = 0) {
+    const errors = validateNumber({
+        value: quantidade,
+        field,
+        messages: {
+            required: `Quantidade do ingrediente ${index + 1} é obrigatória.`,
+            type: `Formato da quantidade do ingrediente ${index + 1} é inválido.`,
+            positive: `Quantidade do ingrediente ${index + 1} deve ser maior que zero.`
+        }
+    });
+
+    if (typeof quantidade === 'number' && Number.isFinite(quantidade) &&
+        quantidade > 0 && !quantidadeRepresentavel(quantidade)) {
+
+        errors.push({
+            field,
+            message: 'Quantidade deve ter até duas casas decimais e ser no máximo 9.999.999,99.'
         });
     }
 
@@ -222,6 +228,13 @@ function validateReceitaPayload(payload, validateIngredients = false) {
 }
 
 module.exports = {
+    validateQuantidadeIngredienteReceitaPayload(payload) {
+        if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+            return { isValid: false, errors: [{ field: 'payload', message: 'A requisição enviada não é um objeto válido.' }] };
+        }
+        const errors = validateQuantidadeIngrediente(payload.quantidade, 'quantidade');
+        return { isValid: errors.length === 0, errors };
+    },
     validateReceitaPayload,
     validateIngredienteReceitaPayload(payload) {
         const errors = validateIngrediente(payload, 0, true);

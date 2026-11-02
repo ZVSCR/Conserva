@@ -25,7 +25,7 @@ describe('inserirIngredienteReceitaRepo', () => {
 
     test('verifica a propriedade e associa o ingrediente selecionado por ID sem alterar o catálogo', async () => {
         await expect(inserirIngredienteReceitaRepo(9, payload, 7)).resolves.toEqual(vinculo);
-        expect(client.query).toHaveBeenCalledWith(expect.stringContaining('WHERE id = $1 AND usuario_id = $2'), [9, 7]);
+        expect(client.query).toHaveBeenCalledWith(expect.stringContaining('WHERE id = $1 AND (usuario_id = $2 OR (usuario_id IS NULL AND $2 = 1))'), [9, 7]);
         expect(client.query).toHaveBeenCalledWith(expect.stringContaining('FROM ingrediente WHERE id = $1'), [88]);
         expect(client.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO receita_ingrediente'), [9, 88, 1.25, 'kg']);
         expect(client.query.mock.calls.some(([q]) => q.includes('INSERT INTO ingrediente'))).toBe(false);

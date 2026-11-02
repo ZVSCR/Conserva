@@ -148,7 +148,7 @@ async function getGastoPorReceitaRepo({ usuarioId }) {
                 ON e.id = rpe.estoque_id
             LEFT JOIN item i
                 ON i.id = e.item_id
-            WHERE r.usuario_id IS NULL OR r.usuario_id = ${usuarioId}
+            WHERE r.usuario_id IS NULL OR r.usuario_id = 1 OR r.usuario_id = ${usuarioId}
             GROUP BY r.id, r.nome
             ORDER BY r.nome
         `;
@@ -165,7 +165,7 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         await client.query('BEGIN');
 
         const { rows: [receita] } = await client.query(
-            'SELECT id FROM receita WHERE id = $1 AND (usuario_id IS NULL OR usuario_id = $2)', [receitaId, usuarioId]
+            'SELECT id FROM receita WHERE id = $1 AND (usuario_id IS NULL OR usuario_id = 1 OR usuario_id = $2)', [receitaId, usuarioId]
         );
         if (!receita) throw new ReceitaNaoEncontradaError();
 
@@ -235,7 +235,7 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
         client.release();
     }
 }
-// Lista receitas do sistema (por enquanto NULL) e do usuário, cada uma com seus ingredientes
+// Lista receitas públicas (NULL ou administrador 1) e as receitas do usuário.
 async function listReceitasRepo(usuarioId) {
     try {
         const receitas = await sql`
@@ -248,6 +248,7 @@ async function listReceitasRepo(usuarioId) {
                 COALESCE(
                     json_agg(
                         json_build_object(
+                            'ingrediente_id', i.id,
                             'nome', i.nome,
                             'quantidade', ri.quantidade,
                             'unidade_de_medida', ri.unidade_de_medida
@@ -259,7 +260,7 @@ async function listReceitasRepo(usuarioId) {
             FROM receita r
             LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
             LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
-            WHERE r.usuario_id IS NULL OR r.usuario_id = ${usuarioId}
+            WHERE r.usuario_id IS NULL OR r.usuario_id = 1 OR r.usuario_id = ${usuarioId}
             GROUP BY r.id
             ORDER BY r.nome
         `;
@@ -280,7 +281,7 @@ async function getGastoReceitaRepo({ receitaId, usuarioId }) {
         const [receita] = await sql`
             SELECT id, nome
             FROM receita
-            WHERE id = ${receitaId} AND (usuario_id IS NULL OR usuario_id = ${usuarioId})
+            WHERE id = ${receitaId} AND (usuario_id IS NULL OR usuario_id = 1 OR usuario_id = ${usuarioId})
         `;
 
         if (!receita) {
@@ -324,6 +325,7 @@ async function getReceitaByIdRepo(id, usuarioId) {
                 COALESCE(
                     json_agg(
                         json_build_object(
+                            'ingrediente_id', i.id,
                             'nome', i.nome,
                             'quantidade', ri.quantidade,
                             'unidade_de_medida', ri.unidade_de_medida
@@ -335,7 +337,7 @@ async function getReceitaByIdRepo(id, usuarioId) {
             FROM receita r
             LEFT JOIN receita_ingrediente ri ON ri.receita_id = r.id
             LEFT JOIN ingrediente i ON i.id = ri.ingrediente_id
-            WHERE r.id = ${id} AND (r.usuario_id IS NULL OR r.usuario_id = ${usuarioId})
+            WHERE r.id = ${id} AND (r.usuario_id IS NULL OR r.usuario_id = 1 OR r.usuario_id = ${usuarioId})
             GROUP BY r.id
         `;
 
@@ -350,7 +352,8 @@ async function getReceitaByIdRepo(id, usuarioId) {
 async function apagarReceitaPorId(usuarioId, receitaId) {
     const [receitaRemovida] = await sql`
         DELETE FROM receita
-        WHERE id = ${receitaId} AND usuario_id = ${usuarioId}
+        WHERE id = ${receitaId}
+          AND (usuario_id = ${usuarioId} OR (usuario_id IS NULL AND ${usuarioId} = 1))
         RETURNING id, nome;
     `;
 
@@ -375,7 +378,8 @@ async function updateReceitaRepo(receitaId, payload, usuarioId) {
                 nome = ${nome},
                 descricao = ${descricao},
                 modo_preparo = ${modo_preparo}
-            WHERE id = ${receitaId} AND usuario_id = ${usuarioId}
+            WHERE id = ${receitaId}
+              AND (usuario_id = ${usuarioId} OR (usuario_id IS NULL AND ${usuarioId} = 1))
             RETURNING id, nome, descricao, modo_preparo;
         `;
 
@@ -393,7 +397,7 @@ async function inserirIngredienteReceitaRepo(receitaId, payload, usuarioId) {
         await client.query('BEGIN');
         const { rows: receitas } = await client.query(`
             SELECT id FROM receita
-            WHERE id = $1 AND usuario_id = $2
+            WHERE id = $1 AND (usuario_id = $2 OR (usuario_id IS NULL AND $2 = 1))
             FOR UPDATE
         `, [receitaId, usuarioId]);
         if (receitas.length === 0) throw new ReceitaNaoEncontradaError();
@@ -431,10 +435,24 @@ async function removerIngredienteReceitaRepo(receitaId, ingredienteId, usuarioId
         WHERE ri.receita_id = r.id
           AND ri.receita_id = ${receitaId}
           AND ri.ingrediente_id = ${ingredienteId}
-          AND r.usuario_id = ${usuarioId}
+          AND (r.usuario_id = ${usuarioId} OR (r.usuario_id IS NULL AND ${usuarioId} = 1))
         RETURNING ri.receita_id, ri.ingrediente_id, ri.quantidade, ri.unidade_de_medida;
     `;
     return ingredienteRemovido;
+}
+
+async function atualizarQuantidadeIngredienteReceitaRepo(receitaId, ingredienteId, quantidade, usuarioId) {
+    const [ingredienteAtualizado] = await sql`
+        UPDATE receita_ingrediente ri
+        SET quantidade = ${quantidade}
+        FROM receita r
+        WHERE ri.receita_id = r.id
+          AND ri.receita_id = ${receitaId}
+          AND ri.ingrediente_id = ${ingredienteId}
+          AND (r.usuario_id = ${usuarioId} OR (r.usuario_id IS NULL AND ${usuarioId} = 1))
+        RETURNING ri.receita_id, ri.ingrediente_id, ri.quantidade, ri.unidade_de_medida;
+    `;
+    return ingredienteAtualizado;
 }
 
 async function listarPreparosPorUsuario(usuarioId) {
@@ -453,6 +471,7 @@ async function listarPreparosPorUsuario(usuarioId) {
 }
 
 module.exports = {
+    atualizarQuantidadeIngredienteReceitaRepo,
     removerIngredienteReceitaRepo,
     IngredienteNaoEncontradoError,
     inserirIngredienteReceitaRepo,
