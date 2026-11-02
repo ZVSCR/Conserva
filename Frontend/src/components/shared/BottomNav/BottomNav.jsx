@@ -4,7 +4,7 @@ import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import IconCompras from '../../../assets/IconsEstoque/carrinho.png';
 import IconAdicionar from '../../../assets/IconsEstoque/adicionar.png';
 import IconEstoque from '../../../assets/IconsEstoque/estoque.png';
-import IconConfiguracao from '../../../assets/IconsEstoque/configuracao.png';
+import IconIngredientes from '../../../assets/IconsEstoque/ingredientes.png'
 import styles from './BottomNav.module.css';
 
 function BottomNav() {
@@ -33,8 +33,8 @@ function BottomNav() {
                 <Link to="/estoque" className={styles.item} aria-label="Estoque">
                     <img src={IconEstoque} alt="" />
                 </Link>
-                <Link to="/configuracoes" className={styles.item} aria-label="Configurações">
-                    <img src={IconConfiguracao} alt="" />
+                <Link to="/ingredientes" className={styles.item} aria-label="Ingredientes">
+                    <img src={IconIngredientes} alt="" />
                 </Link>
             </nav>
         </>
