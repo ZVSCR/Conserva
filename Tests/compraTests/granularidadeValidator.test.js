@@ -5,7 +5,7 @@ const itemBase = {
     nome_item: 'Granola',
     quantidade: 0.5,
     unidade_de_medida: 'kg',
-    valor_unitario: 20
+    preco_total_item: 20
 };
 
 test('preserva clientes antigos e classifica pela unidade', () => {

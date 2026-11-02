@@ -15,7 +15,7 @@ const validateItemPayload = (body) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { isValid: false, message: 'O corpo da requisição deve ser um objeto JSON.' };
   }
-  const allowedFields = ['quantidade', 'valor_unitario', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
+  const allowedFields = ['quantidade', 'preco_total_item', 'nome_item', 'unidade_de_medida', 'validade_estimada'];
 
   if (Object.keys(body).some(key => !allowedFields.includes(key))) {
     return { isValid: false, message: 'A atualização contém campos não permitidos.' };
@@ -40,12 +40,12 @@ const validateItemPayload = (body) => {
   if (body.quantidade !== undefined && !quantidadeRepresentavel(body.quantidade)) {
     return { isValid: false, message: 'quantidade deve ter até duas casas decimais e caber no campo do banco.' };
   }
-  if (body.valor_unitario !== undefined &&
-      (typeof body.valor_unitario !== 'number' || !Number.isFinite(body.valor_unitario) || body.valor_unitario < 0)) {
-    return { isValid: false, message: 'valor_unitario deve ser um número maior ou igual a zero.' };
+  if (body.preco_total_item !== undefined &&
+      (typeof body.preco_total_item !== 'number' || !Number.isFinite(body.preco_total_item) || body.preco_total_item < 0)) {
+    return { isValid: false, message: 'preco_total_item deve ser um número maior ou igual a zero.' };
   }
-  if (body.valor_unitario !== undefined && !valorUnitarioRepresentavel(body.valor_unitario)) {
-    return { isValid: false, message: 'valor_unitario deve ter até duas casas decimais e caber no campo do banco.' };
+  if (body.preco_total_item !== undefined && !valorUnitarioRepresentavel(body.preco_total_item)) {
+    return { isValid: false, message: 'preco_total_item deve ter até duas casas decimais e caber no campo do banco.' };
   }
   if (body.nome_item !== undefined &&
       (typeof body.nome_item !== 'string' || !body.nome_item.trim() || body.nome_item.length > 100)) {
@@ -127,11 +127,11 @@ async function atualizarItem(req, res) {
             });
         }
 
-        const { quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada } = req.body;
+        const { quantidade, preco_total_item, nome_item, unidade_de_medida, validade_estimada } = req.body;
 
         const itemAtualizado = await atualizarPorId(id, {
             quantidade,
-            valor_unitario,
+            preco_total_item,
             nome_item,
             unidade_de_medida,
             validade_estimada
@@ -206,6 +206,9 @@ async function criarItemHandler(req, res) {
         const resultado = await adicionaItensACompraService(usuarioId, compraId, { itens: [req.body] });
         res.status(201).json({ compraId: resultado.id });
     } catch (erro) {
+        if (erro instanceof PrecoInvalidoError) {
+            return res.status(400).json({ erro: erro.message });
+        }
         console.error(erro)
         res.status(500).json({
             erro: 'Erro ao criar item no estoque'

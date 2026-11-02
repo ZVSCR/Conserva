@@ -21,14 +21,14 @@ function createValidPayload() {
                 nome_item: 'Arroz',
                 quantidade: 2,
                 unidade_de_medida: 'kg',
-                valor_unitario: 8.5,
+                preco_total_item: 17,
                 validade_estimada: '2027-03-01'
             },
             {
                 nome_item: 'Feijão',
                 quantidade: 3,
                 unidade_de_medida: 'kg',
-                valor_unitario: 4,
+                preco_total_item: 12,
                 validade_estimada: '2027-01-01'
             }
         ]
@@ -49,7 +49,10 @@ describe('createCompraService', () => {
 
         expect(createCompraRepo).toHaveBeenCalledTimes(1);
         const [dados] = createCompraRepo.mock.calls[0];
-        expect(dados.itens).toEqual(payload.itens.map(item => ({ ...item, tipo_medida: 'variavel' })));
+        expect(dados.itens).toEqual([
+            { nome_item: 'Arroz', quantidade: 2, unidade_de_medida: 'kg', tipo_medida: 'variavel', valor_unitario: 8.5, validade_estimada: '2027-03-01' },
+            { nome_item: 'Feijão', quantidade: 3, unidade_de_medida: 'kg', tipo_medida: 'variavel', valor_unitario: 4, validade_estimada: '2027-01-01' }
+        ]);
     });
 
     test('associa a compra ao usuário autenticado, não ao ID enviado no payload', async () => {
@@ -80,7 +83,7 @@ describe('createCompraService', () => {
         const payload = createValidPayload();
         payload.itens = [{
             nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
-            valor_unitario: 20, numero_embalagens: 2
+            preco_total_item: 20, numero_embalagens: 2
         }];
 
         await createCompraService(7, payload);
@@ -96,7 +99,7 @@ describe('createCompraService', () => {
         const payload = createValidPayload();
         payload.itens = [{
             nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
-            valor_unitario: 20, numero_embalagens: 3
+            preco_total_item: 30, numero_embalagens: 3
         }];
 
         await createCompraService(7, payload);
@@ -110,7 +113,7 @@ describe('createCompraService', () => {
     test('mantém três maçãs num lote pelo preço por maçã', async () => {
         const payload = createValidPayload();
         payload.itens = [{
-            nome_item: 'Maçã', quantidade: 3, unidade_de_medida: 'un', valor_unitario: 2
+            nome_item: 'Maçã', quantidade: 3, unidade_de_medida: 'un', preco_total_item: 6
         }];
 
         await createCompraService(7, payload);
@@ -126,7 +129,7 @@ describe('createCompraService', () => {
         payload.itens = [{
             ...payload.itens[0],
             quantidade: 3,
-            valor_unitario: 0.1
+            preco_total_item: 0.3
         }];
 
         await createCompraService(7, payload);
@@ -135,11 +138,11 @@ describe('createCompraService', () => {
         expect(dados.valor_total).toBe(0.3);
     });
 
-    test('arredonda cada item antes de somar o total da compra', async () => {
+    test('soma os totais de linhas fracionárias sem multiplicá-los novamente', async () => {
         const payload = createValidPayload();
         payload.itens = [
-            { nome_item: 'Produto A', quantidade: 0.5, unidade_de_medida: 'kg', valor_unitario: 0.01 },
-            { nome_item: 'Produto B', quantidade: 0.5, unidade_de_medida: 'kg', valor_unitario: 0.01 }
+            { nome_item: 'Produto A', quantidade: 0.5, unidade_de_medida: 'kg', preco_total_item: 0.01 },
+            { nome_item: 'Produto B', quantidade: 0.5, unidade_de_medida: 'kg', preco_total_item: 0.01 }
         ];
 
         await createCompraService(7, payload);
@@ -149,10 +152,10 @@ describe('createCompraService', () => {
 
     test('não tenta gravar compra cujo total excede numeric(9, 2)', async () => {
         const payload = createValidPayload();
-        payload.itens = [{
-            nome_item: 'Produto caro', quantidade: 2, unidade_de_medida: 'un',
-            valor_unitario: 9999999.99
-        }];
+        payload.itens = [1, 2].map(numero => ({
+            nome_item: `Produto ${numero}`, quantidade: 1, unidade_de_medida: 'un',
+            preco_total_item: 9999999.99
+        }));
 
         await expect(createCompraService(7, payload)).rejects.toThrow(/ultrapassa o limite/);
         expect(createCompraRepo).not.toHaveBeenCalled();
@@ -162,7 +165,7 @@ describe('createCompraService', () => {
         const payload = createValidPayload();
         payload.itens = [{
             ...payload.itens[0],
-            valor_unitario: 0
+            preco_total_item: 0
         }];
 
         await createCompraService(7, payload);
@@ -208,7 +211,7 @@ test('adiciona embalagens variáveis à compra pelo preço da medida', async () 
     adicionaItensACompraRepo.mockResolvedValue({ id: 42 });
     const itens = [{
         nome_item: 'Granola', quantidade: 0.5, unidade_de_medida: 'kg',
-        valor_unitario: 20, numero_embalagens: 3
+        preco_total_item: 30, numero_embalagens: 3
     }];
 
     await adicionaItensACompraService(7, 42, { itens });

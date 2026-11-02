@@ -32,7 +32,7 @@ test('criação direta usa o serviço compartilhado de compras', async () => {
     const body = {
         usuario_id: 7, compra_id: 42, nome_item: 'Produto', quantidade: 0.5,
         unidade_de_medida: 'kg', tipo_medida: 'variavel', numero_embalagens: 2,
-        valor_unitario: 20
+        preco_total_item: 20
     };
     const res = resposta();
     await criarItemHandler({ user: { id: 7 }, body }, res);
@@ -50,7 +50,7 @@ test('criação direta exige uma compra de destino', async () => {
 test('criação direta rejeita fração de item unitário', async () => {
     const body = {
         usuario_id: 7, compra_id: 42, nome_item: 'Produto', quantidade: 1.5,
-        unidade_de_medida: 'un', tipo_medida: 'unitaria', valor_unitario: 2
+        unidade_de_medida: 'un', tipo_medida: 'unitaria', preco_total_item: 2
     };
     const res = resposta();
     await criarItemHandler({ user: { id: 7 }, body }, res);
@@ -85,7 +85,7 @@ test('edição direta não permite alterar a classificação de um item existent
 
 test('edição direta rejeita preço que não cabe no campo do banco', async () => {
     const res = resposta();
-    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { valor_unitario: 1.234 } }, res);
+    await atualizarItem({ user: { id: 7 }, params: { id: '10' }, body: { preco_total_item: 1.234 } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(atualizarPorId).not.toHaveBeenCalled();
 });

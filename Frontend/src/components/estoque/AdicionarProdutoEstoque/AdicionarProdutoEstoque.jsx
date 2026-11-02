@@ -7,11 +7,11 @@ function AdicionarProdutoEstoque({ onSalvar, onCancelar }) {
     const [nome, setNome] = useState('');
     const [quantidade, setQuantidade] = useState(1);
     const [unidadeDeMedida, setUnidadeDeMedida] = useState('');
-    const [valorUnitario, setValorUnitario] = useState('');
+    const [precoTotal, setPrecoTotal] = useState('');
     const [validadeEstimada, setValidadeEstimada] = useState('');
     const [estabelecimento, setEstabelecimento] = useState('');
 
-    const [erros, setErros] = useState({}); // um erro por campo, ex: { nome: '...', valorUnitario: '...' }
+    const [erros, setErros] = useState({}); // um erro por campo, ex: { nome: '...', precoTotal: '...' }
 
     function validar() {
         const novosErros = {};
@@ -28,8 +28,8 @@ function AdicionarProdutoEstoque({ onSalvar, onCancelar }) {
         if (!(Number(quantidade) > 0)) {
             novosErros.quantidade = 'Quantidade deve ser maior que zero.';
         }
-        if (valorUnitario === '' || Number(valorUnitario) < 0) {
-            novosErros.valorUnitario = 'Informe um valor unitário válido (0 ou mais).';
+        if (precoTotal === '' || Number(precoTotal) < 0) {
+            novosErros.precoTotal = 'Informe um preço total válido (0 ou mais).';
         }
          if (validadeEstimada === '') {
             novosErros.validadeEstimada = 'Informe a validade estimada do produto.';
@@ -50,7 +50,7 @@ function AdicionarProdutoEstoque({ onSalvar, onCancelar }) {
                 nome_item: nome.trim(),
                 quantidade: Number(quantidade),
                 unidade_de_medida: unidadeDeMedida.trim(),
-                valor_unitario: Number(valorUnitario),
+                preco_total_item: Number(precoTotal),
                 validade_estimada: validadeEstimada
             }]
         });
@@ -68,8 +68,8 @@ function AdicionarProdutoEstoque({ onSalvar, onCancelar }) {
             <CampoEstoque rotulo="Unidade de medida" type="text" placeholder="kg, L, un..." value={unidadeDeMedida}
                 onChange={(e) => setUnidadeDeMedida(e.target.value)} erro={erros.unidadeDeMedida} />
 
-            <CampoEstoque rotulo="Valor unitário" type="number" min="0" step="0.01" value={valorUnitario}
-                onChange={(e) => setValorUnitario(e.target.value)} erro={erros.valorUnitario} />
+            <CampoEstoque rotulo="Preço total do item" type="number" min="0" step="0.01" value={precoTotal}
+                onChange={(e) => setPrecoTotal(e.target.value)} erro={erros.precoTotal} />
 
             <CampoEstoque rotulo="Validade estimada" type="date" value={validadeEstimada}
                 onChange={(e) => setValidadeEstimada(e.target.value)} erro={erros.validadeEstimada} />

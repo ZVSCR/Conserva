@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./PanelExtratoCompras.css";
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../../services/api';
+import EditarCompra from "../EditarCompra/EditarCompra";
 
 
 function ExtratoCompras() {
@@ -10,10 +11,6 @@ function ExtratoCompras() {
   const [errorMsg, setErrorMsg] = useState("");
   const [busca, setBusca] = useState("");
   const [compraExpandidaId, setCompraExpandidaId] = useState(null);
-  const [compraEditando, setCompraEditando] = useState({ data_compra: "", estabelecimento: "" });
-  const [itensEditando, setItensEditando] = useState([]);
-  const [salvando, setSalvando] = useState(false);
-  const [erroSalvar, setErroSalvar] = useState("");
 
   const navigate = useNavigate();
   
@@ -87,108 +84,9 @@ function ExtratoCompras() {
   const gastoTotal = comprasFiltradas.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
 
   // Abre o card e carrega os dados detalhados pra edição
-  const handleEditar = async (id) => {
-    // Clicar de novo no mesmo "Editar" fecha o card
-    if (compraExpandidaId === id) {
-      setCompraExpandidaId(null);
-      return;
-    }
-
-    try {
-      const response = await apiFetch(`/api/compras/${id}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Erro ao buscar detalhes da compra");
-        return;
-      }
-
-      const linhas = data.data || data; // um array, uma linha por item
-      const primeiraLinha = linhas[0];
-
-      setCompraEditando({
-        data_compra: primeiraLinha.data_compra?.slice(0, 10) || "",
-        estabelecimento: primeiraLinha.estabelecimento || "",
-      });
-
-      setItensEditando(
-        linhas.map((linha) => ({
-        id: linha.item_id,
-        nome_item: linha.nome_item,
-        quantidade: Number(linha.quantidade),
-        unidade_de_medida: linha.unidade_de_medida,
-        valor_unitario: Number(linha.valor_unitario),
-        validade_estimada: linha.validade_estimada?.slice(0, 10) || null,
-  }))
-);
-
-      setCompraExpandidaId(id);
-      setErroSalvar("");
-    } catch (err) {
-      console.error("Erro ao buscar detalhes para edição:", err);
-    }
-  };
-
-  // Atualiza os campos da compra (data/estabelecimento)
-  const handleChangeCompra = (e) => {
-    const { name, value } = e.target;
-    setCompraEditando((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Atualiza um item específico dentro do array
-  const handleChangeItem = (itemId, campo, valor) => {
-    setItensEditando((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, [campo]: valor } : item))
-    );
-  };
-
-  // Dispara todas as requisições ao clicar em "Salvar"
-  const handleSalvarEdicao = async (compraId) => {
-    setSalvando(true);
-    setErroSalvar("");
-
-    const promises = [];
-
-    promises.push(
-      apiFetch(`/api/compras/${compraId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(compraEditando),
-      })
-    );
-
-    itensEditando.forEach((item) => {
-      const { id, ...camposItem } = item;
-      promises.push(
-        apiFetch(`/api/compras/${compraId}/items/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(camposItem),
-        })
-      );
-    });
-
-    const resultados = await Promise.allSettled(promises);
-
-    for (const resultado of resultados) {
-      if (resultado.status === "rejected") {
-        console.error("Requisição rejeitada:", resultado.reason);
-      } else if (!resultado.value.ok) {
-        const corpoErro = await resultado.value.json();
-        console.error("Falha na requisição:", resultado.value.status, corpoErro);
-  }
-}
-    const falhas = resultados.filter((r) => r.status === "rejected" || !r.value.ok);
-
-    if (falhas.length > 0) {
-      setErroSalvar(`${falhas.length} de ${resultados.length} atualizações falharam.`);
-    } else {
-      await fetchComprasComItens();
-      setCompraExpandidaId(null);
-    }
-
-    setSalvando(false);
-  };
+  const handleEditar = (id) => {
+    setCompraExpandidaId((atual) => (atual === id ? null : id));
+};
 
   // Apaga a compra e os itens dela em cascata
   const handleExcluir = async (id) => {
@@ -240,88 +138,37 @@ function ExtratoCompras() {
         {comprasFiltradas.length > 0 ? (
           comprasFiltradas.map((compra) => (
             <div key={compra.id} className="compra-card">
-              <div className="compra-info">
-                <h3>
-                  {compra.estabelecimento} - {formatarData(compra.data_compra)}
-                </h3>
-                <p className="compra-custo">
-                  Custo: R$ {Number(compra.valor_total).toFixed(2).replace(".", ",")}
-                </p>
-                <p className="compra-itens">Quantidade de itens: {compra.quantidadeItens ?? 0}</p>
-              </div>
-              <div className="compra-actions">
-                <button className="btn-icon btn-edit" onClick={() => handleEditar(compra.id)} title="Editar">
-                  {compraExpandidaId === compra.id ? "Fechar" : "Editar"}
-                </button>
-                <button className="btn-icon btn-delete" onClick={() => handleExcluir(compra.id)} title="Excluir">
-                  Excluir
-                </button>
-              </div>
-
-              {/* Bloco de edição, só aparece pra compra expandida */}
-              {compraExpandidaId === compra.id && (
-                <div className="compra-edicao">
-                  <label>
-                    Estabelecimento:
-                    <input
-                      type="text"
-                      name="estabelecimento"
-                      value={compraEditando.estabelecimento}
-                      onChange={handleChangeCompra}
-                    />
-                  </label>
-                  <label>
-                    Data:
-                    <input
-                      type="date"
-                      name="data_compra"
-                      value={compraEditando.data_compra}
-                      onChange={handleChangeCompra}
-                    />
-                  </label>
-
-                  {itensEditando.map((item) => (
-                    <div key={item.id} className="edicao-item-linha">
-                      <input
-                        type="text"
-                        value={item.nome_item}
-                        onChange={(e) => handleChangeItem(item.id, "nome_item", e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        value={item.quantidade}
-                        onChange={(e) => handleChangeItem(item.id, "quantidade", Number(e.target.value))}
-                      />
-                      <input
-                        type="text"
-                        value={item.unidade_de_medida}
-                        onChange={(e) => handleChangeItem(item.id, "unidade_de_medida", e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={item.valor_unitario}
-                        onChange={(e) => handleChangeItem(item.id, "valor_unitario", Number(e.target.value))}
-                      />
-                      <input
-                        type="date"
-                        value={item.validade_estimada ?? ""}
-                        onChange={(e) => handleChangeItem(item.id, "validade_estimada", e.target.value || null)}
-                      />
-                    </div>
-                  ))}
-
-                  {erroSalvar && <p className="error-message" style={{ color: "red" }}>{erroSalvar}</p>}
-
-                  <button
-                    type="button"
-                    className="btn btn-concluir"
-                    onClick={() => handleSalvarEdicao(compra.id)}
-                    disabled={salvando}
-                  >
-                    {salvando ? "Salvando..." : "Salvar edição"}
+              {/* Conteúdo principal do card que fica sempre visível */}
+              <div className="compra-header-content">
+                <div className="compra-info">
+                  <h3>
+                    {compra.estabelecimento} - {formatarData(compra.data_compra)}
+                  </h3>
+                  <p className="compra-custo">
+                    Custo: R$ {Number(compra.valor_total).toFixed(2).replace(".", ",")}
+                  </p>
+                  <p className="compra-itens">Quantidade de itens: {compra.quantidadeItens ?? 0}</p>
+                </div>
+    
+                <div className="compra-actions">
+                  <button className="btn-icon btn-edit" onClick={() => handleEditar(compra.id)} title="Editar">
+                    {compraExpandidaId === compra.id ? "Fechar" : "Editar"}
+                  </button>
+                  <button className="btn-icon btn-delete" onClick={() => handleExcluir(compra.id)} title="Excluir">
+                    Excluir
                   </button>
                 </div>
+              </div>
+
+              {compraExpandidaId === compra.id && (
+                <EditarCompra
+                  compraId={compra.id}
+                  onFechar={() => setCompraExpandidaId(null)}
+                  onSalvo={async () => {
+                    await fetchComprasComItens();
+                    setCompraExpandidaId(null);
+                  }}
+                />
               )}
             </div>
           ))

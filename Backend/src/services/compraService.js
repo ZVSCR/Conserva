@@ -2,8 +2,21 @@ const {
     createCompraRepo,
     adicionaItensACompraRepo
 } = require('../repositories/compraRepository');
-const { normalizarItens } = require('./granularidadeService');
-const { somarTotalItens } = require('./precoService');
+const { normalizarItens, tipoMedida } = require('./granularidadeService');
+const { somarTotalItens, inferirValorUnitario, PrecoInvalidoError } = require('./precoService');
+
+function prepararItens(itens) {
+    return normalizarItens(itens.map(({ preco_total_item, ...item }) => {
+        if (Object.prototype.hasOwnProperty.call(item, 'valor_unitario')) {
+            throw new PrecoInvalidoError('Informe preco_total_item; valor_unitario é calculado pelo servidor.');
+        }
+        const embalagens = tipoMedida(item) === 'variavel' ? (item.numero_embalagens ?? 1) : 1;
+        return {
+            ...item,
+            valor_unitario: inferirValorUnitario(preco_total_item, item.quantidade, embalagens)
+        };
+    }));
+}
 
 async function createCompraService(userId, validatedPayload) {
 
@@ -13,7 +26,7 @@ async function createCompraService(userId, validatedPayload) {
         itens
     } = validatedPayload;
 
-    const itensNormalizados = normalizarItens(itens);
+    const itensNormalizados = prepararItens(itens);
 
     return createCompraRepo({
         usuario_id: userId,
@@ -30,7 +43,7 @@ async function adicionaItensACompraService(userId, compraId, validatedPayload) {
         itens
     } = validatedPayload;
 
-    const itensNormalizados = normalizarItens(itens);
+    const itensNormalizados = prepararItens(itens);
 
     return adicionaItensACompraRepo({
         usuario_id: userId,

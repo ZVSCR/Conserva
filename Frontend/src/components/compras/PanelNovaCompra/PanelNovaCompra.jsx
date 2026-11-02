@@ -16,7 +16,7 @@ function formatarDataLocal(data) {
 function novoItemVazio() {
     return {
         nome_item: "",
-        valor_unitario: "",
+        preco_total_item: "",
         quantidade: "",
         unidade_medida: "un",
     };
@@ -24,7 +24,7 @@ function novoItemVazio() {
 
 function totalEmCentavos(itens) {
     return itens.reduce(
-        (total, item) => total + Math.round(item.quantidade * Math.round(item.valor_unitario * 100)),
+        (total, item) => total + Math.round(item.preco_total_item * 100),
         0
     );
 }
@@ -53,7 +53,7 @@ function PanelNovaCompra() {
     const itensFiltrados = itens.filter(
         (item) => 
         item.nome_item.toLowerCase().includes(busca) ||
-        item.valor_unitario.toString().includes(busca) ||
+        item.preco_total_item.toString().includes(busca) ||
         item.quantidade.toString().includes(busca)
     );
 
@@ -96,7 +96,7 @@ function PanelNovaCompra() {
             nome_item: itemCompra.nome_item,
             quantidade: itemCompra.quantidade,
             unidade_de_medida: itemCompra.unidade_medida,
-            valor_unitario: itemCompra.valor_unitario,
+            preco_total_item: itemCompra.preco_total_item,
         }));
 
         setLoading(true);
@@ -168,7 +168,7 @@ function PanelNovaCompra() {
     function abrirModalEdicaoItem(itemAtual) {
         setItem({
             nome_item: itemAtual.nome_item,
-            valor_unitario: String(itemAtual.valor_unitario),
+            preco_total_item: String(itemAtual.preco_total_item),
             quantidade: String(itemAtual.quantidade),
             unidade_medida: itemAtual.unidade_medida,
         });
@@ -194,13 +194,13 @@ function PanelNovaCompra() {
 
         const ateDuasCasas = /^\d+(?:\.\d{1,2})?$/;
         const quantidade = Number(item.quantidade);
-        const valorUnitario = Number(item.valor_unitario);
+        const precoTotal = Number(item.preco_total_item);
         if (!ateDuasCasas.test(item.quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
             setItemErrorMsg("A quantidade deve ser maior que zero, ter até duas casas decimais e não ultrapassar 9.999.999,99.");
             return;
         }
-        if (!ateDuasCasas.test(item.valor_unitario) || valorUnitario > MAX_VALOR_DECIMAL) {
-            setItemErrorMsg("O preço unitário deve ter até duas casas decimais e não ultrapassar R$ 9.999.999,99.");
+        if (!ateDuasCasas.test(item.preco_total_item) || precoTotal > MAX_VALOR_DECIMAL) {
+            setItemErrorMsg("O preço total deve ter até duas casas decimais e não ultrapassar R$ 9.999.999,99.");
             return;
         }
 
@@ -208,7 +208,7 @@ function PanelNovaCompra() {
             nome_item: nome,
             quantidade,
             unidade_medida: item.unidade_medida,
-            valor_unitario: valorUnitario,
+            preco_total_item: precoTotal,
         };
         const novosItens = itemEditandoId === null
             ? [...itens, { ...itemValidado, idLocal: crypto.randomUUID() }]
@@ -264,7 +264,7 @@ function PanelNovaCompra() {
                                 <h3 className="nome-item">{item.nome_item}</h3>
                                 <div className="item-info">
                                     <p className="preco-item">
-                                        R$ {Number(item.valor_unitario).toFixed(2).replace(".", ",")}
+                                        R$ {Number(item.preco_total_item).toFixed(2).replace(".", ",")}
                                     </p>
                                     <p className="quantidade-e-medida-item">
                                         {item.quantidade.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} {item.unidade_medida}
@@ -370,12 +370,12 @@ function PanelNovaCompra() {
                     <label>
                         Preço total do item
                         <input
-                            name="valor_unitario"
+                            name="preco_total_item"
                             type="number"
                             min="0"
                             max={MAX_VALOR_DECIMAL}
                             step="0.01"
-                            value={item.valor_unitario}
+                            value={item.preco_total_item}
                             placeholder="Ex: R$ 200,00"
                             onChange={alterarItem}
                             required
