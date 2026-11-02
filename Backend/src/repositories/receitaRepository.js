@@ -82,39 +82,14 @@ async function createReceitaRepo(payload) {
 
         for (const [nomeIngrediente, dados] of ingredientesUnicos) {
 
-            let { rows: [ingrediente] } = await client.query(`
+            const { rows: [ingrediente] } = await client.query(`
                 SELECT id
                 FROM ingrediente
                 WHERE nome = $1
             `, [nomeIngrediente]);
 
-            if (!ingrediente) {
-
-                ({ rows: [ingrediente] } = await client.query(`
-                    INSERT INTO ingrediente (nome)
-                    VALUES ($1)
-                    ON CONFLICT (nome) DO NOTHING
-                    RETURNING id
-                `, [nomeIngrediente]));
-
-                // Caso de concorrência:
-                // Outra transação pode ter criado o mesmo ingrediente depois
-                // da consulta inicial. Nesse caso, reutiliza o registro criado.
-
-                if (!ingrediente) {
-
-                    ({ rows: [ingrediente] } = await client.query(`
-                        SELECT id
-                        FROM ingrediente
-                        WHERE nome = $1
-                    `, [nomeIngrediente]));
-                }
-            }
-
-            if (!ingrediente) {
-
-                throw new Error(`Falha ao localizar ou criar ingrediente: ${nomeIngrediente}.`);
-            }
+            // Ingredientes ausentes são ignorados; a receita continua sendo criada.
+            if (!ingrediente) continue;
 
             await client.query(`
                 INSERT INTO receita_ingrediente
