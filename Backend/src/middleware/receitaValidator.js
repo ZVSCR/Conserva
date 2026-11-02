@@ -58,10 +58,10 @@ function validateModoPreparo(modoPreparo) {
     });
 }
 
-function validateIngrediente(ingrediente, index) {
+function validateIngrediente(ingrediente, index, porId = false) {
 
     const errors = [];
-    const fieldPrefix = `ingredientes[${index}]`;
+    const fieldPrefix = porId ? 'ingrediente' : `ingredientes[${index}]`;
 
     if (
         ingrediente === undefined ||
@@ -81,17 +81,27 @@ function validateIngrediente(ingrediente, index) {
         unidade_de_medida
     } = ingrediente;
 
-    errors.push(...validateString({
-        value: nome,
-        field: `${fieldPrefix}.nome`,
-        maxLength: 100,
-        messages: {
-            required: `Nome do ingrediente ${index + 1} é obrigatório.`,
-            type: `Formato do nome do ingrediente ${index + 1} é inválido.`,
-            blank: `Nome do ingrediente ${index + 1} não pode conter apenas espaços.`,
-            maxLength: `Nome do ingrediente ${index + 1} deve possuir no máximo 100 caracteres.`
+    if (porId) {
+        if (!Number.isSafeInteger(ingrediente.ingrediente_id) ||
+            ingrediente.ingrediente_id <= 0 || ingrediente.ingrediente_id > 2_147_483_647) {
+            errors.push({
+                field: 'ingrediente_id',
+                message: 'ingrediente_id deve ser um inteiro positivo válido.'
+            });
         }
-    }));
+    } else {
+        errors.push(...validateString({
+            value: nome,
+            field: `${fieldPrefix}.nome`,
+            maxLength: 100,
+            messages: {
+                required: `Nome do ingrediente ${index + 1} é obrigatório.`,
+                type: `Formato do nome do ingrediente ${index + 1} é inválido.`,
+                blank: `Nome do ingrediente ${index + 1} não pode conter apenas espaços.`,
+                maxLength: `Nome do ingrediente ${index + 1} deve possuir no máximo 100 caracteres.`
+            }
+        }));
+    }
 
     errors.push(...validateNumber({
         value: quantidade,
@@ -212,5 +222,9 @@ function validateReceitaPayload(payload, validateIngredients = false) {
 }
 
 module.exports = {
-    validateReceitaPayload
+    validateReceitaPayload,
+    validateIngredienteReceitaPayload(payload) {
+        const errors = validateIngrediente(payload, 0, true);
+        return { isValid: errors.length === 0, errors };
+    }
 };

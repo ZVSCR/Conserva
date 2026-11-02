@@ -12,6 +12,13 @@ class ReceitaNaoEncontradaError extends Error {
     }
 }
 
+class IngredienteNaoEncontradoError extends Error {
+    constructor() {
+        super('Ingrediente não encontrado.');
+        this.name = 'IngredienteNaoEncontradoError';
+    }
+}
+
 class ReceitaSemIngredientesError extends Error {
     constructor() {
         super('A receita não tem ingredientes cadastrados.');
@@ -403,6 +410,43 @@ async function updateReceitaRepo(receitaId, payload, usuarioId) {
     }
 }
 
+// Vincula somente ingredientes existentes a uma receita do usuário autenticado.
+async function inserirIngredienteReceitaRepo(receitaId, payload, usuarioId) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const { rows: receitas } = await client.query(`
+            SELECT id FROM receita
+            WHERE id = $1 AND usuario_id = $2
+            FOR UPDATE
+        `, [receitaId, usuarioId]);
+        if (receitas.length === 0) throw new ReceitaNaoEncontradaError();
+
+        const { rows: [ingrediente] } = await client.query(`
+            SELECT id FROM ingrediente WHERE id = $1 FOR KEY SHARE
+        `, [payload.ingrediente_id]);
+        if (!ingrediente) throw new IngredienteNaoEncontradoError();
+
+        const { rows: [vinculo] } = await client.query(`
+            INSERT INTO receita_ingrediente
+                (receita_id, ingrediente_id, quantidade, unidade_de_medida)
+            VALUES ($1, $2, $3, $4)
+            RETURNING receita_id, ingrediente_id, quantidade, unidade_de_medida
+        `, [receitaId, ingrediente.id, payload.quantidade, payload.unidade_de_medida]);
+        await client.query('COMMIT');
+        return vinculo;
+    } catch (error) {
+        try {
+            await client.query('ROLLBACK');
+        } catch (rollbackError) {
+            console.error('Falha no rollback de inserirIngredienteReceitaRepo:', rollbackError);
+        }
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 async function listarPreparosPorUsuario(usuarioId) {
     return sql`
         SELECT rp.id, rp.receita_id, rp.data_preparo, r.nome, r.descricao, r.modo_preparo,
@@ -419,6 +463,8 @@ async function listarPreparosPorUsuario(usuarioId) {
 }
 
 module.exports = {
+    IngredienteNaoEncontradoError,
+    inserirIngredienteReceitaRepo,
     createReceitaRepo,
     prepararReceitaRepo,
     ReceitaNaoEncontradaError,

@@ -2,13 +2,15 @@ const SERIAL_UPPER_LIMIT = 2_147_483_647;
 
 // Recebe middleware
 const {
-    validateReceitaPayload
+    validateReceitaPayload,
+    validateIngredienteReceitaPayload
 } = require('../middleware/receitaValidator');
 
 // Recebe service
 const {
     createReceitaService,
     updateReceitaService,
+    inserirIngredienteReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService
 } = require('../services/receitaService');
@@ -96,6 +98,7 @@ async function listarPreparos(req, res) {
 }
 const {
     ReceitaNaoEncontradaError,
+    IngredienteNaoEncontradoError,
     ReceitaSemIngredientesError,
     IngredientesInsuficientesError
 } = require('../repositories/receitaRepository');
@@ -321,7 +324,31 @@ async function patchReceitaById(req, res) {
 
 // adiciona um ingrediente na receita
 async function postIngredienteReceitaById(req, res) {
+    try {
+        const { id } = req.params;
+        const receitaId = parsePositiveIntegerParam(id);
+        if (receitaId === null || receitaId > SERIAL_UPPER_LIMIT) {
+            return res.status(400).json({ erro: 'id deve ser um inteiro positivo.' });
+        }
 
+        const { isValid, errors } = validateIngredienteReceitaPayload(req.body);
+        if (!isValid) return res.status(400).json({ errors });
+
+        const ingrediente = await inserirIngredienteReceitaService(receitaId, req.body, req.user.id);
+        return res.status(201).json({
+            message: 'Ingrediente adicionado à receita com sucesso.',
+            ingrediente
+        });
+    } catch (error) {
+        if (error instanceof ReceitaNaoEncontradaError || error instanceof IngredienteNaoEncontradoError) {
+            return res.status(404).json({ erro: error.message });
+        }
+        if (error.code === '23505') {
+            return res.status(409).json({ erro: 'Ingrediente já cadastrado nesta receita.' });
+        }
+        console.error('Erro ao adicionar ingrediente à receita:', error);
+        return res.status(500).json({ erro: 'Erro interno do servidor.' });
+    }
 }
 
 // atualiza um ingrediente da receita

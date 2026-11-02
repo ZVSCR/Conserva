@@ -14,6 +14,7 @@ const {
     getReceitaById,
     apagarReceita,
     patchReceitaById,
+    postIngredienteReceitaById,
 } = require('../controllers/receitaController');
 
 receitaRouter.use(receitaUser);
@@ -33,6 +34,9 @@ receitaRouter.route('/:receitaId/preparar')
 receitaRouter.route('/:id')
     .get(getReceitaById)
     .patch(patchReceitaById);
+
+receitaRouter.route('/:id/ingredientes')
+    .post(postIngredienteReceitaById);
 
 receitaRouter.route('/:receitaId')
     .delete(apagarReceita);

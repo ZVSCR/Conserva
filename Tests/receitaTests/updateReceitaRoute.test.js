@@ -10,7 +10,8 @@ jest.mock('../../Backend/src/controllers/receitaController.js', () => ({
     getGastoReceita: (_req, res) => res.sendStatus(501),
     getReceitaById: (_req, res) => res.sendStatus(501),
     apagarReceita: (_req, res) => res.sendStatus(501),
-    patchReceitaById: jest.fn()
+    patchReceitaById: jest.fn(),
+    postIngredienteReceitaById: jest.fn()
 }));
 
 const receitaRouter = require('../../Backend/src/routes/receitaRoutes');
