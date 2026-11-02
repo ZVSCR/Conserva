@@ -22,7 +22,7 @@ const compraValida = {
         nome_item: 'Arroz',
         quantidade: 2,
         unidade_de_medida: 'kg',
-        valor_unitario: 8.5,
+        preco_total_item: 8.5,
         validade_estimada: '2027-03-01'
     }]
 };
