@@ -1,20 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from '../../../services/api';
+import {
+    adicionarIngredienteAReceita,
+    atualizarIngredienteDaReceita,
+    criarPayloadReceita,
+    filtrarIngredientesGlobais,
+    formatarQuantidadeIngrediente,
+    removerIngredienteDaReceita,
+} from "./receitaIngredientUtils";
 import "./ModalAdicionarReceita.css";
 
 const UNIDADES_DE_MEDIDA = ["un", "kg", "g", "L", "mL"];
-
-function normalizarBusca(texto) {
-    return texto
-        .toLocaleLowerCase("pt-BR")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim();
-}
-
-function formatarQuantidade(quantidade) {
-    return Number(quantidade).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-}
 
 function ModalAdicionarReceita({ onClose, onCreated }) {
     const [receita, setReceita] = useState({
@@ -61,10 +57,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     }, []);
 
     const ingredientesFiltrados = useMemo(() => {
-        const buscaNormalizada = normalizarBusca(buscaIngrediente);
-        return ingredientesGlobais.filter((ingrediente) =>
-            normalizarBusca(ingrediente.nome).includes(buscaNormalizada)
-        );
+        return filtrarIngredientesGlobais(ingredientesGlobais, buscaIngrediente);
     }, [buscaIngrediente, ingredientesGlobais]);
 
     const ingredienteSelecionado = ingredientesGlobais.find(
@@ -78,30 +71,18 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     }
 
     function adicionarIngrediente() {
-        const quantidadeNumerica = Number(quantidade);
-        if (!ingredienteSelecionado) {
-            setErrorMsg("Selecione um ingrediente da lista.");
-            return;
-        }
-        if (!Number.isFinite(quantidadeNumerica) || quantidadeNumerica <= 0 ||
-            quantidadeNumerica > 9999999.99 || !/^\d+(?:\.\d{1,2})?$/.test(String(quantidadeNumerica))) {
-            setErrorMsg("Informe uma quantidade positiva com até duas casas decimais.");
-            return;
-        }
-        if (ingredientesReceita.some((ingrediente) => ingrediente.id === ingredienteSelecionado.id)) {
-            setErrorMsg("Esse ingrediente já foi adicionado à receita.");
+        try {
+            setIngredientesReceita(adicionarIngredienteAReceita(
+                ingredientesReceita,
+                ingredienteSelecionado,
+                quantidade,
+                unidade,
+            ));
+        } catch (erro) {
+            setErrorMsg(erro.message);
             return;
         }
 
-        setIngredientesReceita((atuais) => ([
-            ...atuais,
-            {
-                id: ingredienteSelecionado.id,
-                nome: ingredienteSelecionado.nome,
-                quantidade: quantidadeNumerica,
-                unidade_de_medida: unidade,
-            },
-        ]));
         setIngredienteSelecionadoId("");
         setQuantidade("");
         setUnidade("un");
@@ -117,24 +98,24 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     }
 
     function salvarEdicaoIngrediente(id) {
-        const quantidadeNumerica = Number(quantidadeEditando);
-        if (!Number.isFinite(quantidadeNumerica) || quantidadeNumerica <= 0 ||
-            quantidadeNumerica > 9999999.99 || !/^\d+(?:\.\d{1,2})?$/.test(String(quantidadeNumerica))) {
-            setErrorMsg("Informe uma quantidade positiva com até duas casas decimais.");
+        try {
+            setIngredientesReceita(atualizarIngredienteDaReceita(
+                ingredientesReceita,
+                id,
+                quantidadeEditando,
+                unidadeEditando,
+            ));
+        } catch (erro) {
+            setErrorMsg(erro.message);
             return;
         }
 
-        setIngredientesReceita((atuais) => atuais.map((ingrediente) =>
-            ingrediente.id === id
-                ? { ...ingrediente, quantidade: quantidadeNumerica, unidade_de_medida: unidadeEditando }
-                : ingrediente
-        ));
         setIngredienteEditandoId(null);
         setErrorMsg("");
     }
 
     function removerIngrediente(id) {
-        setIngredientesReceita((atuais) => atuais.filter((ingrediente) => ingrediente.id !== id));
+        setIngredientesReceita(removerIngredienteDaReceita(ingredientesReceita, id));
         if (ingredienteEditandoId === id) setIngredienteEditandoId(null);
         setMenuIngredienteAbertoId(null);
         setErrorMsg("");
@@ -175,16 +156,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
             const response = await apiFetch("/api/receitas/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    nome: receita.nome,
-                    descricao: receita.descricao,
-                    modo_preparo: receita.modo_preparo,
-                    ingredientes: ingredientesReceita.map(({ nome, quantidade, unidade_de_medida }) => ({
-                        nome,
-                        quantidade,
-                        unidade_de_medida,
-                    })),
-                }),
+                body: JSON.stringify(criarPayloadReceita(receita, ingredientesReceita)),
             });
 
             const data = await response.json();
@@ -370,7 +342,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                                 ) : (
                                     <>
                                         <span className="item-ingrediente-nome">
-                                            <strong>{formatarQuantidade(ingrediente.quantidade)} {ingrediente.unidade_de_medida}</strong>{" "}{ingrediente.nome}
+                                            <strong>{formatarQuantidadeIngrediente(ingrediente.quantidade)} {ingrediente.unidade_de_medida}</strong>{" "}{ingrediente.nome}
                                         </span>
                                         <div className="menu-ingrediente-receita">
                                             <button
