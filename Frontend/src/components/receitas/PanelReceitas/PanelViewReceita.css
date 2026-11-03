@@ -174,3 +174,26 @@
     margin: 0;
     white-space: pre-wrap;
 }
+
+.modal-ingredientes-titulo {
+    margin-top: 20px;
+}
+
+.modal-ingredientes-lista {
+    margin: 0;
+    padding-left: 22px;
+    color: #c4c7cc;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.modal-ingrediente-quantidade {
+    color: #fff;
+    font-weight: 600;
+}
+
+.modal-ingredientes-vazio {
+    margin: 0;
+    color: #c4c7cc;
+    font-size: 15px;
+}
