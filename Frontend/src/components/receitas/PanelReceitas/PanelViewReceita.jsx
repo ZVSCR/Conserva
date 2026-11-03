@@ -272,6 +272,22 @@ function PanelViewReceita() {
                             {receitaExpandida.modo_preparo || "Modo de preparo não informado."}
                         </p>
 
+                        <h3 className="modal-subtitulo modal-ingredientes-titulo">Ingredientes</h3>
+                        {Array.isArray(receitaExpandida.ingredientes) && receitaExpandida.ingredientes.length > 0 ? (
+                            <ul className="modal-ingredientes-lista">
+                                {receitaExpandida.ingredientes.map((ingrediente) => (
+                                    <li key={ingrediente.ingrediente_id}>
+                                        <span className="modal-ingrediente-quantidade">
+                                            {ingrediente.quantidade} {ingrediente.unidade_de_medida}
+                                        </span>
+                                        {" "}{ingrediente.nome}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="modal-ingredientes-vazio">Nenhum ingrediente cadastrado.</p>
+                        )}
+
                     </div>
                 </div>
             )}
