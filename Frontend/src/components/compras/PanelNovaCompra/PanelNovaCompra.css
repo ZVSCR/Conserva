@@ -235,14 +235,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.compra-container .btn-escanear-nota,
-.scanner-modal button {
+.compra-container .btn-escanear-nota {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.compra-container .btn-escanear-nota:focus:not(:focus-visible),
-.scanner-modal button:focus:not(:focus-visible) {
+.compra-container .btn-escanear-nota:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -250,114 +248,6 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
-}
-
-.scanner-modal {
-  position: fixed;
-  inset: auto 0 90px;
-  width: min(calc(100% - 40px), 460px);
-  max-height: calc(100dvh - 130px);
-  overflow-y: auto;
-  box-sizing: border-box;
-  margin: 0 auto;
-  padding: 40px 20px 20px;
-  border: 0;
-  border-radius: 10px;
-  background: #fff;
-  color: #222;
-  color-scheme: light;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.scanner-modal::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.scanner-modal[open] {
-  animation: scanner-abrir 180ms ease-out;
-}
-
-.scanner-modal[open]::backdrop {
-  animation: scanner-fundo 180ms ease-out;
-}
-
-@keyframes scanner-abrir {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scanner-fundo {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scanner-modal[open],
-  .scanner-modal[open]::backdrop {
-    animation: none;
-  }
-}
-
-.compra-container .scanner-fechar {
-  position: absolute;
-  top: 0;
-  right: 4px;
-  background: transparent;
-  color: #222;
-  font-size: 24px;
-}
-
-.scanner-orientacao {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 20px;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.scanner-orientacao img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.scanner-opcoes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.compra-container .scanner-opcoes button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px 12px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background: #fff;
-  color: #222;
-  font-weight: bold;
-}
-
-.scanner-opcoes img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.compra-container .scanner-opcoes button:hover {
-  background: #f2f2f2;
-  filter: none;
 }
 
 .compra-container .btn-edit:hover,

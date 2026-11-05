@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { apiFetch } from '../../../services/api';
 import IconScanner from '../../../assets/IconsEstoque/scanner.png';
-import IconCamera from '../../../assets/IconsEstoque/camera.png';
-import IconGaleria from '../../../assets/IconsEstoque/galeria-de-imagens.png';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -35,7 +33,6 @@ function totalEmCentavos(itens) {
 function PanelNovaCompra() {
     const navigate = useNavigate();
     const liberarNavegacao = useRef(false);
-    const modalScanner = useRef(null);
     const [modalItemAberto, setModalItemAberto] = useState(false);
     const [modalEstabelecimentoAberto, setModalEstabelecimentoAberto] = useState(false);
     const [itens, setItens] = useState([]);
@@ -318,51 +315,14 @@ function PanelNovaCompra() {
             <button
                 type="button"
                 className="btn-escanear-nota"
-                onClick={() => modalScanner.current.showModal()}
-                aria-haspopup="dialog"
+                onClick={() => navigate("/inserir-imagem")}
                 disabled={loading || compraRegistrada}
             >
                 <span>Escaneie seu cupom fiscal</span>
                 <img src={IconScanner} alt="" />
             </button>
 
-            <dialog
-                ref={modalScanner}
-                className="scanner-modal"
-                aria-labelledby="scanner-orientacao"
-                onClick={(event) => {
-                    if (event.target !== event.currentTarget) return;
-                    const limites = event.currentTarget.getBoundingClientRect();
-                    if (
-                        event.clientX < limites.left || event.clientX > limites.right ||
-                        event.clientY < limites.top || event.clientY > limites.bottom
-                    ) {
-                        event.currentTarget.close();
-                    }
-                }}
-            >
-                <button
-                    type="button"
-                    className="scanner-fechar"
-                    aria-label="Fechar opções de escaneamento"
-                    onClick={() => modalScanner.current.close()}
-                >
-                    ×
-                </button>
-                <p id="scanner-orientacao" className="scanner-orientacao">
-                    <span>Tire uma foto ou escolha uma imagem do seu dispositivo para começar.</span>
-                </p>
-                <div className="scanner-opcoes">
-                    <button type="button" onClick={() => navigate("/inserir-imagem")}>
-                        <img src={IconCamera} alt="" />
-                        <span>Tirar foto</span>
-                    </button>
-                    <button type="button" onClick={() => navigate("/inserir-imagem")}>
-                        <img src={IconGaleria} alt="" />
-                        <span>Galeria</span>
-                    </button>
-                </div>
-            </dialog>
+
 
             {/*Modal de alterar o nome do estabelecimento*/}
             {modalEstabelecimentoAberto && (
