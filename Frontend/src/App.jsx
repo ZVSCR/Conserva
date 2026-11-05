@@ -12,6 +12,7 @@ import RefeicoesPreparadas from './pages/RefeicoesPreparadas/PageRefeicoesPrepar
 import RequireAuth from './components/auth/RequireAuth';
 import { AuthProvider } from './contexts/AuthContext';
 import PageIngredientes from './pages/Ingredientes/PageIngredientes';
+import PageInserirImagem from './pages/InserirImagem/PageInserirImagem';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
@@ -30,6 +31,7 @@ const router = createBrowserRouter(createRoutesFromElements(
             <Route path='/receitas' element={<ViewReceita />} />
             <Route path='/historico-refeicoes' element={<RefeicoesPreparadas />} />
             <Route path='/ingredientes' element={<PageIngredientes/>} />
+            <Route path='/inserir-imagem' element={<PageInserirImagem />} />
         </Route>
 
         {/* Rota de página não encontrada (404) - opcional mas recomendado */}
