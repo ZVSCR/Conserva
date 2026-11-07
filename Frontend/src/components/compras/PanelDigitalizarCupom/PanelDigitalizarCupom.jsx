@@ -63,14 +63,14 @@ function PanelDigitalizarCupom() {
                 <div className="scanner-opcoes">
                     <button type="button" onClick={() => {
                             modalScanner.current.close();
-                            navigate("/inserir-imagem");
+                            navigate("/digitalizar-cupom");
                         }}>
                         <img src={IconCamera} alt="" />
                         <span>Tirar foto</span>
                     </button>
                     <button type="button" onClick={() => {
                             modalScanner.current.close();
-                            navigate("/inserir-imagem");
+                            navigate("/digitalizar-cupom");
                         }}>
                         <img src={IconGaleria} alt="" />
                         <span>Galeria</span>

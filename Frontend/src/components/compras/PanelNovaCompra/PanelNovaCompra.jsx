@@ -315,7 +315,7 @@ function PanelNovaCompra() {
             <button
                 type="button"
                 className="btn-escanear-nota"
-                onClick={() => navigate("/inserir-imagem")}
+                onClick={() => navigate("/digitalizar-cupom")}
                 disabled={loading || compraRegistrada}
             >
                 <span>Escaneie seu cupom fiscal</span>
