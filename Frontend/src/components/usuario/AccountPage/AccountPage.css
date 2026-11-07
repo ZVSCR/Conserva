@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Bevan&display=swap');
+
+#root:has(> .account-page) {
+    width: 100%;
+    border-inline: 0;
+}
+
+.account-page {
+    --account-width: 440px;
+    --account-gutter: clamp(20px, 9vw, 36px);
+    --account-green: #57ae5d;
+    --account-brand: #47aa4e;
+    --account-surface: rgb(255 255 255 / 77%);
+    --account-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+    --account-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    color: #181318;
+    color-scheme: light;
+    background: #fff0fd;
+    font: 1rem/1.5 Poppins, system-ui, sans-serif;
+    text-align: left;
+    letter-spacing: normal;
+}
+
+.account-page__header {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    box-sizing: border-box;
+    width: min(100%, var(--account-width));
+    min-height: 127px;
+    margin-inline: auto;
+    padding: 20px var(--account-gutter);
+}
+
+.account-page__brand {
+    color: var(--account-brand);
+    font: 400 clamp(1.75rem, 9vw, 2.25rem)/1.2 Bevan, Georgia, serif;
+}
+
+.account-page__back {
+    position: absolute;
+    top: 42px;
+    left: 14px;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: var(--account-radius);
+}
+
+.account-page__back img {
+    transform: rotate(180deg);
+}
+
+.account-page__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    width: min(100%, var(--account-width));
+    margin-inline: auto;
+    padding: 24px var(--account-gutter) 36px;
+}
+
+.account-page .account-page__title {
+    margin: 0;
+    color: inherit;
+    font: 500 1.5rem/1.35 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
+}
+
+.account-page__form,
+.account-page__section {
+    display: grid;
+    gap: 16px;
+}
+
+.account-page__section {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.account-page__section legend {
+    margin-bottom: 8px;
+    padding: 0;
+    font-weight: 500;
+}
+
+.account-page__field {
+    display: grid;
+    gap: 4px;
+    font-size: 0.9375rem;
+}
+
+.account-page__field input,
+.account-page__field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 54px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--account-radius);
+    background-color: var(--account-surface);
+    box-shadow: var(--account-shadow);
+    color: inherit;
+    font: inherit;
+    font-size: 1rem;
+}
+
+.account-page__field input::placeholder {
+    color: #655e65;
+}
+
+.account-page__field select {
+    appearance: none;
+    padding-inline-end: 50px;
+    background-image: url('../../../assets/Account/seletor.png');
+    background-position: right 4px center;
+    background-repeat: no-repeat;
+    background-size: 42px;
+}
+
+.account-page__password {
+    position: relative;
+}
+
+.account-page__password input {
+    padding-inline-end: 88px;
+}
+
+.account-page__visibility {
+    position: absolute;
+    inset-block: 3px;
+    right: 4px;
+    display: grid;
+    min-width: 48px;
+    padding: 0 6px;
+    place-items: center;
+    border: 0;
+    border-radius: var(--account-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.account-page__visibility img {
+    width: 48px;
+    height: 48px;
+}
+
+.account-page__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.account-page__button {
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: var(--account-radius);
+    background: var(--account-surface);
+    box-shadow: var(--account-shadow);
+    color: inherit;
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.account-page__button--primary {
+    min-height: 56px;
+    background: var(--account-green);
+    box-shadow: none;
+}
+
+.account-page__actions .account-page__button--primary {
+    min-height: 48px;
+    background: #7fc184;
+    box-shadow: var(--account-shadow);
+}
+
+.account-page__button:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.account-page :focus-visible {
+    outline: 2px solid #23662d;
+    outline-offset: 3px;
+}
+
+.account-page__alternate {
+    margin-block-start: 12px;
+    text-align: center;
+    font-size: 0.9375rem;
+}
+
+.account-page__alternate--bottom {
+    margin-block-start: auto;
+    padding-block-start: 32px;
+}
+
+.account-page__alternate a {
+    color: #302ab3;
+}
+
+.account-page__notice {
+    padding: 10px 12px;
+    border-radius: var(--account-radius);
+    background: #e9f5e8;
+    color: #204b26;
+    font-size: 0.9375rem;
+}
+
+.account-page__notice--error {
+    background: #fbe3e5;
+    color: #8a1c2c;
+}
