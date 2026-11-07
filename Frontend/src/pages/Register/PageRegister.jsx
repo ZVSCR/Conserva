@@ -1,17 +1,11 @@
 import PanelRegister from "../../components/usuario/PanelRegister/PanelRegister";
-import Footer from '../../components/shared/Footer/Footer';
-import Header from '../../components/shared/Header/Header';
+import AccountPage from "../../components/usuario/AccountPage/AccountPage";
 
-import './Register.css';
 function Register() {
     return (
-        <div>
-            <Header />
-
+        <AccountPage title="Registre sua conta" backTo="/login">
             <PanelRegister />
-
-            <Footer />
-        </div>
+        </AccountPage>
     );
 }
 

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { registerUser } from "../../../services/auth";
-import "./PanelRegister.css";
 
 function PanelRegister() {
   const navigate = useNavigate();
@@ -14,9 +13,10 @@ function PanelRegister() {
     tipo: "domestico",
   });
 
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const busy = loading || status === 'checking';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,15 +28,19 @@ function PanelRegister() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading || status === 'checking') return;
-    setLoading(true);
+    if (busy) return;
     setErrorMsg("");
-    setSuccessMsg("");
 
+    if (formData.password !== passwordConfirmation) {
+      setErrorMsg("As senhas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
     try {
       await registerUser(formData);
       setFormData((current) => ({ ...current, password: "" }));
-      setSuccessMsg("Conta criada com sucesso. Você já pode fazer login.");
+      setPasswordConfirmation("");
       navigate('/login', { replace: true, state: { registered: true, identifier: formData.email } });
     } catch (err) {
       setErrorMsg(err.message);
@@ -48,67 +52,86 @@ function PanelRegister() {
   if (user && status === 'authenticated') return <Navigate to="/home" replace />;
 
   return (
-    <div className="panel-register">
-      <h2>Register</h2>
-      {errorMsg && <p className="error-message" role="alert" style={{ color: "red" }}>{errorMsg}</p>}
-      {successMsg && <p role="status">{successMsg}</p>}
+    <>
+      {status === 'checking' && <p role="status">Verificando sessão...</p>}
+      {errorMsg && (
+        <p className="account-page__notice account-page__notice--error" role="alert">{errorMsg}</p>
+      )}
 
-      <form className="register-form" method="post" onSubmit={handleSubmit}>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
-          onChange={handleChange}
-          maxLength={50}
-          pattern="[^@]+"
-          title="O nome de usuário não pode conter @."
-          autoComplete="username"
-          disabled={loading}
-          required
-        />
+      <form className="account-page__form" method="post" onSubmit={handleSubmit}>
+        <label className="account-page__field" htmlFor="username">
+          Nome de usuário
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            maxLength={50}
+            pattern="[^@]+"
+            title="O nome de usuário não pode conter @."
+            autoComplete="username"
+            disabled={busy}
+            required
+          />
+        </label>
 
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          maxLength={100}
-          autoComplete="email"
-          disabled={loading}
-          required
-        />
+        <label className="account-page__field" htmlFor="email">
+          E-mail
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            maxLength={100}
+            autoComplete="email"
+            disabled={busy}
+            required
+          />
+        </label>
 
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          autoComplete="new-password"
-          disabled={loading}
-          required
-        />
+        <label className="account-page__field" htmlFor="password">
+          Senha
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            autoComplete="new-password"
+            disabled={busy}
+            required
+          />
+        </label>
 
-        <label htmlFor="tipo">Tipo de conta:</label>
-        <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange} disabled={loading}>
-          <option value="domestico">Doméstico</option>
-          <option value="comercial">Comercial</option>
-        </select>
+        <label className="account-page__field" htmlFor="password-confirmation">
+          Confirmar senha
+          <input
+            type="password"
+            id="password-confirmation"
+            value={passwordConfirmation}
+            onChange={(event) => setPasswordConfirmation(event.target.value)}
+            autoComplete="new-password"
+            disabled={busy}
+            required
+          />
+        </label>
 
-        <button type="submit" className="btn btn-primary-register" disabled={loading}>
-          {loading ? "Registrando..." : "Register"}
+        <label className="account-page__field" htmlFor="tipo">
+          Tipo de conta
+          <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange} disabled={busy}>
+            <option value="domestico">Doméstico</option>
+            <option value="comercial">Comercial</option>
+          </select>
+        </label>
+
+        <button type="submit" className="account-page__button account-page__button--primary" disabled={busy}>
+          {loading ? "Registrando..." : "Registrar"}
         </button>
-        <Link to="/login">Já tem uma conta? Entrar</Link>
       </form>
-    </div>
+      <p className="account-page__alternate">Já tem uma conta? <Link to="/login">Entrar</Link></p>
+    </>
   );
 }
 
