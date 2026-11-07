@@ -13,7 +13,7 @@
 .container-modal-adicionar-receita {
     position: relative;
     box-sizing: border-box;
-    width: min(100%, 420px);
+    width: min(100%, 560px);
     max-height: 90vh;
     overflow-y: auto;
     padding: 24px;
@@ -30,7 +30,7 @@
     color: #fff;
 }
 
-.container-modal-adicionar-receita > button {
+.container-modal-adicionar-receita > .modal-adicionar-receita-fechar {
     position: absolute;
     top: 12px;
     right: 16px;
@@ -50,7 +50,8 @@
 
 .form-modal-nova-receita label,
 .form-modal-nova-receita input,
-.form-modal-nova-receita textarea {
+.form-modal-nova-receita textarea,
+.form-modal-nova-receita select {
     grid-column: 1 / -1;
 }
 
@@ -64,6 +65,151 @@
     background: #232428;
     color: #fff;
     font: inherit;
+}
+
+.adicionar-receita-ingredientes {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+    padding: 14px;
+    border: 1px solid #424549;
+    border-radius: 8px;
+    background: #25262a;
+}
+
+.adicionar-receita-ingredientes h3 {
+    margin: 0 0 2px;
+    font-size: 17px;
+}
+
+.adicionar-receita-ingredientes label,
+.ingrediente-edicao label {
+    color: #d6d8dc;
+    font-size: 13px;
+}
+
+.ingrediente-medidas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+}
+
+.ingrediente-medidas > div {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.form-modal-nova-receita .btn-adicionar-ingrediente {
+    background: #3ba55d;
+}
+
+.form-modal-nova-receita .btn-adicionar-ingrediente:hover,
+.form-modal-nova-receita .btn-adicionar-receita:hover {
+    background: #2d8d4b;
+}
+
+.lista-ingredientes-receita {
+    display: grid;
+    gap: 8px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item-ingrediente-receita {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding: 8px 6px 8px 10px;
+    border-radius: 6px;
+    background: #303238;
+}
+
+.item-ingrediente-nome {
+    min-width: 0;
+    color: #f2f3f5;
+    overflow-wrap: anywhere;
+}
+
+.item-ingrediente-nome strong {
+    color: #fff;
+}
+
+.menu-ingrediente-receita {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.form-modal-nova-receita .menu-ingrediente-botao {
+    display: grid;
+    place-items: center;
+    min-height: 28px;
+    width: 28px;
+    padding: 3px;
+    background: transparent;
+    color: #d6d8dc;
+}
+
+.form-modal-nova-receita .menu-ingrediente-botao:hover {
+    background: #454851;
+}
+
+.menu-ingrediente-opcoes {
+    position: absolute;
+    z-index: 2;
+    top: calc(100% + 3px);
+    right: 0;
+    display: grid;
+    min-width: 120px;
+    padding: 4px;
+    border: 1px solid #51545c;
+    border-radius: 6px;
+    background: #202126;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.form-modal-nova-receita .menu-ingrediente-opcoes button {
+    min-height: 34px;
+    padding: 7px 9px;
+    background: transparent;
+    text-align: left;
+}
+
+.form-modal-nova-receita .menu-ingrediente-opcoes button:hover {
+    background: #3b3e45;
+}
+
+.ingrediente-edicao {
+    display: grid;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ingrediente-edicao-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.ingrediente-edicao-acoes button {
+    flex: 1;
+}
+
+.ingrediente-lista-erro,
+.ingrediente-lista-vazia {
+    margin: 0;
+    color: #ffb4b4;
+    font-size: 13px;
+}
+
+.ingrediente-lista-vazia {
+    color: #c4c7cc;
 }
 
 .form-modal-nova-receita textarea {
@@ -94,4 +240,18 @@
 .container-modal-adicionar-receita .receita-erro {
     margin-bottom: 12px;
     color: #ffb4b4;
+}
+
+@media (max-width: 480px) {
+    .container-modal-adicionar-receita {
+        padding: 18px;
+    }
+
+    .form-modal-nova-receita {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ingrediente-medidas {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

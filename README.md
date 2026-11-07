@@ -1,6 +1,6 @@
 # Conserva
 
-> [Documentação técnica e histórico de implementação](Docs/README.md).
+https://conserva-six.vercel.app/home
 
 ## 1. Visão Geral
 

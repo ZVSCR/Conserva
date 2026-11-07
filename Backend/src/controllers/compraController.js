@@ -1,4 +1,5 @@
 const {
+    listarExtratoUsuario,
     listarComprasUsuario,
     listarComprasUsuarioData,
     listarCompraPorId,
@@ -32,14 +33,14 @@ const {
 
 const allowedFields = [
     'quantidade',
-    'valor_unitario',
+    'preco_total_item',
     'nome_item',
     'unidade_de_medida',
     'validade_estimada'
 ];
 
 const allowedBulkFields = [
-    'valor_unitario',
+    'preco_total_item',
     'nome_item',
     'validade_estimada'
 ];
@@ -94,14 +95,15 @@ const parsePositiveIntegerParam = (value) => {
 };
 
 
-const validateCompraPayload = (body) => {
+const validateCompraPayload = (body, priceField = 'preco_total_item') => {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) {
         return invalidResult('O corpo da requisição deve ser um objeto JSON.');
     }
 
+    const camposPermitidos = allowedFields.map(field => field === 'preco_total_item' ? priceField : field);
     const receivedFields = Object.keys(body);
     const unknownFields = receivedFields.filter((field) =>
-        !allowedFields.includes(field)
+        !camposPermitidos.includes(field)
     );
 
     if (unknownFields.length > 0) {
@@ -110,7 +112,7 @@ const validateCompraPayload = (body) => {
         );
     }
 
-    const hasAtLeastOneField = allowedFields.some((field) =>
+    const hasAtLeastOneField = camposPermitidos.some((field) =>
         hasField(body, field)
     );
 
@@ -137,20 +139,20 @@ const validateCompraPayload = (body) => {
         }
     }
 
-    if (hasField(body, 'valor_unitario')) {
-        const { valor_unitario } = body;
+    if (hasField(body, priceField)) {
+        const preco_total_item = body[priceField];
 
         if (
-            typeof valor_unitario !== 'number' ||
-            !Number.isFinite(valor_unitario) ||
-            valor_unitario < 0
+            typeof preco_total_item !== 'number' ||
+            !Number.isFinite(preco_total_item) ||
+            preco_total_item < 0
         ) {
             return invalidResult(
-                'valor_unitario deve ser um número maior ou igual a zero.'
+                `${priceField} deve ser um número maior ou igual a zero.`
             );
         }
-        if (!valorUnitarioRepresentavel(valor_unitario)) {
-            return invalidResult('valor_unitario deve ter até duas casas decimais e caber no campo do banco.');
+        if (!valorUnitarioRepresentavel(preco_total_item)) {
+            return invalidResult(`${priceField} deve ter até duas casas decimais e caber no campo do banco.`);
         }
     }
 
@@ -209,7 +211,7 @@ const validateBulkCompraPayload = (body) => {
 
     if (unsupportedFields.length > 0) {
         return invalidResult(
-            `Na atualização coletiva, somente nome_item, valor_unitario e validade_estimada são permitidos. Campos recebidos: ${unsupportedFields.join(', ')}.`
+            `Na atualização coletiva, somente nome_item, preco_total_item e validade_estimada são permitidos. Campos recebidos: ${unsupportedFields.join(', ')}.`
         );
     }
 
@@ -273,6 +275,14 @@ const validateAtualizacaoCompraPayload = (body) => {
 
 async function listarCompras(req, res) {
     try {
+        if (req.query.resumo === 'true') {
+            const extrato = await listarExtratoUsuario(req.compraUsuarioId);
+            return res.status(200).json({
+                status: 'success',
+                data: extrato.compras,
+                gasto_total: extrato.gasto_total
+            });
+        }
         const compras = await listarComprasUsuario(req.compraUsuarioId);
         return res.status(200).json({
             status: 'success',
@@ -401,11 +411,11 @@ async function atualizarItensPorCompra(req, res) {
             });
         }
 
-        const { quantidade, valor_unitario, nome_item, unidade_de_medida, validade_estimada } = req.body;
+        const { quantidade, preco_total_item, nome_item, unidade_de_medida, validade_estimada } = req.body;
 
         const resultadoAtualizacao = await atualizarPorCompraId(req.compraUsuarioId, itemId, compraId, {
             quantidade,
-            valor_unitario,
+            preco_total_item,
             nome_item,
             unidade_de_medida,
             validade_estimada
@@ -480,7 +490,7 @@ async function atualizarInstanciasPorCompra(req, res) {
             });
         }
 
-        const buscaValidation = validateCompraPayload(itemBusca);
+        const buscaValidation = validateCompraPayload(itemBusca, 'valor_unitario');
         if (!buscaValidation.isValid) {
             return res.status(400).json({ erro: buscaValidation.message });
         }
@@ -493,7 +503,7 @@ async function atualizarInstanciasPorCompra(req, res) {
         }
 
         const {
-            valor_unitario: novoValorUnitario,
+            preco_total_item: novoPrecoTotal,
             nome_item: novoNomeItem,
             validade_estimada: novaValidadeEstimada
         } = novosValores;
@@ -503,7 +513,7 @@ async function atualizarInstanciasPorCompra(req, res) {
             compraId,
             { nome_item, quantidade, unidade_de_medida, valor_unitario, validade_estimada },
             {
-                valor_unitario: novoValorUnitario,
+                preco_total_item: novoPrecoTotal,
                 nome_item: novoNomeItem,
                 validade_estimada: novaValidadeEstimada
             }

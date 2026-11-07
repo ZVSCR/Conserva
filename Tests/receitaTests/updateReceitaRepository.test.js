@@ -28,6 +28,7 @@ describe('updateReceitaRepo', () => {
             payload.descricao,
             payload.modo_preparo,
             7,
+            42,
             42
         ]);
     });

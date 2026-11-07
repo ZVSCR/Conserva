@@ -2,7 +2,10 @@ const {
     createReceitaRepo,
     getGastoPorReceitaRepo,
     getGastoReceitaRepo,
-    updateReceitaRepo
+    updateReceitaRepo,
+    inserirIngredienteReceitaRepo,
+    removerIngredienteReceitaRepo,
+    atualizarQuantidadeIngredienteReceitaRepo
 } = require('../repositories/receitaRepository');
 
 // Recebe o payload validado, normaliza o nome e envia para inserção SQL
@@ -79,7 +82,27 @@ async function updateReceitaService(receitaId, payload, usuarioId) {
     );
 }
 
+async function inserirIngredienteReceitaService(receitaId, payload, usuarioId) {
+    const { ingrediente_id, quantidade, unidade_de_medida } = payload;
+    return inserirIngredienteReceitaRepo(receitaId, {
+        ingrediente_id,
+        quantidade,
+        unidade_de_medida
+    }, usuarioId);
+}
+
+async function removerIngredienteReceitaService(receitaId, ingredienteId, usuarioId) {
+    return removerIngredienteReceitaRepo(receitaId, ingredienteId, usuarioId);
+}
+
+async function atualizarQuantidadeIngredienteReceitaService(receitaId, ingredienteId, payload, usuarioId) {
+    return atualizarQuantidadeIngredienteReceitaRepo(receitaId, ingredienteId, payload.quantidade, usuarioId);
+}
+
 module.exports = {
+    atualizarQuantidadeIngredienteReceitaService,
+    removerIngredienteReceitaService,
+    inserirIngredienteReceitaService,
     createReceitaService,
     getGastoPorReceitaService,
     getGastoReceitaService,

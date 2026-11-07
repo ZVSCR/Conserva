@@ -16,8 +16,8 @@ import PageInserirImagem from './pages/DigitalizarCupom/PageDigitalizarCupom';
 
 const router = createBrowserRouter(createRoutesFromElements(
     <>
-        {/* Rota raiz (/) - Redireciona automaticamente para /home */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        {/* Rota raiz (/) - Redireciona automaticamente para /login (no futuro será /home) */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />

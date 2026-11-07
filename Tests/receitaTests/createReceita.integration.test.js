@@ -92,6 +92,7 @@ describeWithDatabase('createReceitaRepo — integração', () => {
 
     test('grava a receita com os campos informados e devolve o id', async () => {
         const payload = payloadReceita('bolo_de_fuba');
+        await pool.query('INSERT INTO ingrediente (nome) VALUES ($1)', [payload.ingredientes[0].nome]);
 
         const receita = await createReceitaRepo(payload);
 
@@ -109,6 +110,16 @@ describeWithDatabase('createReceitaRepo — integração', () => {
             quantidade: '1.25',
             unidade_de_medida: 'kg'
         }]);
+    });
+
+    test('mantém a receita sem criar ingrediente quando ele não existe no catálogo', async () => {
+        const payload = payloadReceita('ingrediente_ausente');
+        const receita = await createReceitaRepo(payload);
+
+        expect(await buscarReceita(receita.id)).toHaveLength(1);
+        expect(await buscarIngredientesAssociados(receita.id)).toEqual([]);
+        const { rows } = await pool.query('SELECT id FROM ingrediente WHERE nome = $1', [payload.ingredientes[0].nome]);
+        expect(rows).toEqual([]);
     });
 
     test('gera ids distintos para receitas criadas em sequência', async () => {

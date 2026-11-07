@@ -416,9 +416,9 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         ['quantidade textual', { quantidade: '2' }],
         ['quantidade igual a zero', { quantidade: 0 }],
         ['quantidade negativa', { quantidade: -1 }],
-        ['valor unitário textual', { valor_unitario: '10.50' }],
-        ['valor unitário negativo', { valor_unitario: -0.01 }],
-        ['valor unitário com mais de duas casas', { valor_unitario: 10.005 }],
+        ['preço total textual', { preco_total_item: '10.50' }],
+        ['preço total negativo', { preco_total_item: -0.01 }],
+        ['preço total com mais de duas casas', { preco_total_item: 10.005 }],
         ['nome não textual', { nome_item: 10 }],
         ['nome vazio', { nome_item: '   ' }],
         ['nome acima do limite', { nome_item: 'a'.repeat(101) }],
@@ -448,7 +448,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
             .patch(endpoint)
             .send({
                 quantidade: 2.5,
-                valor_unitario: 10,
+                preco_total_item: 25,
                 nome_item: 'Arroz',
                 unidade_de_medida: 'kg',
                 validade_estimada: '2026-09-19'
@@ -457,7 +457,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         expect(response.status).toBe(200);
         expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 1, 2, {
             quantidade: 2.5,
-            valor_unitario: 10,
+            preco_total_item: 25,
             nome_item: 'Arroz',
             unidade_de_medida: 'kg',
             validade_estimada: '2026-09-19'
@@ -478,7 +478,7 @@ describe('PATCH /api/compras/:compraId/items/:itemId', () => {
         expect(response.status).toBe(200);
         expect(atualizarPorCompraId).toHaveBeenCalledWith(1, 1, 2, {
             quantidade: undefined,
-            valor_unitario: undefined,
+            preco_total_item: undefined,
             nome_item: undefined,
             unidade_de_medida: undefined,
             validade_estimada: null
@@ -588,7 +588,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
     test('rejeita preço de busca ou de edição coletiva com precisão incompatível', async () => {
         for (const body of [
             { itemBusca: { ...itemBusca, valor_unitario: 20.005 }, novosValores: { nome_item: 'Outro' } },
-            { itemBusca, novosValores: { valor_unitario: 18.005 } }
+            { itemBusca, novosValores: { preco_total_item: 18.005 } }
         ]) {
             const response = await request(app).patch(bulkEndpoint).send(body);
             expect(response.status).toBe(400);
@@ -606,7 +606,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
                 itemBusca,
                 novosValores: {
                     nome_item: 'Outro',
-                    valor_unitario: 18,
+                    preco_total_item: 18,
                     validade_estimada: null
                 }
             });
@@ -616,7 +616,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
             ...itemBusca
         }, {
             nome_item: 'Outro',
-            valor_unitario: 18,
+            preco_total_item: 18,
             validade_estimada: null
         });
         expect(response.body.data).toEqual(resultado);
@@ -626,7 +626,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
         atualizarInstanciasPorCompraId.mockRejectedValue(new ItemCompraNaoEncontradoError());
         const response = await request(app)
             .patch(bulkEndpoint)
-            .send({ itemBusca, novosValores: { valor_unitario: 18 } });
+            .send({ itemBusca, novosValores: { preco_total_item: 18 } });
 
         expect(response.status).toBe(404);
     });
@@ -647,7 +647,7 @@ describe('PATCH /api/compras/:compraId/items', () => {
         atualizarInstanciasPorCompraId.mockRejectedValue(new Error('Banco indisponível'));
         const response = await request(app)
             .patch(bulkEndpoint)
-            .send({ itemBusca, novosValores: { valor_unitario: 18 } });
+            .send({ itemBusca, novosValores: { preco_total_item: 18 } });
 
         expect(response.status).toBe(500);
         expect(response.body.erro).toBe('Erro ao atualizar itens da compra no banco');

@@ -75,9 +75,13 @@ function validateItem(item, index) {
         unidade_de_medida,
         tipo_medida,
         numero_embalagens,
-        valor_unitario,
+        preco_total_item,
         validade_estimada
     } = item;
+
+    if (Object.prototype.hasOwnProperty.call(item, 'valor_unitario')) {
+        errors.push({ field: `${fieldPrefix}.valor_unitario`, message: 'Informe preco_total_item; valor_unitario é calculado pelo servidor.' });
+    }
 
     // Deste modo, cada erro pode explicitar campo
     // ${fieldPrefix}.nome_campo
@@ -153,22 +157,22 @@ function validateItem(item, index) {
         }
     }));
 
-    // Valor unitário
+    // Preço total
     errors.push(...validateNumber({
-        value: valor_unitario,
-        field: `${fieldPrefix}.valor_unitario`,
+        value: preco_total_item,
+        field: `${fieldPrefix}.preco_total_item`,
         positive: false,
         messages: {
-            required: `Valor unitário do item ${index + 1} é obrigatório.`,
+            required: `Preço total do item ${index + 1} é obrigatório.`,
             type: `Formato de valor unitário do item ${index + 1} é inválido.`,
-            nonNegative: `Valor unitário do item ${index + 1} deve ser maior ou igual a zero.`
+            nonNegative: `Preço total do item ${index + 1} deve ser maior ou igual a zero.`
         }
     }));
-    if (typeof valor_unitario === 'number' && Number.isFinite(valor_unitario) &&
-        valor_unitario >= 0 && !valorUnitarioRepresentavel(valor_unitario)) {
+    if (typeof preco_total_item === 'number' && Number.isFinite(preco_total_item) &&
+        preco_total_item >= 0 && !valorUnitarioRepresentavel(preco_total_item)) {
         errors.push({
-            field: `${fieldPrefix}.valor_unitario`,
-            message: `Valor unitário do item ${index + 1} deve ter até duas casas decimais e caber no campo do banco.`
+            field: `${fieldPrefix}.preco_total_item`,
+            message: `Preço total do item ${index + 1} deve ter até duas casas decimais e caber no campo do banco.`
         });
     }
 

@@ -101,7 +101,7 @@ describe('compraRepository.listarCompraPorId', () => {
         expect(sql.mock.calls[0].slice(1)).toEqual([1, 2]);
         const consulta = sql.mock.calls[0][0].join(' ');
         expect(consulta).toMatch(/item\.valor_unitario/);
-        expect(consulta).not.toMatch(/quantidade \* item\.valor_unitario/);
+        expect(consulta).toContain("AS preco_total_item");
     });
 });
 
@@ -179,7 +179,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
     test('corrige lote ainda não consumido e mantém item, estoque e compra juntos', async () => {
         const { client, item, compra, estoque } = prepararCliente({
             id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
-            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '3.00'
         });
 
         await expect(
@@ -191,7 +191,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
         expect(client.query.mock.calls.some(([query, values]) =>
             query.includes('UPDATE estoque') && values[0] === 3
         )).toBe(true);
-        const [query, values] = client.query.mock.calls[1];
+        const [query, values] = client.query.mock.calls.find(([sql]) => sql.includes('SELECT i.*'));
         expect(query).toContain('c.usuario_id = $3');
         expect(values).toEqual([1, 2, 1]);
         expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
@@ -213,10 +213,10 @@ describe('compraRepository.atualizarPorCompraId', () => {
             estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
         });
 
-        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Produto', valor_unitario: 2 });
+        await atualizarPorCompraId(1, 1, 2, { nome_item: 'Produto', preco_total_item: 6 });
 
         const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
-        expect(atualizacao[1][2]).toBe(2);
+        expect(atualizacao[1][2]).toBeNull();
         expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE estoque'))).toBe(false);
         expect(client.query.mock.calls.some(([query]) => query.includes('FROM receita_preparada_estoque'))).toBe(false);
         expect(client.query.mock.calls.some(([query]) => query.includes('UPDATE compra'))).toBe(false);
@@ -224,17 +224,17 @@ describe('compraRepository.atualizarPorCompraId', () => {
         expect(client.query.mock.calls.at(-1)[0]).toBe('COMMIT');
     });
 
-    test('alterar somente a quantidade preserva o preço unitário existente', async () => {
+    test('alterar somente a quantidade preserva o total e recalcula o preço unitário', async () => {
         const { client } = prepararCliente({
             id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
             estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '2.00'
         });
 
-        await atualizarPorCompraId(1, 1, 2, { quantidade: 3 });
+        await atualizarPorCompraId(1, 1, 2, { quantidade: 4 });
 
         const atualizacao = client.query.mock.calls.find(([query]) => query.includes('UPDATE item'));
-        expect(atualizacao[1][0]).toBe(3);
-        expect(atualizacao[1][2]).toBeNull();
+        expect(atualizacao[1][0]).toBe(4);
+        expect(atualizacao[1][2]).toBe(1);
         expect(atualizacao[0]).toMatch(/COALESCE\(\$3, valor_unitario\)/);
         const total = client.query.mock.calls.find(([query]) => query.includes('UPDATE compra'));
         expect(total[0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
@@ -243,7 +243,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
     test('desfaz a edição se o novo total não couber em compra.valor_total', async () => {
         const { client } = prepararCliente({
             id: 1, quantidade: '2.00', quantidade_disponivel: '2.00',
-            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un'
+            estoque_id: 10, tipo_medida: 'unitaria', unidade_de_medida: 'un', valor_unitario: '3.00'
         });
         const consultaOriginal = client.query.getMockImplementation();
         client.query.mockImplementation((query, values) => {
@@ -253,7 +253,7 @@ describe('compraRepository.atualizarPorCompraId', () => {
             return consultaOriginal(query, values);
         });
 
-        await expect(atualizarPorCompraId(1, 1, 2, { valor_unitario: 9999999.99 }))
+        await expect(atualizarPorCompraId(1, 1, 2, { preco_total_item: 9999999.98 }))
             .rejects.toBeInstanceOf(PrecoInvalidoError);
         expect(client.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
         expect(client.release).toHaveBeenCalledTimes(1);
@@ -374,26 +374,26 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         const { client, compra } = prepararTransacao(itens);
 
         await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, {
-            nome_item: 'Outro', valor_unitario: 18
+            nome_item: 'Outro', preco_total_item: 18
         })).resolves.toEqual({ itens, compra: compra[0] });
 
         const consultas = client.query.mock.calls;
-        expect(consultas).toHaveLength(7);
-        expect(consultas[3][1]).toEqual([['outro']]);
-        const setClause = consultas[4][0].split('SET')[1].split('WHERE')[0];
+        expect(consultas).toHaveLength(8);
+        expect(consultas[4][1]).toEqual([['outro']]);
+        const setClause = consultas[5][0].split('SET')[1].split('WHERE')[0];
         expect(setClause).not.toMatch(/\bquantidade\s*=/i);
         expect(setClause).not.toMatch(/\bunidade_de_medida\s*=/i);
-        expect(consultas[4][0]).not.toMatch(/UPDATE estoque/i);
-        expect(consultas[4][1]).toContain('kg');
-        expect(consultas[4][1]).toContain(false);
-        expect(consultas[4][1][10]).toEqual([1, 2]);
-        expect(consultas[4][1].slice(-3)).toEqual([true, null, 1]);
-        expect(consultas[4][0]).toMatch(/c\.usuario_id = \$14/);
-        expect(consultas[1][0]).toMatch(/c\.usuario_id = \$7 AND e\.usuario_id = \$7/);
-        expect(consultas[4][1][0]).toBe(18);
-        expect(consultas[4][1][8]).toBe(20);
-        expect(consultas[5][0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
-        expect(consultas[6][0]).toBe('COMMIT');
+        expect(consultas[5][0]).not.toMatch(/UPDATE estoque/i);
+        expect(consultas[5][1]).toContain('kg');
+        expect(consultas[5][1]).toContain(false);
+        expect(consultas[5][1][10]).toEqual([1, 2]);
+        expect(consultas[5][1].slice(-3)).toEqual([true, null, 1]);
+        expect(consultas[5][0]).toMatch(/c\.usuario_id = \$14/);
+        expect(consultas[2][0]).toMatch(/c\.usuario_id = \$7 AND e\.usuario_id = \$7/);
+        expect(consultas[5][1][0]).toBe(18);
+        expect(consultas[5][1][8]).toBe(20);
+        expect(consultas[6][0]).toMatch(/SUM\(ROUND\(quantidade \* valor_unitario, 2\)\)/);
+        expect(consultas[7][0]).toBe('COMMIT');
         expect(client.release).toHaveBeenCalledTimes(1);
     });
 
@@ -423,7 +423,7 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
     test('permite remover validade explicitamente sem perder esse sinal', async () => {
         const { client } = prepararTransacao([{ id: 1 }]);
         await atualizarInstanciasPorCompraId(1, 2, itemBusca, { validade_estimada: null });
-        expect(client.query.mock.calls[1][1]).toContain(true);
+        expect(client.query.mock.calls.find(([sql]) => sql.includes('UPDATE item'))[1]).toContain(true);
     });
 
     test('retorna não encontrado quando o seletor não corresponde a itens', async () => {
@@ -431,7 +431,7 @@ describe('compraRepository.atualizarInstanciasPorCompraId', () => {
         await expect(atualizarInstanciasPorCompraId(1, 2, itemBusca, { nome_item: 'Outro' }))
             .rejects.toBeInstanceOf(ItemCompraNaoEncontradoError);
         expect(client.query.mock.calls.map(([query]) => query)).toEqual([
-            'BEGIN', expect.stringContaining('SELECT i.id, e.id AS estoque_id'), 'ROLLBACK'
+            'BEGIN', expect.stringContaining('SELECT id FROM compra'), expect.stringContaining('SELECT i.id, e.id AS estoque_id'), 'ROLLBACK'
         ]);
         expect(client.release).toHaveBeenCalledTimes(1);
     });

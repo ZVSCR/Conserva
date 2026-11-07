@@ -24,6 +24,7 @@ function ProdutoEstoque({ produto, onEditar, onExcluir }) {
                         ? produto.quantidade
                         : produto.quantidade.toFixed(1)   // Caso seja quebrado, deixa 1 casa decimal
                     }
+                    {produto.unidade && ` ${produto.unidade}`} 
                 </span>
             </div>
 
