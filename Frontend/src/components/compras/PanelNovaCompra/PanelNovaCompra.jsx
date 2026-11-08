@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { apiFetch } from '../../../services/api';
+import IconScanner from '../../../assets/IconsEstoque/scanner.png';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -310,6 +311,18 @@ function PanelNovaCompra() {
                     {loading ? "SALVANDO..." : compraRegistrada ? "REGISTRADA" : "CONCLUIR"}
                 </button>
             </form>
+
+            <button
+                type="button"
+                className="btn-escanear-nota"
+                onClick={() => navigate("/digitalizar-cupom")}
+                disabled={loading || compraRegistrada}
+            >
+                <span>Escaneie seu cupom fiscal</span>
+                <img src={IconScanner} alt="" />
+            </button>
+
+
 
             {/*Modal de alterar o nome do estabelecimento*/}
             {modalEstabelecimentoAberto && (

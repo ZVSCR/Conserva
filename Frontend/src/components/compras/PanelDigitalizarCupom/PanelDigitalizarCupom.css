@@ -1,0 +1,235 @@
+.pagina-inserir-imagem {
+  min-height: 100svh;
+  background: #f5f7f6;
+  color: #29332c;
+  color-scheme: light;
+}
+
+.digitalizar-cupom {
+  width: min(100%, 540px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 24px 20px 32px;
+  text-align: left;
+  font-family: Arial, sans-serif;
+}
+
+.digitalizar-cupom-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.digitalizar-cupom-voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 40px;
+  color: #29332c;
+  text-decoration: none;
+}
+
+.digitalizar-cupom-voltar:focus-visible {
+  outline: 2px solid #218c3b;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.digitalizar-cupom h1 {
+  margin: 0;
+  color: #29332c;
+  font: 600 20px/1.3 Arial, sans-serif;
+  letter-spacing: normal;
+}
+
+.digitalizar-cupom-descricao {
+  margin: 0 0 24px;
+  color: #707870;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.digitalizar-cupom-selecao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+
+.digitalizar-cupom h2 {
+  margin: 0;
+  color: #29332c;
+  font: 600 16px/1.4 Arial, sans-serif;
+  letter-spacing: normal;
+}
+
+.digitalizar-cupom-adicionar {
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: #218c3b;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.digitalizar-cupom button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.digitalizar-cupom button:focus-visible {
+  outline: 2px solid #218c3b;
+  outline-offset: 2px;
+}
+
+.digitalizar-cupom button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.scanner-modal button {
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.digitalizar-cupom-preview {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #dfe3df;
+  border-radius: 12px;
+  background: #fff;
+  color: #707870;
+  text-align: center;
+  font-size: 14px;
+}
+
+.digitalizar-cupom-aviso {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #e8f3eb;
+  color: #47664e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.scanner-modal {
+  position: fixed;
+  inset: auto 0 90px;
+  width: min(calc(100% - 40px), 460px);
+  max-height: calc(100dvh - 130px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 40px 20px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  color-scheme: light;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.scanner-modal::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-modal[open] {
+  animation: scanner-abrir 180ms ease-out;
+}
+
+.scanner-modal[open]::backdrop {
+  animation: scanner-fundo 180ms ease-out;
+}
+
+@keyframes scanner-abrir {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scanner-fundo {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanner-modal[open],
+  .scanner-modal[open]::backdrop {
+    animation: none;
+  }
+}
+
+.digitalizar-cupom .scanner-fechar {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  background: transparent;
+  color: #222;
+  font-size: 24px;
+}
+
+.scanner-orientacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.scanner-orientacao img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.scanner-opcoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.digitalizar-cupom .scanner-opcoes button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  font-weight: bold;
+}
+
+.scanner-opcoes img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.digitalizar-cupom .scanner-opcoes button:hover {
+  background: #f2f2f2;
+  filter: none;
+}
+

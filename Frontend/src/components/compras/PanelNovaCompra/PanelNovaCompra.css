@@ -5,6 +5,7 @@
   width: min(100% - 40px, 500px);
   box-sizing: border-box;
   margin: 40px auto;
+  margin-bottom: 100px;
   padding: 20px;
   border-radius: 8px;
   color: #fff;
@@ -215,6 +216,40 @@
   filter: none;
 }
 
+.compra-container .btn-escanear-nota {
+  position: fixed;
+  left: 50%;
+  bottom: 90px;
+  z-index: 99;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(calc(100% - 80px), 460px);
+  min-height: 52px;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.compra-container .btn-escanear-nota {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.compra-container .btn-escanear-nota:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.btn-escanear-nota img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .compra-container .btn-edit:hover,
 .compra-container .btn-excluir:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -284,6 +319,7 @@
 @media (max-width: 768px) {
   .compra-container {
     margin: 20px auto;
+    margin-bottom: 100px;
   }
 
   .compra-form {
