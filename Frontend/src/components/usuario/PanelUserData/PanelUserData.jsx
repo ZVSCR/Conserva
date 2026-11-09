@@ -2,8 +2,8 @@ import { apiFetch } from '../../../services/api.js';
 import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
 import { useAuth } from "../../../contexts/useAuth";
-import "./PanelUserData.css";
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import hiddenPasswordIcon from '../../../assets/Account/senha-oculta.png';
 
 function PanelUserData() {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ function PanelUserData() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -80,19 +80,17 @@ function PanelUserData() {
       password2: "",
     });
     setErrorMsg("");
-    setSuccessMsg("");
+    setShowPassword(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (loading) return;
     setErrorMsg("");
-    setSuccessMsg("");
 
     if (formData.password || formData.password2) {
       if (formData.password !== formData.password2) {
         setErrorMsg("As senhas não coincidem. Nenhuma alteração foi salva.");
-        setLoading(false);
         return;
       }
     }
@@ -103,6 +101,7 @@ function PanelUserData() {
     if (formData.password) payload.password = formData.password;
     if (formData.tipo) payload.tipo = formData.tipo;
 
+    setLoading(true);
     try {
       const response = await apiFetch(`/api/users/me`, {
         method: "PATCH",
@@ -145,85 +144,97 @@ function PanelUserData() {
   if (fetching) return <p role="status">Carregando dados do perfil...</p>;
 
   return (
-    <div className="panel-data">
-      <h2> Altere seus dados </h2>
+    <>
+      {errorMsg && (
+        <p className="account-page__notice account-page__notice--error" role="alert">{errorMsg}</p>
+      )}
 
-      {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
-      {successMsg && <p className="success-message" style={{ color: "green" }}>{successMsg}</p>}
+      <form className="account-page__form" onSubmit={handleSubmit}>
+        <fieldset className="account-page__section" disabled={loading}>
+          <legend>Dados da conta</legend>
+          <label className="account-page__field" htmlFor="username">
+            Nome de usuário
+            <input
+              type="text"
+              name="username"
+              id="username"
+              maxLength={50}
+              pattern="[^@]+"
+              title="O nome de usuário não pode conter @."
+              autoComplete="username"
+              value={formData.username}
+              onChange={handleChange}
+            />
+          </label>
 
-      <form className="data-form" onSubmit={handleSubmit}>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          name="username"
-          id="username"
-          maxLength={50}
-          pattern="[^@]+"
-          title="O nome de usuário não pode conter @."
-          value={formData.username}
-          onChange={handleChange}
-        />
+          <label className="account-page__field" htmlFor="email">
+            E-mail
+            <input
+              type="email"
+              name="email"
+              id="email"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </label>
 
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
+          <label className="account-page__field" htmlFor="tipo">
+            Tipo de conta
+            <select id="tipo" name="tipo" value={formData.tipo} onChange={handleChange}>
+              <option value="domestico">Doméstico</option>
+              <option value="comercial">Comercial</option>
+            </select>
+          </label>
+        </fieldset>
 
-        <label htmlFor="senha">Nova senha (opcional): </label>
-        <input
-          type="password"
-          name="password"
-          id="senha"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="Digite caso queira mudar sua senha"
-        />
+        <fieldset className="account-page__section" disabled={loading}>
+          <legend>Alterar senha</legend>
+          <div className="account-page__field">
+            <label htmlFor="senha">Nova senha (opcional)</label>
+            <div className="account-page__password">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                id="senha"
+                autoComplete="new-password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="account-page__visibility"
+                aria-label={showPassword ? "Ocultar nova senha" : "Mostrar nova senha"}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Ocultar" : <img src={hiddenPasswordIcon} alt="" />}
+              </button>
+            </div>
+          </div>
 
-        <label htmlFor="senha2">Confirme sua nova senha: </label>
-        <input
-          type="password"
-          name="password2"
-          id="senha2"
-          value={formData.password2}
-          onChange={handleChange}
-          placeholder="Repita a nova senha, elas devem coincidir"
-        />
+          <label className="account-page__field" htmlFor="senha2">
+            Confirme sua nova senha
+            <input
+              type="password"
+              name="password2"
+              id="senha2"
+              autoComplete="new-password"
+              value={formData.password2}
+              onChange={handleChange}
+            />
+          </label>
+        </fieldset>
 
-        <label htmlFor="TipoConta">Tipo de conta:</label>
-        <div>
-          <input
-            type="radio"
-            name="tipo"
-            id="TipoDomestico"
-            value="domestico"
-            checked={formData.tipo === "domestico"}
-            onChange={handleChange}
-          />
-          <label htmlFor="TipoDomestico">Doméstico</label>
-
-          <input
-            type="radio"
-            name="tipo"
-            id="TipoComercial"
-            value="comercial"
-            checked={formData.tipo === "comercial"}
-            onChange={handleChange}
-          />
-          <label htmlFor="TipoComercial">Comercial</label>
-        </div>
-
-        <div className="data-confirm">
-          <button type="button" onClick={handleCancel}>Cancelar</button>
-          <button type="submit" className="btn btn-primary-register" disabled={loading}>
+        <div className="account-page__actions">
+          <button type="button" className="account-page__button" onClick={handleCancel} disabled={loading}>
+            Cancelar
+          </button>
+          <button type="submit" className="account-page__button account-page__button--primary" disabled={loading}>
             {loading ? "Salvando..." : "Aplicar"}
           </button>
         </div>
       </form>
-    </div>
+    </>
   );
 }
 

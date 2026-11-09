@@ -95,3 +95,33 @@
   color: #c0392b;
   font-size: 13px;
 }
+
+.profileHeader {
+    display: grid;
+    justify-items: center;
+    gap: 24px;
+    box-sizing: border-box;
+    width: min(100%, var(--account-width));
+    margin-inline: auto;
+    padding: 56px var(--account-gutter) 0;
+}
+
+.profileHeader > a {
+    text-decoration: none;
+}
+
+.profileHeader > h1 {
+    justify-self: start;
+    margin-block-start: 8px;
+}
+
+.profileHeader .avatarButton img {
+    width: 61px;
+    height: 61px;
+}
+
+.profileHeader .menu {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+}

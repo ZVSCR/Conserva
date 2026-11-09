@@ -1,12 +1,11 @@
 import PanelUserData from "../../components/usuario/PanelUserData/PanelUserData";
-import AppHeader from "../../components/shared/AppHeader/AppHeader";
+import AccountPage from "../../components/usuario/AccountPage/AccountPage";
 
-function UserData(){
-    return(
-        <div>
-            <AppHeader />
-            <PanelUserData/>
-        </div>
+function UserData() {
+    return (
+        <AccountPage title="Altere seus dados" profile>
+            <PanelUserData />
+        </AccountPage>
     );
 }
 

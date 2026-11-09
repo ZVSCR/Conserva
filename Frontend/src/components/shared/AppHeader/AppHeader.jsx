@@ -4,7 +4,7 @@ import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
 import styles from './AppHeader.module.css';
 
-function AppHeader() {
+function AppHeader({ accountTitle }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -54,8 +54,11 @@ function AppHeader() {
     }
 
     return (
-        <header className={styles.header}>
-            <Link to="/home" className={styles.logo}>Conserva</Link>
+        <header className={accountTitle ? styles.profileHeader : styles.header}>
+            <Link to="/home" className={accountTitle ? 'account-page__brand' : styles.logo}>
+                Conserva
+            </Link>
+            {accountTitle && <h1 className="account-page__title">{accountTitle}</h1>}
 
             <div className={styles.account} ref={accountRef}>
                 <button
