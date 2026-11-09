@@ -45,7 +45,7 @@ function PanelRegister() {
     }
   };
 
-  if (user && status === 'authenticated') return <Navigate to="/home" replace />;
+  if (user && status === 'authenticated') return <Navigate to="/estoque" replace />;
 
   return (
     <div className="panel-register">
