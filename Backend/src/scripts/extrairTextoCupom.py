@@ -16,25 +16,25 @@ PREPROCESSAMENTO = {
     'lado_maximo': 2560,           # limita o custo de memoria/processamento
     'inverter': False,             # True para texto claro em fundo escuro
     'recortar_fundo': False,       # apenas para papel claro sobre fundo escuro
-    'limiar_papel': 210,
+    'limiar_papel': 190,
     'equalizar_histograma': False, # pode apagar texto pequeno; compare ligado/desligado
     'desfoque_kernel': 0,          # 0 desliga; caso contrario, impar >= 3
     'desfoque_sigma': 2.0,
     'binarizacao': 'adaptativa',           # 'otsu', 'adaptativa', 'manual' ou None
     'limiar_manual': 215,
-    'bloco_adaptativo': 67,        # impar >= 3
-    'constante_adaptativa': 15,
-    'corrigir_inclinacao': False,  # estima pequenas inclinacoes por linhas
+    'bloco_adaptativo': 41,        # impar >= 3
+    'constante_adaptativa': 13,
+    'corrigir_inclinacao': True,  # estima pequenas inclinacoes por linhas
     'angulo_maximo': 10,
     'morfologia': None,            # 'engrossar', 'afinar' ou None
     'morfologia_kernel': 1,        # 1 nao altera os tracos
     'borda': 10,                   # pixels brancos, adicionados ao final
-    'salvar_em': 'cupomProcessado.png',             # ex.: 'cupom-processado.png' para inspecao
+    'salvar_em': None,             # ex.: 'cupom-processado.png' para inspecao
 }
 
 LEITOR_OCR = {
     'lang_list': ['pt', 'en'],
-    'gpu': False,
+    'gpu': True,
 }
 
 LEITURA_OCR = {
@@ -44,11 +44,11 @@ LEITURA_OCR = {
     'workers': 0,
     'paragraph': False,
     'min_size': 10,
-    'contrast_ths': 0.1,
+    'contrast_ths': 0.3,
     'adjust_contrast': 0.5,
-    'text_threshold': 0.7,
+    'text_threshold': 0.3,
     'low_text': 0.4,
-    'link_threshold': 0.4,
+    'link_threshold': 0.9,
     'canvas_size': 2560,           # acompanhe lado_maximo ao aumentar a imagem
     'mag_ratio': 1.0,              # a ampliacao ja ocorre no preprocessamento
     'slope_ths': 0.1,
