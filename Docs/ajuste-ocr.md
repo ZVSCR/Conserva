@@ -1,5 +1,12 @@
 # Ajuste empirico do EasyOCR — 10/11/2026
 
+Este arquivo preserva o experimento realizado naquele momento, nao os
+parametros atuais. Para instalacao, execucao e valores em uso, consulte
+[cupom-ocr.md](cupom-ocr.md). O script atualmente habilita binarizacao
+adaptativa (bloco 41, constante 13), deskew e `gpu=True`, e usa
+`contrast_ths=0.3`, `text_threshold=0.3` e `link_threshold=0.9`.
+Essas alteracoes nao foram avaliadas pelo experimento registrado abaixo.
+
 Foram comparadas 20 combinacoes de preprocessamento/leitura em cada uma das
 duas amostras fornecidas, totalizando 40 leituras reais. Foram usados os
 modelos existentes do EasyOCR 1.7.2, portugues/ingles e CPU. Nenhum resultado
@@ -23,7 +30,7 @@ nao mede acuracia integral, nao valida casas decimais e nao deve ser
 interpretada como percentual de confiabilidade. Os textos dos candidatos
 tambem foram inspecionados para verificar os erros remanescentes.
 
-## Perfil compartilhado escolhido
+## Perfil compartilhado escolhido no experimento
 
 Escala 2, tons de cinza, borda branca 10; equalizacao, blur, binarizacao,
 deskew e morfologia desligados. Parametros de leitura EasyOCR mantidos:
@@ -55,6 +62,6 @@ possivel para qualquer nota. Validar novas fotos, especialmente originais
 com maior resolucao, antes de usar os campos em compras. O parser de itens
 continua com as mesmas limitacoes de layout.
 
-`salvar_em` continua configurado pelo usuario. Para inspecionar o resultado,
-execute o script normalmente; as comparacoes desativaram o salvamento para
-nao substituir a imagem de depuracao existente.
+As comparacoes desativaram `salvar_em` para nao substituir a imagem de
+depuracao existente. No codigo atual, `salvar_em=None`; habilite um caminho
+de destino no script para inspecionar a imagem processada de uma nova leitura.
