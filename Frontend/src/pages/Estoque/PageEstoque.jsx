@@ -1,6 +1,6 @@
 import { apiFetch } from '../../services/api.js';
 import { useState, useEffect } from 'react';
-
+import { Link } from 'react-router-dom';
 import './Estoque.css';
 import AppHeader from '../../components/shared/AppHeader/AppHeader';
 import BottomNav from '../../components/shared/BottomNav/BottomNav';
@@ -10,6 +10,8 @@ import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoqu
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
 function PageEstoque(){
     const [produtos, setProdutos] = useState([]);
+    const [carregando, setCarregando] = useState(true);
+    const [erroEstoque, setErroEstoque] = useState('');
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
@@ -31,12 +33,19 @@ function PageEstoque(){
                     unidade: item.unidade_de_medida
                 }))
             );
+            setCarregando(false);
         })
         .catch((erro) => {
-            if (erro.name !== 'AbortError') console.error('Erro ao buscar estoque:', erro);
+            if (erro.name === 'AbortError') return;
+            console.error('Erro ao buscar estoque:', erro);
+            setErroEstoque('Não foi possível carregar o estoque.');
+            setCarregando(false);
         });
     return () => controller.abort();
 }, []);
+    const produtosDisponiveis = produtos.filter((produto) => produto.quantidade > 0);
+
+    const estoqueVazio = !carregando && !erroEstoque && produtosDisponiveis.length === 0;
 
     const [produtoEditando, setProdutoEditando] = useState(null);
 
@@ -112,7 +121,22 @@ function PageEstoque(){
                 <h1 className="estoque-titulo">Lista de produtos</h1>
 
                 <div className="estoque-lista">
-                    {produtos.map((produto) => (
+                    {carregando && <p className="estoque-status">Carregando estoque...</p>}
+                    {erroEstoque && <p className="estoque-status estoque-status-erro" role="alert">{erroEstoque}</p>}
+
+                    {estoqueVazio && (
+                        <div className="estoque-vazio">
+                            <p className="estoque-vazio-titulo">Seu estoque está vazio</p>
+                            <p className="estoque-vazio-texto">
+                                Registre uma compra para começar a acompanhar seus produtos.
+                            </p>
+                            <Link to="/nova-compra" className="estoque-vazio-botao">
+                                + Registrar nova compra
+                            </Link>
+                        </div>
+                    )}
+
+                    {produtosDisponiveis.map((produto) => (
                         <EstoqueProduto
                             key={produto.id}
                             produto={produto}
