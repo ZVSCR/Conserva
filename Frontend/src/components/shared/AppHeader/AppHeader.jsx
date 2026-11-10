@@ -55,7 +55,7 @@ function AppHeader() {
 
     return (
         <header className={styles.header}>
-            <Link to="/home" className={styles.logo}>Conserva</Link>
+            <Link to="/estoque" className={styles.logo}>Conserva</Link>
 
             <div className={styles.account} ref={accountRef}>
                 <button
