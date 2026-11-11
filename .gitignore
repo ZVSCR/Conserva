@@ -36,6 +36,12 @@ dist-ssr
 *.sw?
 
 venv/
+.venv/
+.venv-ocr/
+
+# Cache do Python
+__pycache__/
+*.py[cod]
 
 # Testes
 Backend/src/server.js
