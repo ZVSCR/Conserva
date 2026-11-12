@@ -7,11 +7,18 @@ import BottomNav from '../../components/shared/BottomNav/BottomNav';
 import EstoqueProduto from '../../components/estoque/ProdutoEstoque/ProdutoEstoque';
 import EditarProdutoEstoque from '../../components/estoque/EditarProdutoEstoque/EditarProdutoEstoque';
 import ExcluirProdutoEstoque from '../../components/estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque';
+import IconBusca from '../../assets/IconsEstoque/lupa.png';
 // import EstoqueAdicionarProduto from '../../components/estoque/AdicionarProdutoEstoque/AdicionarProdutoEstoque';
+
+function normalizarBusca(texto) {
+    return texto.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/\p{M}/gu, '');
+}
+
 function PageEstoque(){
     const [produtos, setProdutos] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [erroEstoque, setErroEstoque] = useState('');
+    const [busca, setBusca] = useState('');
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
@@ -44,8 +51,14 @@ function PageEstoque(){
     return () => controller.abort();
 }, []);
     const produtosDisponiveis = produtos.filter((produto) => produto.quantidade > 0);
+    const termo = normalizarBusca(busca);
+    const produtosFiltrados = produtosDisponiveis.filter((produto) =>
+        normalizarBusca(produto.nome).includes(termo)
+    );
 
-    const estoqueVazio = !carregando && !erroEstoque && produtosDisponiveis.length === 0;
+    const estoqueCarregado = !carregando && !erroEstoque;
+    const estoqueVazio = estoqueCarregado && produtosDisponiveis.length === 0;
+    const buscaSemResultados = estoqueCarregado && !estoqueVazio && produtosFiltrados.length === 0;
 
     const [produtoEditando, setProdutoEditando] = useState(null);
 
@@ -120,6 +133,19 @@ function PageEstoque(){
             <main className="estoque-conteudo">
                 <h1 className="estoque-titulo">Lista de produtos</h1>
 
+                {estoqueCarregado && !estoqueVazio && (
+                    <div className="estoque-busca">
+                        <img src={IconBusca} alt="" />
+                        <input
+                            type="search"
+                            aria-label="Pesquisar produtos por nome"
+                            placeholder="Pesquisar..."
+                            value={busca}
+                            onChange={(event) => setBusca(event.target.value)}
+                        />
+                    </div>
+                )}
+
                 <div className="estoque-lista">
                     {carregando && <p className="estoque-status">Carregando estoque...</p>}
                     {erroEstoque && <p className="estoque-status estoque-status-erro" role="alert">{erroEstoque}</p>}
@@ -136,7 +162,11 @@ function PageEstoque(){
                         </div>
                     )}
 
-                    {produtosDisponiveis.map((produto) => (
+                    {buscaSemResultados && (
+                        <p className="estoque-status" role="status">Nenhum produto encontrado.</p>
+                    )}
+
+                    {produtosFiltrados.map((produto) => (
                         <EstoqueProduto
                             key={produto.id}
                             produto={produto}

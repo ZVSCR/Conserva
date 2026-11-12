@@ -22,6 +22,48 @@
     text-align: center;
 }
 
+.estoque-busca {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 18px 16px;
+    padding-inline: 12px;
+    border-radius: 12px;
+    background: #ddd;
+    box-shadow: 0 2px 3px rgb(0 0 0 / 18%);
+}
+
+.estoque-busca img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.estoque-busca input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    min-height: 36px;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+.estoque-busca input::placeholder {
+    color: #555;
+}
+
+.estoque-busca:focus-within {
+    outline: 2px solid #256331;
+    outline-offset: 2px;
+}
+
+.estoque-busca input:focus {
+    outline: none;
+}
+
 .estoque-lista {
     display: grid;
     gap: 8px;
