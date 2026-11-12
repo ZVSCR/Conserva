@@ -11,15 +11,38 @@ function substituirGlobal(t, nome, valor) {
     });
 }
 
-test('solicita somente a câmera traseira, sem áudio', async (t) => {
+test('prioriza a câmera traseira, sem áudio', async (t) => {
     const stream = {};
     const getUserMedia = t.mock.fn(async () => stream);
     substituirGlobal(t, 'navigator', { mediaDevices: { getUserMedia } });
     assert.equal(await abrirCameraCupom(), stream);
+    assert.equal(getUserMedia.mock.callCount(), 1);
     assert.deepEqual(getUserMedia.mock.calls[0].arguments, [{
         audio: false,
         video: { facingMode: { exact: 'environment' } },
     }]);
+});
+
+for (const nome of ['NotFoundError', 'OverconstrainedError', 'NotReadableError', 'AbortError']) {
+    test(`usa qualquer câmera disponível quando a traseira falha com ${nome}`, async (t) => {
+        const stream = {};
+        const getUserMedia = t.mock.fn(async (opcoes) => {
+            if (opcoes.video !== true) throw Object.assign(new Error('Traseira indisponível'), { name: nome });
+            return stream;
+        });
+        substituirGlobal(t, 'navigator', { mediaDevices: { getUserMedia } });
+        assert.equal(await abrirCameraCupom(), stream);
+        assert.equal(getUserMedia.mock.callCount(), 2);
+        assert.deepEqual(getUserMedia.mock.calls[1].arguments, [{ audio: false, video: true }]);
+    });
+}
+
+test('não repete a solicitação quando o usuário nega permissão', async (t) => {
+    const erro = Object.assign(new Error('Permissão negada'), { name: 'NotAllowedError' });
+    const getUserMedia = t.mock.fn(async () => { throw erro; });
+    substituirGlobal(t, 'navigator', { mediaDevices: { getUserMedia } });
+    await assert.rejects(abrirCameraCupom(), (recebido) => recebido === erro);
+    assert.equal(getUserMedia.mock.callCount(), 1);
 });
 
 test('orienta quando a API não está disponível e propaga recusa de permissão', async (t) => {

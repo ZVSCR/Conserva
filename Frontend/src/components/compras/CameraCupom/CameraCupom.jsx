@@ -31,8 +31,8 @@ function CameraCupom({ onConfirmar }) {
                 setPronta(false);
                 const mensagens = {
                     NotAllowedError: "Permita o acesso à câmera no navegador para tirar a foto.",
-                    NotFoundError: "Nenhuma câmera traseira foi encontrada neste dispositivo.",
-                    OverconstrainedError: "A câmera traseira não está disponível neste dispositivo.",
+                    NotFoundError: "Nenhuma câmera foi encontrada neste dispositivo.",
+                    OverconstrainedError: "Nenhuma câmera compatível está disponível neste dispositivo.",
                     NotReadableError: "Não foi possível abrir a câmera. Verifique se outro aplicativo está usando ela.",
                 };
                 setErro(mensagens[error.name] || error.message || "Não foi possível abrir a câmera. Tente novamente.");
@@ -78,7 +78,7 @@ function CameraCupom({ onConfirmar }) {
                     autoPlay
                     playsInline
                     muted
-                    aria-label="Imagem ao vivo da câmera traseira"
+                    aria-label="Imagem ao vivo da câmera"
                     onCanPlay={() => setPronta(true)}
                 />
             )}

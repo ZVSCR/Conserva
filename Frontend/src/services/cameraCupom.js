@@ -3,10 +3,18 @@ export async function abrirCameraCupom() {
         throw new Error("A câmera não está disponível. Acesse por HTTPS em um navegador compatível.");
     }
 
-    return navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: { exact: "environment" } },
-    });
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { exact: "environment" } },
+        });
+    } catch (erro) {
+        if (!["NotFoundError", "OverconstrainedError", "NotReadableError", "AbortError"].includes(erro.name)) {
+            throw erro;
+        }
+
+        return navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+    }
 }
 
 export function pararCameraCupom(stream) {
