@@ -3,6 +3,8 @@ import IconEditar from '../../../assets/IconsEstoque/editar.png';
 import IconDeletar from '../../../assets/IconsEstoque/delete.png';
 import BarraConsumo from '../BarraConsumoEstoque/BarraConsumoEstoque';
 
+const formatoQuantidade = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+
 function ProdutoEstoque({ produto, onEditar, onExcluir }) {
     return (
          <div className="estoque-produto">
@@ -20,10 +22,7 @@ function ProdutoEstoque({ produto, onEditar, onExcluir }) {
                 </div>
 
                 <span className="estoque-produto-quantidade">
-                    {Number.isInteger(produto.quantidade) // Se for inteiro mostra apenas o valor
-                        ? produto.quantidade
-                        : produto.quantidade.toFixed(1)   // Caso seja quebrado, deixa 1 casa decimal
-                    }
+                    {formatoQuantidade.format(produto.quantidade)}
                     {produto.unidade && ` ${produto.unidade}`} 
                 </span>
             </div>
