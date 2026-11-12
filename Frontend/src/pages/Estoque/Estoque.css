@@ -1,25 +1,33 @@
 /* Página de estoque*/
 .estoque-pagina {
     background-color: #ffffff;
-    min-height: 100vh; /* garante que cubra a tela toda */
+    min-height: 100svh;
     position: relative;
 }
 
-.estoque-titulo {
+.estoque-conteudo {
+    width: min(100%, 560px);
+    margin-inline: auto;
+    padding-block: 24px 12px;
+    color: #171717;
+    color-scheme: light;
     font-family: 'Poppins', sans-serif;
-    font-weight: 400;
-    color: #000000;
-    text-align: center;
-    width: 100%;
-    padding-top: 25px;
 }
 
-/* Área da lista com altura limitada e scroll próprio */
+.estoque-titulo {
+    margin: 0 16px 20px;
+    color: inherit;
+    font: 600 1.25rem/1.35 'Poppins', sans-serif;
+    letter-spacing: normal;
+    text-align: center;
+}
+
 .estoque-lista {
-    max-height: calc(100vh - 250px); /* ajuste conforme a altura do header + título + navbar */
-    overflow-y: auto;
-    padding: 0 20px 20px;
-    box-sizing: border-box;
+    display: grid;
+    gap: 8px;
+    padding: 10px 18px 12px;
+    border-radius: 22px 22px 0 0;
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 13%);
 }
 
 .estoque-vazio {
