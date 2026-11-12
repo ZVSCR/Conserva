@@ -28,12 +28,22 @@ function ProdutoEstoque({ produto, onEditar, onExcluir }) {
             </div>
 
             <div className="estoque-produto-acoes">
-                <button className="estoque-produto-botao-acao" onClick={() => onEditar(produto)}>
-                    <img className="estoque-produto-icone-editar" src={IconEditar} alt="Editar produto" />
+                <button
+                    type="button"
+                    className="estoque-produto-botao-acao"
+                    aria-label={`Editar ${produto.nome}`}
+                    onClick={() => onEditar(produto)}
+                >
+                    <img className="estoque-produto-icone-editar" src={IconEditar} alt="" />
                 </button>
 
-                <button className="estoque-produto-botao-acao" onClick={() => onExcluir(produto)}>
-                    <img className="estoque-produto-icone-excluir" src={IconDeletar} alt="Deletar produto" />
+                <button
+                    type="button"
+                    className="estoque-produto-botao-acao"
+                    aria-label={`Excluir ${produto.nome}`}
+                    onClick={() => onExcluir(produto)}
+                >
+                    <img className="estoque-produto-icone-excluir" src={IconDeletar} alt="" />
                 </button>
             </div>
 
