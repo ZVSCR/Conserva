@@ -3,7 +3,7 @@ import AccountPage from "../../components/usuario/AccountPage/AccountPage";
 
 function Register() {
     return (
-        <AccountPage title="Registre sua conta" backTo="/login">
+        <AccountPage title="Crie uma nova conta" backTo="/login">
             <PanelRegister />
         </AccountPage>
     );

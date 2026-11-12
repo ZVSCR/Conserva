@@ -126,8 +126,8 @@ function PanelRegister() {
           </select>
         </label>
 
-        <button type="submit" className="account-page__button account-page__button--primary" disabled={busy}>
-          {loading ? "Registrando..." : "Registrar"}
+        <button type="submit" className="account-page__button account-page__auth-action account-page__button--outline" disabled={busy}>
+          {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
       </form>
       <p className="account-page__alternate">Já tem uma conta? <Link to="/login">Entrar</Link></p>

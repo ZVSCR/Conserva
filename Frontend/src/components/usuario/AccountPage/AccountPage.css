@@ -259,6 +259,11 @@
     box-shadow: none;
 }
 
+.account-page__button--outline {
+    border: 1px solid #d9e5d9;
+    color: #286232;
+}
+
 .account-page__alternate a {
     color: #302ab3;
 }
