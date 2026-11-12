@@ -5,10 +5,13 @@ import "./CameraCupom.css";
 function CameraCupom({ onConfirmar }) {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
+    const ultimaCameraRef = useRef(null);
     const [foto, setFoto] = useState(null);
     const [erro, setErro] = useState("");
     const [pronta, setPronta] = useState(false);
     const [tentativa, setTentativa] = useState(0);
+    const [cameras, setCameras] = useState([]);
+    const [cameraId, setCameraId] = useState(null);
 
     useEffect(() => {
         if (foto) return;
@@ -17,7 +20,7 @@ function CameraCupom({ onConfirmar }) {
 
         async function iniciarCamera() {
             try {
-                stream = await abrirCameraCupom();
+                stream = await abrirCameraCupom(cameraId);
                 if (cancelada) {
                     pararCameraCupom(stream);
                     return;
@@ -25,6 +28,18 @@ function CameraCupom({ onConfirmar }) {
                 streamRef.current = stream;
                 videoRef.current.srcObject = stream;
                 await videoRef.current.play();
+                if (cancelada) return;
+                ultimaCameraRef.current = {
+                    deviceId: stream.getVideoTracks()[0]?.getSettings().deviceId || cameraId,
+                };
+                try {
+                    const dispositivos = await navigator.mediaDevices.enumerateDevices();
+                    if (!cancelada) {
+                        setCameras(dispositivos.filter((dispositivo) => dispositivo.kind === "videoinput" && dispositivo.deviceId));
+                    }
+                } catch {
+                    if (!cancelada) setCameras([]);
+                }
             } catch (error) {
                 pararCameraCupom(stream);
                 if (cancelada) return;
@@ -45,7 +60,24 @@ function CameraCupom({ onConfirmar }) {
             pararCameraCupom(stream);
             streamRef.current = null;
         };
-    }, [foto, tentativa]);
+    }, [foto, tentativa, cameraId]);
+
+    function trocarCamera() {
+        if (erro && ultimaCameraRef.current) {
+            setCameraId(ultimaCameraRef.current.deviceId || null);
+            reiniciarCamera();
+            return;
+        }
+        if (!pronta || cameras.length < 2) return;
+        const atual = streamRef.current?.getVideoTracks()[0]?.getSettings().deviceId;
+        const outraCamera = cameras.find((camera) => camera.deviceId !== atual);
+        if (!outraCamera) return;
+        const indice = cameras.findIndex((camera) => camera.deviceId === atual);
+        const proxima = indice < 0 ? outraCamera : cameras[(indice + 1) % cameras.length];
+        setPronta(false);
+        setErro("");
+        setCameraId(proxima.deviceId);
+    }
 
     function tirarFoto() {
         try {
@@ -94,6 +126,23 @@ function CameraCupom({ onConfirmar }) {
                     <button type="button" onClick={reiniciarCamera}>Tentar novamente</button>
                 ) : (
                     <button type="button" className="camera-cupom-confirmar" disabled={!pronta} onClick={tirarFoto}>Tirar foto</button>
+                )}
+                {!foto && (
+                        <button
+                            type="button"
+                            className="camera-cupom-trocar"
+                            aria-label={erro ? "Voltar à câmera anterior" : "Trocar câmera"}
+                            title={erro ? "Voltar à câmera anterior" : cameras.length > 1 ? "Trocar câmera" : "Nenhuma outra câmera disponível"}
+                            disabled={erro ? !ultimaCameraRef.current : !pronta || cameras.length < 2}
+                            onClick={trocarCamera}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M20 7a9 9 0 0 0-15-2L2 8" />
+                                <path d="M2 3v5h5" />
+                                <path d="M4 17a9 9 0 0 0 15 2l3-3" />
+                                <path d="M22 21v-5h-5" />
+                            </svg>
+                        </button>
                 )}
             </div>
         </section>

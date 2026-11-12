@@ -11,6 +11,18 @@ function substituirGlobal(t, nome, valor) {
     });
 }
 
+test('abre a câmera escolhida pelo identificador, sem áudio', async (t) => {
+    const stream = {};
+    const getUserMedia = t.mock.fn(async () => stream);
+    substituirGlobal(t, 'navigator', { mediaDevices: { getUserMedia } });
+    assert.equal(await abrirCameraCupom('camera-frontal'), stream);
+    assert.equal(getUserMedia.mock.callCount(), 1);
+    assert.deepEqual(getUserMedia.mock.calls[0].arguments, [{
+        audio: false,
+        video: { deviceId: { exact: 'camera-frontal' } },
+    }]);
+});
+
 test('prioriza a câmera traseira, sem áudio', async (t) => {
     const stream = {};
     const getUserMedia = t.mock.fn(async () => stream);

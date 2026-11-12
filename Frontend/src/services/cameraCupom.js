@@ -1,6 +1,13 @@
-export async function abrirCameraCupom() {
+export async function abrirCameraCupom(deviceId) {
     if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("A câmera não está disponível. Acesse por HTTPS em um navegador compatível.");
+    }
+
+    if (deviceId) {
+        return navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { deviceId: { exact: deviceId } },
+        });
     }
 
     try {

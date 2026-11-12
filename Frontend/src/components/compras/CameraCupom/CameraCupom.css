@@ -11,9 +11,8 @@
 .camera-cupom-imagem {
   display: block;
   width: 100%;
-  aspect-ratio: 2 / 3;
-  max-height: 65dvh;
-  min-height: 240px;
+  max-height: 48dvh;
+  min-height: 160px;
   border-radius: 10px;
   background: #17231b;
   object-fit: contain;
@@ -35,6 +34,23 @@
 .camera-cupom-acoes .camera-cupom-confirmar {
   background: #218c3b;
   color: #fff;
+}
+
+.camera-cupom-acoes .camera-cupom-trocar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  color: #000;
+}
+
+.camera-cupom-acoes .camera-cupom-trocar:disabled {
+  cursor: default;
 }
 
 .camera-cupom-acoes button:disabled {
