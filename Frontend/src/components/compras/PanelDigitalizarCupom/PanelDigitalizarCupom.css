@@ -125,6 +125,18 @@
   line-height: 1.5;
 }
 
+.digitalizar-cupom-preview img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.digitalizar-cupom-preview img + img {
+  margin-top: 16px;
+}
+
 .scanner-modal {
   position: fixed;
   inset: auto 0 90px;
