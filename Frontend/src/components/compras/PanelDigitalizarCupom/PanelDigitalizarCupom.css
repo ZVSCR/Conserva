@@ -144,6 +144,82 @@
   aspect-ratio: 4 / 3;
   object-fit: contain;
   background: #edf0ed;
+  transition: transform 180ms ease-out;
+}
+
+.digitalizar-cupom-miniatura {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.digitalizar-cupom-miniatura:focus-visible img {
+  transform: scale(1.05);
+}
+
+@media (hover: hover) {
+  .digitalizar-cupom-miniatura:hover img {
+    transform: scale(1.05);
+  }
+}
+
+.digitalizar-cupom-foto-modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 64px 24px 32px;
+  border: 0;
+  background: transparent;
+}
+
+.digitalizar-cupom-foto-modal[open] {
+  display: grid;
+  place-items: center;
+}
+
+.digitalizar-cupom-foto-modal::backdrop {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.digitalizar-cupom-foto-modal > img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 96px);
+  border-radius: 6px;
+}
+
+.digitalizar-cupom-foto-fechar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #29332c;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digitalizar-cupom-cartao img {
+    transition: none;
+  }
 }
 
 .digitalizar-cupom-cartao-rodape {

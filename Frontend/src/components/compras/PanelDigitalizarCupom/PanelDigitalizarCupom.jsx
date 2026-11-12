@@ -28,9 +28,16 @@ function IconeLixeira({ size = 24 }) {
 
 function PanelDigitalizarCupom() {
     const modalScanner = useRef(null);
+    const modalFoto = useRef(null);
     const navigate = useNavigate();
     const [cameraAberta, setCameraAberta] = useState(false);
     const [fotos, setFotos] = useState([]);
+    const [fotoAmpliada, setFotoAmpliada] = useState(null);
+
+    function ampliarFoto(indice) {
+        setFotoAmpliada(indice);
+        modalFoto.current.showModal();
+    }
 
     function fecharScanner() {
         setCameraAberta(false);
@@ -61,7 +68,15 @@ function PanelDigitalizarCupom() {
                 <div className="digitalizar-cupom-preview">
                     {fotos.length === 0 ? <p>Nenhuma imagem selecionada.</p> : fotos.map((foto, indice) => (
                         <figure className="digitalizar-cupom-cartao" key={indice}>
-                            <img src={foto} alt={`Cupom fotografado ${indice + 1}`} />
+                            <button
+                                type="button"
+                                className="digitalizar-cupom-miniatura"
+                                aria-label={`Ampliar imagem ${indice + 1}`}
+                                aria-haspopup="dialog"
+                                onClick={() => ampliarFoto(indice)}
+                            >
+                                <img src={foto} alt={`Cupom fotografado ${indice + 1}`} />
+                            </button>
                             <figcaption className="digitalizar-cupom-cartao-rodape">
                                 <span>Imagem {indice + 1}</span>
                                 <button
@@ -83,6 +98,27 @@ function PanelDigitalizarCupom() {
             <p className="digitalizar-cupom-aviso">
                 As imagens são temporárias e não serão salvas no dispositivo pelo Conserva.
             </p>
+            <dialog
+                ref={modalFoto}
+                className="digitalizar-cupom-foto-modal"
+                aria-label={fotoAmpliada === null ? "Visualizar imagem" : `Imagem ${fotoAmpliada + 1} ampliada`}
+                onClose={() => setFotoAmpliada(null)}
+                onClick={(event) => {
+                    if (event.target === event.currentTarget) modalFoto.current.close();
+                }}
+            >
+                <button
+                    type="button"
+                    className="digitalizar-cupom-foto-fechar"
+                    aria-label="Fechar imagem ampliada"
+                    onClick={() => modalFoto.current.close()}
+                >
+                    ×
+                </button>
+                {fotoAmpliada !== null && (
+                    <img src={fotos[fotoAmpliada]} alt={`Cupom fotografado ${fotoAmpliada + 1} ampliado`} />
+                )}
+            </dialog>
             <dialog
                 ref={modalScanner}
                 className="scanner-modal"
