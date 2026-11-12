@@ -1,70 +1,59 @@
 .estoque-produto {
-    width: 100%;
-    max-width: 500px;
-    min-height: 80px;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(4rem, max-content) auto;
     align-items: center;
-    justify-content: space-between;
-    padding: 15px 20px;
-    box-sizing: border-box;
-    margin: 0 auto;
-    margin-bottom: 10px;
-    background-color: white;
-    border: 1px solid #d0d0d0;
+    gap: 8px;
+    min-height: 62px;
+    padding: 4px 8px 4px 16px;
+    border: 1px solid #eee;
     border-radius: 10px;
-}
-
-.estoque-produto-informacoes {
-    display: flex;
-    align-items: flex-start;
-    gap: 40px;
-    min-width: 0;
-}
-
-@media (max-width: 480px) {
-    .estoque-produto-informacoes {
-        gap: 16px;
-    }
+    background: #fff;
+    box-shadow: 0 2px 3px rgb(0 0 0 / 20%);
+    text-align: left;
 }
 
 .estoque-produto-nome-e-barra {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    gap: 4px;
+    min-width: 0;
 }
 
-.estoque-produto-nome,
+.estoque-produto-nome {
+    overflow-wrap: anywhere;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+}
+
 .estoque-produto-quantidade {
-    font-size: 22px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500;
-    color: #000000;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
 }
 
 .estoque-produto-acoes {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-left: 20px;
 }
 
 .estoque-produto-botao-acao {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border: none;
-    background: none;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
     cursor: pointer;
 }
 
-.estoque-produto-icone-editar {
-    width: 28px;
-    height: 28px;
+.estoque-produto-botao-acao:focus-visible {
+    outline: 2px solid #256331;
+    outline-offset: -2px;
 }
 
+.estoque-produto-icone-editar,
 .estoque-produto-icone-excluir {
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
 }

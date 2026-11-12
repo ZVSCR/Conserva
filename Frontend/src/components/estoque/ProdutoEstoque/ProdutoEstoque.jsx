@@ -7,25 +7,19 @@ const formatoQuantidade = new Intl.NumberFormat('pt-BR', { maximumFractionDigits
 
 function ProdutoEstoque({ produto, onEditar, onExcluir }) {
     return (
-         <div className="estoque-produto">
-
-            <div className="estoque-produto-informacoes">
-                {/* nome do produto e barra de consumo na mesma coluna */}
-                <div className="estoque-produto-nome-e-barra">
-                    <span className="estoque-produto-nome">
-                        {produto.nome}
-                    </span>
-                    <BarraConsumo
-                        quantidadeAtual={produto.quantidade}
-                        quantidadeMaxima={produto.quantidadeOriginal}
-                    />
-                </div>
-
-                <span className="estoque-produto-quantidade">
-                    {formatoQuantidade.format(produto.quantidade)}
-                    {produto.unidade && ` ${produto.unidade}`} 
-                </span>
+        <div className="estoque-produto">
+            <div className="estoque-produto-nome-e-barra">
+                <span className="estoque-produto-nome">{produto.nome}</span>
+                <BarraConsumo
+                    quantidadeAtual={produto.quantidade}
+                    quantidadeMaxima={produto.quantidadeOriginal}
+                />
             </div>
+
+            <span className="estoque-produto-quantidade">
+                {formatoQuantidade.format(produto.quantidade)}
+                {produto.unidade && ` ${produto.unidade}`}
+            </span>
 
             <div className="estoque-produto-acoes">
                 <button
@@ -46,7 +40,6 @@ function ProdutoEstoque({ produto, onEditar, onExcluir }) {
                     <img className="estoque-produto-icone-excluir" src={IconDeletar} alt="" />
                 </button>
             </div>
-
         </div>
     );
 }
