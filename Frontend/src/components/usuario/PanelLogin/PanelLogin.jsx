@@ -44,7 +44,7 @@ function PanelLogin() {
             )}
             <form className="account-page__form" method="post" onSubmit={handleSubmit}>
                 <label className="account-page__field" htmlFor="identifier">
-                    Nome de usuário ou e-mail
+                    E-mail ou nome de usuário
                     <input type="text" id="identifier" name="identifier"
                         value={identifier} onChange={(event) => setIdentifier(event.target.value)}
                         maxLength={100} autoComplete="username" required disabled={busy} />

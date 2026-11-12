@@ -133,6 +133,17 @@
     color: #655e65;
 }
 
+.account-page--auth .account-page__form {
+    gap: 12px;
+}
+
+.account-page--auth .account-page__field :is(input, select) {
+    min-height: 46px;
+    padding-block: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
+}
+
 .account-page__field select {
     appearance: none;
     padding-inline-end: 50px;
