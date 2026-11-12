@@ -141,7 +141,7 @@
 .digitalizar-cupom-cartao img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 2 / 3;
   object-fit: contain;
   background: #edf0ed;
   transition: transform 180ms ease-out;

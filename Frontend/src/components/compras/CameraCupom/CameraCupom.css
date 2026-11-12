@@ -11,8 +11,9 @@
 .camera-cupom-imagem {
   display: block;
   width: 100%;
-  max-height: 48dvh;
-  min-height: 160px;
+  aspect-ratio: 2 / 3;
+  max-height: 65dvh;
+  min-height: 240px;
   border-radius: 10px;
   background: #17231b;
   object-fit: contain;
