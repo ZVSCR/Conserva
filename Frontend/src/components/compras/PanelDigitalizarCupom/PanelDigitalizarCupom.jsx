@@ -48,6 +48,10 @@ function PanelDigitalizarCupom() {
         setFotos((atuais) => [...atuais, foto]);
         fecharScanner();
     }
+
+    function removerFoto(indice) {
+        setFotos((atuais) => atuais.filter((_, indiceAtual) => indiceAtual !== indice));
+    }
     return (
         <main className="digitalizar-cupom">
             <div className="digitalizar-cupom-cabecalho">
@@ -83,7 +87,7 @@ function PanelDigitalizarCupom() {
                                     type="button"
                                     className="digitalizar-cupom-lixeira"
                                     aria-label={`Remover imagem ${indice + 1}`}
-                                    disabled
+                                    onClick={() => removerFoto(indice)}
                                 >
                                     <IconeLixeira size={20} />
                                 </button>

@@ -242,11 +242,12 @@
   padding: 0;
   border: 0;
   background: transparent;
+  cursor: pointer;
 }
 
-.digitalizar-cupom-lixeira:disabled {
-  opacity: 1;
-  cursor: default;
+.digitalizar-cupom-lixeira:hover {
+  border-radius: 6px;
+  background: #fce8ea;
 }
 
 .scanner-modal {
