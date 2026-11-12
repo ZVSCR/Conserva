@@ -55,7 +55,7 @@ function PanelLogin() {
                         value={password} onChange={(event) => setPassword(event.target.value)}
                         autoComplete="current-password" required disabled={busy} />
                 </label>
-                <button type="submit" className="account-page__button account-page__button--primary" disabled={busy}>
+                <button type="submit" className="account-page__button account-page__button--primary account-page__auth-action" disabled={busy}>
                     {loading ? 'Entrando...' : 'Entrar'}
                 </button>
             </form>

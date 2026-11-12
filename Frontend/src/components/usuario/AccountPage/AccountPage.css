@@ -218,6 +218,24 @@
     cursor: default;
 }
 
+.account-page--auth .account-page__auth-action {
+    display: grid;
+    min-height: 50px;
+    box-sizing: border-box;
+    place-items: center;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.account-page--auth .account-page__button--primary {
+    background-color: #357d3c;
+    color: #fff;
+}
+
 .account-page :focus-visible {
     outline: 2px solid #23662d;
     outline-offset: 3px;
