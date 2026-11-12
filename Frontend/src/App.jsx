@@ -1,5 +1,4 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from 'react-router-dom';
-import Home from './pages/Home/PageHome';
 import Login from './pages/Login/PageLogin';
 import Register from './pages/Register/PageRegister';
 import Estoque from './pages/Estoque/PageEstoque';
@@ -17,12 +16,12 @@ import PageInserirImagem from './pages/DigitalizarCupom/PageDigitalizarCupom';
 const router = createBrowserRouter(createRoutesFromElements(
     <>
         {/* Rota raiz (/) - Redireciona automaticamente para /login (no futuro será /home) */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/estoque" replace />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />
         <Route element={<RequireAuth />}>
-            <Route path="/home" element={<Home />} />
+            <Route path="/home" element={<Navigate to="/estoque" replace />} />
             <Route path="/alterar-dados" element={<UserData />} />
             <Route path="/configuracoes" element={<UserPreferences />} />
             <Route path="/extrato-compras" element={<ExtratoCompras />} />

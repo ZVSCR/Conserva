@@ -13,6 +13,10 @@
     font-weight: bold;
 }
 
+.Header .Header__account a {
+    position: static;
+}
+
 /* O título fica centralizado no espaço do header */
 .Header h1 {
     margin: 0;

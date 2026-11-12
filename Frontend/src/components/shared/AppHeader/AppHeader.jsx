@@ -55,7 +55,7 @@ function AppHeader({ accountTitle }) {
 
     return (
         <header className={accountTitle ? styles.profileHeader : styles.header}>
-            <Link to="/home" className={accountTitle ? 'account-page__brand' : styles.logo}>
+            <Link to="/estoque" className={accountTitle ? 'account-page__brand' : styles.logo}>
                 Conserva
             </Link>
             {accountTitle && <h1 className="account-page__title">{accountTitle}</h1>}
