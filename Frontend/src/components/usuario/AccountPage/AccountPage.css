@@ -41,6 +41,20 @@
     font: 400 clamp(1.75rem, 9vw, 2.25rem)/1.2 Bevan, Georgia, serif;
 }
 
+.account-page--auth .account-page__header {
+    min-height: 0;
+    padding-block: clamp(28px, 4.5svh, 42px) 0;
+}
+
+.account-page--auth .account-page__body {
+    padding-block-start: 24px;
+}
+
+.account-page--auth .account-page__title {
+    font-size: 1.375rem;
+    font-weight: 600;
+}
+
 .account-page__back {
     position: absolute;
     top: 42px;

@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import AppHeader from '../../shared/AppHeader/AppHeader';
 import backArrow from '../../../assets/Account/voltar.svg';
+import conservaLogo from '../../../assets/Account/conserva-logo.svg';
 import './AccountPage.css';
 
 function AccountPage({ title, backTo, profile = false, children }) {
     return (
-        <main className="account-page">
+        <main className={profile ? 'account-page' : 'account-page account-page--auth'}>
             {profile ? <AppHeader accountTitle={title} /> : (
                 <header className="account-page__header">
                     {backTo && (
@@ -13,7 +14,7 @@ function AccountPage({ title, backTo, profile = false, children }) {
                             <img src={backArrow} alt="" />
                         </Link>
                     )}
-                    <span className="account-page__brand">Conserva</span>
+                    <img src={conservaLogo} alt="Conserva" width="195" height="116" />
                 </header>
             )}
             <div className="account-page__body">
