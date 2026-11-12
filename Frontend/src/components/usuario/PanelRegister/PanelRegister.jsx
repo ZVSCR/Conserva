@@ -130,7 +130,12 @@ function PanelRegister() {
           {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
       </form>
-      <p className="account-page__alternate">Já tem uma conta? <Link to="/login">Entrar</Link></p>
+      <div className="account-page__auth-navigation">
+        <p>Já possui uma conta?</p>
+        <Link to="/login" className="account-page__button account-page__button--primary account-page__auth-action">
+          Login
+        </Link>
+      </div>
     </>
   );
 }

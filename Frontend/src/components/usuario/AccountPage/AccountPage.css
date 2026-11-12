@@ -25,7 +25,6 @@
 }
 
 .account-page__header {
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: end;
@@ -53,21 +52,6 @@
 .account-page--auth .account-page__title {
     font-size: 1.375rem;
     font-weight: 600;
-}
-
-.account-page__back {
-    position: absolute;
-    top: 42px;
-    left: 14px;
-    display: grid;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    border-radius: var(--account-radius);
-}
-
-.account-page__back img {
-    transform: rotate(180deg);
 }
 
 .account-page__body {
@@ -241,12 +225,6 @@
     outline-offset: 3px;
 }
 
-.account-page__alternate {
-    margin-block-start: 12px;
-    text-align: center;
-    font-size: 0.9375rem;
-}
-
 .account-page__auth-navigation {
     display: grid;
     gap: 6px;
@@ -262,10 +240,6 @@
 .account-page__button--outline {
     border: 1px solid #d9e5d9;
     color: #286232;
-}
-
-.account-page__alternate a {
-    color: #302ab3;
 }
 
 .account-page__notice {
