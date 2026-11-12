@@ -103,16 +103,20 @@
 
 .digitalizar-cupom-preview {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+  color: #707870;
+  font-size: 14px;
+}
+
+.digitalizar-cupom-preview > p {
+  grid-column: 1 / -1;
+  display: grid;
   place-items: center;
   min-height: 180px;
-  box-sizing: border-box;
-  padding: 24px;
-  border: 1px solid #dfe3df;
-  border-radius: 12px;
-  background: #fff;
-  color: #707870;
+  margin: 0;
   text-align: center;
-  font-size: 14px;
 }
 
 .digitalizar-cupom-aviso {
@@ -125,16 +129,48 @@
   line-height: 1.5;
 }
 
-.digitalizar-cupom-preview img {
-  display: block;
-  width: 100%;
-  max-height: 420px;
-  object-fit: contain;
-  border-radius: 8px;
+.digitalizar-cupom-cartao {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dfe3df;
+  border-radius: 12px;
+  background: #fff;
 }
 
-.digitalizar-cupom-preview img + img {
-  margin-top: 16px;
+.digitalizar-cupom-cartao img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #edf0ed;
+}
+
+.digitalizar-cupom-cartao-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 4px 6px 12px;
+  color: #29332c;
+  font-size: 13px;
+}
+
+.digitalizar-cupom-lixeira {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.digitalizar-cupom-lixeira:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .scanner-modal {

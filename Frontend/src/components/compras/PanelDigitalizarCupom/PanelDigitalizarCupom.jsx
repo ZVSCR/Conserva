@@ -5,6 +5,27 @@ import IconGaleria from "../../../assets/IconsEstoque/galeria-de-imagens.png";
 import { Link, useNavigate } from "react-router-dom";
 import "./PanelDigitalizarCupom.css";
 
+function IconeLixeira({ size = 24 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#DC3545"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M3 6h18" />
+            <path d="M8 6V4c0-.55.45-1 1-1h6c.55 0 1 .45 1 1v2" />
+            <path d="M5 6l1 14c.05.6.5 1 1.1 1h9.8c.6 0 1.05-.4 1.1-1l1-14" />
+            <path d="M10 10v7M14 10v7" />
+        </svg>
+    );
+}
+
 function PanelDigitalizarCupom() {
     const modalScanner = useRef(null);
     const navigate = useNavigate();
@@ -39,7 +60,20 @@ function PanelDigitalizarCupom() {
 
                 <div className="digitalizar-cupom-preview">
                     {fotos.length === 0 ? <p>Nenhuma imagem selecionada.</p> : fotos.map((foto, indice) => (
-                        <img key={indice} src={foto} alt={`Cupom fotografado ${indice + 1}`} />
+                        <figure className="digitalizar-cupom-cartao" key={indice}>
+                            <img src={foto} alt={`Cupom fotografado ${indice + 1}`} />
+                            <figcaption className="digitalizar-cupom-cartao-rodape">
+                                <span>Imagem {indice + 1}</span>
+                                <button
+                                    type="button"
+                                    className="digitalizar-cupom-lixeira"
+                                    aria-label={`Remover imagem ${indice + 1}`}
+                                    disabled
+                                >
+                                    <IconeLixeira size={20} />
+                                </button>
+                            </figcaption>
+                        </figure>
                     ))}
                 </div>
 
