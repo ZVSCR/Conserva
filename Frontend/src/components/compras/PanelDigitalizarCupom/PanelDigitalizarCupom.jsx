@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import CameraCupom from "../CameraCupom/CameraCupom";
 import IconCamera from "../../../assets/IconsEstoque/camera.png";
 import IconGaleria from "../../../assets/IconsEstoque/galeria-de-imagens.png";
+import IconScannerBranco from "../../../assets/IconsEstoque/scanner branco.png";
 import { Link, useNavigate } from "react-router-dom";
 import "./PanelDigitalizarCupom.css";
 
@@ -51,6 +52,12 @@ function PanelDigitalizarCupom() {
 
     function removerFoto(indice) {
         setFotos((atuais) => atuais.filter((_, indiceAtual) => indiceAtual !== indice));
+    }
+
+    function cancelarDigitalizacao() {
+        setFotos([]);
+        setFotoAmpliada(null);
+        navigate("/nova-compra");
     }
     return (
         <main className="digitalizar-cupom">
@@ -102,6 +109,17 @@ function PanelDigitalizarCupom() {
             <p className="digitalizar-cupom-aviso">
                 As imagens são temporárias e não serão salvas no dispositivo pelo Conserva.
             </p>
+            {fotos.length > 0 && (
+                <div className="digitalizar-cupom-acoes">
+                    <button type="button" className="digitalizar-cupom-cancelar" onClick={cancelarDigitalizacao}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="digitalizar-cupom-digitalizar">
+                        <span>Digitalizar</span>
+                        <img src={IconScannerBranco} alt="" />
+                    </button>
+                </div>
+            )}
             <dialog
                 ref={modalFoto}
                 className="digitalizar-cupom-foto-modal"
