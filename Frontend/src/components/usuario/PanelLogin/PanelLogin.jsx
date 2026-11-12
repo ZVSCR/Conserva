@@ -59,9 +59,12 @@ function PanelLogin() {
                     {loading ? 'Entrando...' : 'Entrar'}
                 </button>
             </form>
-            <p className="account-page__alternate account-page__alternate--bottom">
-                Não possui uma conta? <Link to="/registrar">Registre-se</Link>
-            </p>
+            <div className="account-page__auth-navigation">
+                <p>Não possui uma conta?</p>
+                <Link to="/registrar" className="account-page__button account-page__auth-action account-page__button--muted">
+                    Registre-se
+                </Link>
+            </div>
         </>
     );
 }

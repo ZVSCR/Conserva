@@ -247,9 +247,16 @@
     font-size: 0.9375rem;
 }
 
-.account-page__alternate--bottom {
-    margin-block-start: auto;
-    padding-block-start: 32px;
+.account-page__auth-navigation {
+    display: grid;
+    gap: 6px;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.account-page__button--muted {
+    background-color: #dcd2db;
+    box-shadow: none;
 }
 
 .account-page__alternate a {
