@@ -57,3 +57,11 @@
     height: 30px;
     object-fit: contain;
 }
+
+@media (max-width: 360px) {
+    .estoque-produto {
+        grid-template-columns: minmax(0, 1fr) minmax(3rem, max-content) auto;
+        gap: 6px;
+        padding-inline: 10px 4px;
+    }
+}

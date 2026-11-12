@@ -72,6 +72,16 @@
     box-shadow: inset 0 2px 4px rgb(0 0 0 / 13%);
 }
 
+@media (max-width: 360px) {
+    .estoque-busca {
+        margin-inline: 12px;
+    }
+
+    .estoque-lista {
+        padding-inline: 12px;
+    }
+}
+
 .estoque-vazio {
   display: flex;
   flex-direction: column;
