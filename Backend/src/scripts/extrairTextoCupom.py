@@ -22,14 +22,14 @@ PREPROCESSAMENTO = {
     'desfoque_sigma': 2.0,
     'binarizacao': 'adaptativa',           # 'otsu', 'adaptativa', 'manual' ou None
     'limiar_manual': 215,
-    'bloco_adaptativo': 41,        # impar >= 3
-    'constante_adaptativa': 13,
+    'bloco_adaptativo': 21,        # impar >= 3
+    'constante_adaptativa': 3,
     'corrigir_inclinacao': True,  # estima pequenas inclinacoes por linhas
     'angulo_maximo': 10,
     'morfologia': None,            # 'engrossar', 'afinar' ou None
     'morfologia_kernel': 1,        # 1 nao altera os tracos
     'borda': 10,                   # pixels brancos, adicionados ao final
-    'salvar_em': None,             # ex.: 'cupom-processado.png' para inspecao
+    'salvar_em': 'cupom-processado.png',             # ex.: 'cupom-processado.png' para inspecao
 }
 
 LEITOR_OCR = {
