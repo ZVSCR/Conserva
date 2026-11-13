@@ -75,7 +75,8 @@
     font-size: 0.9375rem;
 }
 
-.account-page__field input {
+.account-page__field input,
+.account-page__field select {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
@@ -98,11 +99,20 @@
     gap: 12px;
 }
 
-.account-page--auth .account-page__field input {
+.account-page--auth .account-page__field :is(input, select) {
     min-height: 46px;
     padding-block: 8px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
+}
+
+.account-page__field select {
+    appearance: none;
+    padding-inline-end: 50px;
+    background-image: url('../../../assets/Account/seletor.png');
+    background-position: right 4px center;
+    background-repeat: no-repeat;
+    background-size: 42px;
 }
 
 .account-page__button {
@@ -162,6 +172,11 @@
 .account-page__button--muted {
     background-color: #dcd2db;
     box-shadow: none;
+}
+
+.account-page__button--outline {
+    border: 1px solid #d9e5d9;
+    color: #286232;
 }
 
 .account-page__notice {
