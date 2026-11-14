@@ -30,10 +30,35 @@ function IconeLixeira({ size = 24 }) {
 function PanelDigitalizarCupom() {
     const modalScanner = useRef(null);
     const modalFoto = useRef(null);
+    const inputGaleria = useRef(null);
     const navigate = useNavigate();
     const [cameraAberta, setCameraAberta] = useState(false);
     const [fotos, setFotos] = useState([]);
     const [fotoAmpliada, setFotoAmpliada] = useState(null);
+    const [erroGaleria, setErroGaleria] = useState("");
+    const [carregandoImagem, setCarregandoImagem] = useState(false);
+
+    function selecionarImagem(event) {
+        const arquivo = event.target.files?.[0];
+        event.target.value = "";
+        if (!arquivo) return;
+        setErroGaleria("");
+        if (!arquivo.type.startsWith("image/")) {
+            setErroGaleria("Selecione um arquivo de imagem.");
+            return;
+        }
+
+        setCarregandoImagem(true);
+        const leitor = new FileReader();
+        leitor.onload = () => {
+            confirmarFoto(leitor.result);
+        };
+        leitor.onerror = () => {
+            setErroGaleria("Não foi possível ler a imagem. Tente selecionar novamente.");
+        };
+        leitor.onloadend = () => setCarregandoImagem(false);
+        leitor.readAsDataURL(arquivo);
+    }
 
     function ampliarFoto(indice) {
         setFotoAmpliada(indice);
@@ -170,18 +195,28 @@ function PanelDigitalizarCupom() {
                     <span>{cameraAberta ? "Fotografar cupom" : "Tire uma foto ou escolha uma imagem do seu dispositivo."}</span>
                 </p>
                 {cameraAberta ? <CameraCupom onConfirmar={confirmarFoto} /> : <div className="scanner-opcoes">
-                    <button type="button" onClick={() => setCameraAberta(true)}>
+                    <button type="button" disabled={carregandoImagem} onClick={() => setCameraAberta(true)}>
                         <img src={IconCamera} alt="" />
                         <span>Tirar foto</span>
                     </button>
-                    <button type="button" onClick={() => {
-                            modalScanner.current.close();
-                            navigate("/digitalizar-cupom");
+                    <button type="button" disabled={carregandoImagem} onClick={() => {
+                            setErroGaleria("");
+                            inputGaleria.current.click();
                         }}>
                         <img src={IconGaleria} alt="" />
                         <span>Galeria</span>
                     </button>
                 </div>}
+                <input
+                    ref={inputGaleria}
+                    type="file"
+                    accept="image/*"
+                    aria-label="Selecionar imagem do cupom"
+                    hidden
+                    onChange={selecionarImagem}
+                />
+                {carregandoImagem && <p role="status">Carregando imagem…</p>}
+                {erroGaleria && <p className="scanner-erro" role="alert">{erroGaleria}</p>}
             </dialog>
         </main>
     );

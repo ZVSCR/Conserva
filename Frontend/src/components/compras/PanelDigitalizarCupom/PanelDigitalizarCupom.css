@@ -378,6 +378,17 @@
   gap: 12px;
 }
 
+.scanner-erro {
+  margin-top: 12px;
+  color: #a32828;
+  font-size: 14px;
+}
+
+.scanner-opcoes button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .digitalizar-cupom .scanner-opcoes button {
   display: flex;
   flex-direction: column;
