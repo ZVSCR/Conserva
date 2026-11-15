@@ -30,6 +30,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
     "pg": "^8.23.0"
   },
   "devDependencies": {

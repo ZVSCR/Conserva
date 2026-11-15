@@ -5,6 +5,7 @@ import IconGaleria from "../../../assets/IconsEstoque/galeria-de-imagens.png";
 import IconScannerBranco from "../../../assets/IconsEstoque/scanner branco.png";
 import { Link, useNavigate } from "react-router-dom";
 import "./PanelDigitalizarCupom.css";
+import { digitalizarCupons } from "../../../services/cupom";
 
 function IconeLixeira({ size = 24 }) {
     return (
@@ -37,6 +38,29 @@ function PanelDigitalizarCupom() {
     const [fotoAmpliada, setFotoAmpliada] = useState(null);
     const [erroGaleria, setErroGaleria] = useState("");
     const [carregandoImagem, setCarregandoImagem] = useState(false);
+    const [digitalizando, setDigitalizando] = useState(false);
+    const [erroDigitalizacao, setErroDigitalizacao] = useState("");
+    const [digitalizacaoConcluida, setDigitalizacaoConcluida] = useState(false);
+    const resultadoOcr = useRef(null);
+    const envioEmAndamento = useRef(false);
+
+    async function enviarParaOcr() {
+        if (envioEmAndamento.current || !fotos.length) return;
+        envioEmAndamento.current = true;
+        setDigitalizando(true);
+        setErroDigitalizacao("");
+        setDigitalizacaoConcluida(false);
+        resultadoOcr.current = null;
+        try {
+            resultadoOcr.current = await digitalizarCupons(fotos);
+            setDigitalizacaoConcluida(true);
+        } catch (erro) {
+            setErroDigitalizacao(erro.message || "Não foi possível enviar as imagens ao OCR.");
+        } finally {
+            envioEmAndamento.current = false;
+            setDigitalizando(false);
+        }
+    }
 
     function selecionarImagem(event) {
         const arquivo = event.target.files?.[0];
@@ -71,11 +95,17 @@ function PanelDigitalizarCupom() {
     }
 
     function confirmarFoto(foto) {
+        setDigitalizacaoConcluida(false);
+        setErroDigitalizacao("");
+        resultadoOcr.current = null;
         setFotos((atuais) => [...atuais, foto]);
         fecharScanner();
     }
 
     function removerFoto(indice) {
+        setDigitalizacaoConcluida(false);
+        setErroDigitalizacao("");
+        resultadoOcr.current = null;
         setFotos((atuais) => atuais.filter((_, indiceAtual) => indiceAtual !== indice));
     }
 
@@ -98,7 +128,7 @@ function PanelDigitalizarCupom() {
             <section aria-labelledby="digitalizar-cupom-imagens">
                 <div className="digitalizar-cupom-selecao">
                     <h2 id="digitalizar-cupom-imagens">Imagens selecionadas ({fotos.length})</h2>
-                    <button type="button" className="digitalizar-cupom-adicionar" aria-haspopup="dialog" onClick={() => modalScanner.current.showModal()}>Adicionar +</button>
+                    <button type="button" className="digitalizar-cupom-adicionar" disabled={digitalizando} aria-haspopup="dialog" onClick={() => modalScanner.current.showModal()}>Adicionar +</button>
                 </div>
 
                 <div className="digitalizar-cupom-preview">
@@ -120,6 +150,7 @@ function PanelDigitalizarCupom() {
                                     className="digitalizar-cupom-lixeira"
                                     aria-label={`Remover imagem ${indice + 1}`}
                                     onClick={() => removerFoto(indice)}
+                                    disabled={digitalizando}
                                 >
                                     <IconeLixeira size={20} />
                                 </button>
@@ -136,15 +167,18 @@ function PanelDigitalizarCupom() {
             </p>
             {fotos.length > 0 && (
                 <div className="digitalizar-cupom-acoes">
-                    <button type="button" className="digitalizar-cupom-cancelar" onClick={cancelarDigitalizacao}>
+                    <button type="button" className="digitalizar-cupom-cancelar" disabled={digitalizando} onClick={cancelarDigitalizacao}>
                         Cancelar
                     </button>
-                    <button type="button" className="digitalizar-cupom-digitalizar">
-                        <span>Digitalizar</span>
+                    <button type="button" className="digitalizar-cupom-digitalizar" disabled={digitalizando || carregandoImagem} onClick={enviarParaOcr}>
+                        <span>{digitalizando ? "Digitalizando…" : "Digitalizar"}</span>
                         <img src={IconScannerBranco} alt="" />
                     </button>
                 </div>
             )}
+            {digitalizando && <p role="status">Processando imagens…</p>}
+            {digitalizacaoConcluida && <p role="status">Imagens processadas pelo OCR.</p>}
+            {erroDigitalizacao && <p className="scanner-erro" role="alert">{erroDigitalizacao}</p>}
             <dialog
                 ref={modalFoto}
                 className="digitalizar-cupom-foto-modal"
