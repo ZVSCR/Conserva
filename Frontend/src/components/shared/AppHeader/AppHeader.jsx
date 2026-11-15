@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
+import marcaEstoque from '../../../assets/NavegacaoEstoque/marca.svg';
 import styles from './AppHeader.module.css';
 
 function AppHeader({ variante } = {}) {
@@ -56,7 +57,10 @@ function AppHeader({ variante } = {}) {
 
     return (
         <header className={estoque ? `${styles.header} ${styles.estoque}` : styles.header}>
-            <Link to="/estoque" className={styles.logo}>Conserva</Link>
+            <Link to="/estoque" className={styles.logo}>
+                {estoque && <img className={styles.marcaEstoque} src={marcaEstoque} alt="" width="67" height="70" />}
+                Conserva
+            </Link>
 
             <div className={styles.account} ref={accountRef}>
                 <button
