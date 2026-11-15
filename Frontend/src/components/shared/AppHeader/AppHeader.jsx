@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
 import marcaEstoque from '../../../assets/NavegacaoEstoque/marca.svg';
+import perfilEstoque from '../../../assets/NavegacaoEstoque/perfil.svg';
 import styles from './AppHeader.module.css';
 
 function AppHeader({ variante } = {}) {
@@ -72,7 +73,7 @@ function AppHeader({ variante } = {}) {
                     aria-controls="menu-usuario"
                     aria-label="Menu do usuário"
                 >
-                    <img src={perfil} alt="" />
+                    <img src={estoque ? perfilEstoque : perfil} alt="" />
                 </button>
 
                 {menuAberto && (
