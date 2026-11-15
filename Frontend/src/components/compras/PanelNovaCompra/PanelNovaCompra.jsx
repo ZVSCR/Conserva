@@ -5,7 +5,7 @@ import IconScanner from '../../../assets/IconsEstoque/scanner.png';
 import IconBusca from '../../../assets/IconsEstoque/lupa.png';
 import IconEditar from '../../../assets/IconsEstoque/edit_item_icon_1.svg';
 import IconExcluir from '../../../assets/IconsEstoque/delete_item_icon_1.svg';
-import IconNovoItem from '../../../assets/NavegacaoEstoque/nova-compra.svg';
+import IconNovoItem from '../../../assets/IconsEstoque/add_item_icon.svg';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -312,7 +312,7 @@ function PanelNovaCompra() {
                     disabled={loading || compraRegistrada}
                 >
                     Novo item
-                    <img src={IconNovoItem} alt="" width="49" height="49" />
+                    <img src={IconNovoItem} alt="" width="52" height="53" />
                 </button>
 
                 <div className="nova-compra__acoes">
