@@ -19,7 +19,7 @@ function BottomNav({ variante } = {}) {
 
     return (
         <>
-            <div className={styles.spacer} aria-hidden="true" />
+            <div className={estoque ? `${styles.spacer} ${styles.spacerEstoque}` : styles.spacer} aria-hidden="true" />
             <nav className={estoque ? `${styles.nav} ${styles.estoque}` : styles.nav} aria-label="Navegação principal">
                 <Link to="/receitas" className={styles.item} aria-label="Receitas">
                     <img src={estoque ? EstoqueReceitas : IconReceitas} alt="" />

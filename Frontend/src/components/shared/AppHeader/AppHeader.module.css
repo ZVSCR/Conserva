@@ -41,6 +41,17 @@
     flex: 0 0 auto;
 }
 
+@media (max-width: 360px) {
+    .estoque {
+        min-height: 104px;
+        gap: 8px;
+    }
+
+    .estoque .logo {
+        font-size: clamp(1.25rem, 8vw, 1.8rem);
+    }
+}
+
 .account {
     position: relative;
     display: flex;
