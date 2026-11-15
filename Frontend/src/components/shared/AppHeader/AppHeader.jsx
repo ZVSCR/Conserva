@@ -2,9 +2,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
+import marcaCompra from '../../../assets/NavegacaoEstoque/marca.svg';
 import styles from './AppHeader.module.css';
 
-function AppHeader() {
+function AppHeader({ voltarPara, rotuloVoltar }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -54,8 +55,18 @@ function AppHeader() {
     }
 
     return (
-        <header className={styles.header}>
-            <Link to="/estoque" className={styles.logo}>Conserva</Link>
+        <header className={voltarPara ? [styles.header, styles.comVoltar].join(" ") : styles.header}>
+            {voltarPara && (
+                <Link className={styles.voltar} to={voltarPara} aria-label={rotuloVoltar}>
+                    <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+                        <path d="M16 5 3 18l13 13M4 18h29" />
+                    </svg>
+                </Link>
+            )}
+            <Link to="/estoque" className={styles.logo}>
+                {voltarPara && <img className={styles.simboloCompra} src={marcaCompra} alt="" width="67" height="70" />}
+                Conserva
+            </Link>
 
             <div className={styles.account} ref={accountRef}>
                 <button

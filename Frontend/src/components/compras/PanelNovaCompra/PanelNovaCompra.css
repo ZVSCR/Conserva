@@ -1,344 +1,308 @@
-.compra-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: min(100% - 40px, 500px);
-  box-sizing: border-box;
-  margin: 40px auto;
-  margin-bottom: 100px;
-  padding: 20px;
-  border-radius: 8px;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  text-align: left;
-  color-scheme: dark;
+.nova-compra__painel {
+    box-sizing: border-box;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    width: min(100%, var(--compra-largura));
+    margin-inline: auto;
+    padding: 20px var(--compra-margem) calc(var(--compra-espaco-scanner) + var(--compra-area-segura) + 12px);
 }
 
-/* Register.css sets a global height for every div inside #root. */
-#root .compra-container,
-#root .compra-container div {
-  height: auto;
+.nova-compra__titulo {
+    margin: 0 0 4px;
+    color: inherit;
+    font: 700 1.25rem/1.3 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
+    text-align: center;
 }
 
-.compra-titulo {
-  margin: 0;
-  color: #fff;
-  font-size: 24px;
-  text-align: center;
+.nova-compra__estabelecimento {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.9375rem;
 }
 
-.compra-feedback {
-  font-size: 14px;
+.nova-compra__estabelecimento p {
+    margin: 0;
 }
 
-.compra-erro {
-  color: #ffb4b4;
+.nova-compra__estabelecimento-valor {
+    min-width: 0;
+    color: var(--compra-verde-texto);
+    overflow-wrap: anywhere;
+    text-align: right;
 }
 
-.estabelecimento-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 2px;
-  margin-bottom: -25px;
+.nova-compra__busca {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding-inline: 10px;
+    border-radius: var(--compra-cantos);
+    background: #e1e1e1;
+    box-shadow: var(--compra-sombra);
 }
 
-.estabelecimento-text {
-  flex: 0 0 auto;
-  color: #b9bbbe;
+.nova-compra__busca img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
 }
 
-.estabelecimento-valor {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  min-width: 0;
-  text-align: right;
+.nova-compra__busca input {
+    flex: 1;
+    min-width: 0;
+    min-height: 38px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
 }
 
-.estabelecimento-name {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  color: #fff;
-  font-weight: bold;
+.nova-compra__busca input::placeholder {
+    color: var(--compra-secundario);
 }
 
-.compra-container .search-box input,
-.compra-container .item-modal input,
-.compra-container .item-modal select {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid #424549;
-  border-radius: 6px;
-  background: #2b2d31;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  box-shadow: none;
+.nova-compra__form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.compra-container .search-box input {
-  margin-bottom: 0;
+.nova-compra__lista {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.search-box input:focus-visible,
-.item-modal input:focus-visible,
-.item-modal select:focus-visible,
-.compra-container button:focus-visible {
-  outline: 2px solid #57f287;
-  outline-offset: 2px;
+.nova-compra__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 8px;
+    min-height: 76px;
+    box-sizing: border-box;
+    padding: 8px 8px 8px 16px;
+    border: 1px solid #eee;
+    border-radius: var(--compra-cantos);
+    background: #fff;
+    box-shadow: var(--compra-sombra);
 }
 
-.compra-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.nova-compra__item-descricao {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-.lista-itens {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 15px;
-  max-height: 400px;
-  overflow-y: auto;
+.nova-compra__item h2 {
+    margin: 0 0 4px;
+    color: inherit;
+    font: 600 1rem/1.3 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
 }
 
-.lista-itens > p {
-  padding: 15px;
-  color: #8e9297;
-  text-align: center;
+.nova-compra__item-detalhes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    margin: 0;
+    color: var(--compra-verde-texto);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
 }
 
-.item-card {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px 20px;
-  padding: 15px;
-  border: 1px solid #424549;
-  border-radius: 8px;
-  background: #2b2d31;
+.nova-compra__item-acoes {
+    display: flex;
 }
 
-.nome-item {
-  margin: 0;
-  color: #fff;
-  font-size: 16px;
+.nova-compra__painel button {
+    border: 0;
+    border-radius: var(--compra-cantos);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
 }
 
-.item-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  font-size: 14px;
+.nova-compra__item-acoes button,
+.nova-compra__novo-item,
+.nova-compra__editar-estabelecimento {
+    padding: 0;
+    background: transparent;
 }
 
-.preco-item {
-  color: #57f287;
+.nova-compra__painel .nova-compra__editar-estabelecimento {
+    min-height: 24px;
+    padding: 2px 0;
+    color: var(--compra-verde-texto);
+    font-size: 0.875rem;
+    text-decoration: underline;
 }
 
-.quantidade-e-medida-item {
-  color: #b9bbbe;
+.nova-compra__item-acoes button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
 }
 
-.item-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.nova-compra__item-acoes button img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 
-.compra-container button {
-  min-height: 40px;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  cursor: pointer;
+.nova-compra__novo-item {
+    display: flex;
+    align-self: end;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
 }
 
-.compra-container .btn-novo-item,
-.compra-container .btn-post-compra,
-.compra-container .btn-adiciona-novo-item {
-  background: #3ba55d;
-  font-weight: bold;
+.nova-compra__novo-item img {
+    display: block;
+    border-radius: 8px;
 }
 
-.compra-container .btn-novo-item {
-  align-self: flex-start;
-  min-width: 44px;
-  font-size: 20px;
+.nova-compra__acoes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 12px;
 }
 
-.compra-container .btn-cancela-acao,
-.compra-container .btn-cancela-novo-item,
-.compra-container .btn-cancela-editar-nome-estabelecimento {
-  background: #4f545c;
-  font-weight: bold;
+.nova-compra__painel .nova-compra__botao {
+    min-height: 52px;
+    padding: 10px 8px;
+    background: #e6e6e6;
+    font-size: 0.875rem;
+    font-weight: 600;
 }
 
-.compra-container .btn-altera-nome-estabelecimento {
-  background: #3ba55d;
-  font-weight: bold;
+.nova-compra__painel .nova-compra__botao--principal {
+    background: var(--compra-verde);
+    color: #fff;
 }
 
-.compra-container .btn-editar-estabelecimento {
-  min-height: 0;
-  padding: 6px 0;
-  border-radius: 4px;
-  background: transparent;
-  color: #57f287;
-  text-decoration: underline;
+.nova-compra__painel button:not(:disabled):hover {
+    filter: brightness(.94);
 }
 
-.compra-container .btn-edit,
-.compra-container .btn-excluir {
-  min-height: 0;
-  padding: 6px;
-  border-radius: 4px;
-  background: transparent;
+.nova-compra__painel button:disabled {
+    opacity: .6;
+    cursor: default;
 }
 
-.compra-container button:hover {
-  filter: brightness(1.12);
+.nova-compra__estado {
+    margin: 0;
+    padding: 14px 8px;
+    color: var(--compra-secundario);
+    text-align: center;
+    font-size: 0.875rem;
 }
 
-.compra-container button:disabled {
-  cursor: default;
-  opacity: 0.65;
-  filter: none;
+.nova-compra__erro,
+.nova-compra__painel .item-modal-erro {
+    margin: 0;
+    color: #9c1b32;
+    font-size: 0.875rem;
 }
 
-.compra-container .btn-escanear-nota {
-  position: fixed;
-  left: 50%;
-  bottom: 90px;
-  z-index: 99;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: min(calc(100% - 80px), 460px);
-  min-height: 52px;
-  border-radius: 10px;
-  background: #fff;
-  color: #222;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.nova-compra__scanner {
+    position: fixed;
+    inset-inline-start: 50%;
+    inset-block-end: calc(var(--compra-altura-barra) + var(--compra-area-segura));
+    z-index: 99;
+    box-sizing: border-box;
+    width: min(100%, var(--compra-largura));
+    padding: 10px var(--compra-margem) 14px;
+    background: #fff;
+    transform: translateX(-50%);
 }
 
-.compra-container .btn-escanear-nota {
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.compra-container .btn-escanear-nota:focus:not(:focus-visible) {
-  outline: none;
-}
-
-.btn-escanear-nota img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.compra-container .btn-edit:hover,
-.compra-container .btn-excluir:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.item-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.item-modal {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  width: min(100%, 420px);
-  max-height: 90vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: 24px;
-  border: 1px solid #424549;
-  border-radius: 8px;
-  background: #2b2d31;
-  color: #fff;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-.item-modal h2,
-.item-modal > label,
-.quantidade-medida {
-  grid-column: 1 / -1;
-}
-
-.item-modal h2 {
-  margin: 0 0 10px;
-  color: #fff;
-}
-
-.item-modal-erro {
-  grid-column: 1 / -1;
-  color: #ffb4b4;
-  font-size: 14px;
-}
-
-.item-modal label {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.quantidade-medida {
-  display: flex;
-  gap: 12px;
-}
-
-.quantidade-medida label {
-  flex: 1;
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .compra-container {
-    margin: 20px auto;
-    margin-bottom: 100px;
-  }
-
-  .compra-form {
-    grid-template-columns: 1fr;
-  }
-
-  .lista-itens {
-    grid-column: auto;
-  }
-
-  .item-card {
-    align-items: flex-start;
-  }
-
-  .item-actions {
+.nova-compra__scanner .nova-compra__botao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
-  }
+    min-height: 52px;
+    padding-inline: 16px;
+    border: 1px solid #ededed;
+    background: #fff;
+    box-shadow: var(--compra-sombra);
+}
 
-  .item-modal {
-    padding: 20px;
-  }
+.nova-compra__scanner img {
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.nova-compra__painel .item-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    box-sizing: border-box;
+    padding: 16px;
+    background: rgb(0 0 0 / 45%);
+}
+
+.nova-compra__painel .item-modal {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: min(100%, 420px);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: clamp(16px, 5vw, 24px);
+    border: 1px solid #eee;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 20%);
+}
+
+.nova-compra__painel .item-modal :is(h2, label, .item-modal-erro) {
+    grid-column: 1 / -1;
+}
+
+.nova-compra__painel .item-modal h2 {
+    margin: 0 0 3px;
+    color: inherit;
+    font: 600 1.125rem/1.3 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
+}
+
+.nova-compra__painel .item-modal label {
+    display: grid;
+    gap: 5px;
+    font-size: 0.875rem;
+}
+
+.nova-compra__painel .item-modal :is(input, select) {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    margin: 0;
+    border: 1px solid #d8d4d8;
+    border-radius: var(--compra-cantos);
+    background: var(--compra-campo);
+    color: inherit;
+    font: inherit;
 }

@@ -2,10 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { apiFetch } from '../../../services/api';
 import IconScanner from '../../../assets/IconsEstoque/scanner.png';
+import IconBusca from '../../../assets/IconsEstoque/lupa.png';
+import IconEditar from '../../../assets/IconsEstoque/edit_item_icon_1.svg';
+import IconExcluir from '../../../assets/IconsEstoque/delete_item_icon_1.svg';
+import IconNovoItem from '../../../assets/NavegacaoEstoque/nova-compra.svg';
 import "./PanelNovaCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
 const MAX_TOTAL_CENTAVOS = 999999999;
+const formatoPreco = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const formatoQuantidade = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 
 function formatarDataLocal(data) {
     const ano = data.getFullYear();
@@ -228,16 +234,17 @@ function PanelNovaCompra() {
     }
     
     return (
-        <div className="compra-container">
-            <h2 className="compra-titulo">Itens comprados</h2>
+        <main className="nova-compra__painel">
+            <h1 className="nova-compra__titulo">Itens comprados</h1>
 
-            <div className="estabelecimento-container">
-                <p className="estabelecimento-text">Estabelecimento:</p>
-                <div className="estabelecimento-valor">
-                    <p className="estabelecimento-name">{compra.estabelecimento || "Não informado"}</p>
+            <div className="nova-compra__estabelecimento">
+                <p>Estabelecimento:</p>
+                <div className="nova-compra__estabelecimento-valor">
+                    <p>{compra.estabelecimento || "Não informado"}</p>
                     <button
                         type="button"
-                        className="btn-editar-estabelecimento"
+                        className="nova-compra__editar-estabelecimento"
+                        aria-label="Editar estabelecimento"
                         onClick={abrirModalEstabelecimento}
                         disabled={loading || compraRegistrada}
                     >
@@ -246,88 +253,103 @@ function PanelNovaCompra() {
                 </div>
             </div>
 
-            <div className="search-box">
+            <div className="nova-compra__busca">
+                <img src={IconBusca} alt="" />
                 <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
+                    type="search"
+                    aria-label="Pesquisar itens da compra"
+                    placeholder="Pesquisar..."
+                    value={filtro}
+                    onChange={(e) => setFiltro(e.target.value)}
                 />
             </div>
 
-            {errorMsg && <p className="compra-feedback compra-erro" role="alert">{errorMsg}</p>}
+            {errorMsg && <p className="nova-compra__erro" role="alert">{errorMsg}</p>}
 
-            <form className="compra-form" onSubmit={handleSubmit}>
-                <div className="lista-itens">
-                    {itensFiltrados.length > 0 ? (
-                        itensFiltrados.map((item) => (
-                            <div key={item.idLocal} className="item-card">
-                                <h3 className="nome-item">{item.nome_item}</h3>
-                                <div className="item-info">
-                                    <p className="preco-item">
-                                        R$ {Number(item.preco_total_item).toFixed(2).replace(".", ",")}
-                                    </p>
-                                    <p className="quantidade-e-medida-item">
-                                        {item.quantidade.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} {item.unidade_medida}
+            <form className="nova-compra__form" onSubmit={handleSubmit}>
+                {itensFiltrados.length > 0 ? (
+                    <ul className="nova-compra__lista" aria-label="Itens comprados">
+                        {itensFiltrados.map((item) => (
+                            <li key={item.idLocal} className="nova-compra__item">
+                                <div className="nova-compra__item-descricao">
+                                    <h2>{item.nome_item}</h2>
+                                    <p className="nova-compra__item-detalhes">
+                                        <span>{formatoPreco.format(item.preco_total_item)}</span>
+                                        <span aria-hidden="true">/</span>
+                                        <span>{formatoQuantidade.format(item.quantidade)} {item.unidade_medida}</span>
                                     </p>
                                 </div>
-                                <div className="item-actions">
+                                <div className="nova-compra__item-acoes">
                                     <button
                                         type="button"
-                                        className="btn btn-edit"
+                                        aria-label={`Editar ${item.nome_item}`}
                                         onClick={() => abrirModalEdicaoItem(item)}
                                         disabled={loading || compraRegistrada}
                                     >
-                                        Editar
+                                        <img src={IconEditar} alt="" />
                                     </button>
                                     <button
                                         type="button"
-                                        className="btn btn-excluir"
+                                        aria-label={`Excluir ${item.nome_item}`}
                                         onClick={() => setItens((atuais) => atuais.filter((atual) => atual.idLocal !== item.idLocal))}
                                         disabled={loading || compraRegistrada}
                                     >
-                                        Excluir
+                                        <img src={IconExcluir} alt="" />
                                     </button>
                                 </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p>{itens.length === 0 ? "Nenhum item adicionado." : "Nenhum item corresponde à pesquisa."}</p>
-                    )}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="nova-compra__estado" role="status">
+                        {itens.length === 0 ? "Nenhum item adicionado." : "Nenhum item corresponde à pesquisa."}
+                    </p>
+                )}
+                <button
+                    type="button"
+                    className="nova-compra__novo-item"
+                    onClick={abrirModalNovoItem}
+                    disabled={loading || compraRegistrada}
+                >
+                    Novo item
+                    <img src={IconNovoItem} alt="" width="49" height="49" />
+                </button>
+
+                <div className="nova-compra__acoes">
                     <button
                         type="button"
-                        className="btn btn-novo-item"
-                        onClick={abrirModalNovoItem}
+                        className="nova-compra__botao"
+                        onClick={() => navigate("/estoque")}
+                        disabled={loading}
+                    >
+                        CANCELAR
+                    </button>
+                    <button
+                        type="submit"
+                        className="nova-compra__botao nova-compra__botao--principal"
                         disabled={loading || compraRegistrada}
                     >
-                        +
+                        {loading ? "SALVANDO..." : compraRegistrada ? "REGISTRADA" : "CONCLUIR"}
                     </button>
                 </div>
-                
-                <button type="button" className="btn btn-cancela-acao" onClick={() => navigate("/estoque")} disabled={loading}>
-                    CANCELAR
-                </button>
-                <button type="submit" className="btn btn-post-compra" disabled={loading || compraRegistrada}>
-                    {loading ? "SALVANDO..." : compraRegistrada ? "REGISTRADA" : "CONCLUIR"}
-                </button>
             </form>
 
-            <button
-                type="button"
-                className="btn-escanear-nota"
-                onClick={() => navigate("/digitalizar-cupom")}
-                disabled={loading || compraRegistrada}
-            >
-                <span>Escaneie seu cupom fiscal</span>
-                <img src={IconScanner} alt="" />
-            </button>
-
-
+            <div className="nova-compra__scanner">
+                <button
+                    type="button"
+                    className="nova-compra__botao"
+                    onClick={() => navigate("/digitalizar-cupom")}
+                    disabled={loading || compraRegistrada}
+                >
+                    <span>Escaneie seu cupom fiscal</span>
+                    <img src={IconScanner} alt="" width="24" height="24" />
+                </button>
+            </div>
 
             {/*Modal de alterar o nome do estabelecimento*/}
             {modalEstabelecimentoAberto && (
                 <div className="item-modal-overlay" role="presentation">
-                    <form className="item-modal estabelecimento-modal" onSubmit={salvarEstabelecimento} role="dialog" aria-modal="true" aria-labelledby="titulo-estabelecimento">
+                    <form className="item-modal" onSubmit={salvarEstabelecimento} role="dialog" aria-modal="true" aria-labelledby="titulo-estabelecimento">
                         <h2 id="titulo-estabelecimento">Alterar estabelecimento</h2>
                         <label>
                             Nome do estabelecimento
@@ -348,14 +370,14 @@ function PanelNovaCompra() {
 
                         <button 
                             type="button" 
-                            className="btn btn-cancela-editar-nome-estabelecimento" 
+                            className="nova-compra__botao"
                             onClick={() => setModalEstabelecimentoAberto(false)}
                         >
                             Cancelar
                         </button>
                         <button 
                             type="submit" 
-                            className="btn btn-altera-nome-estabelecimento"
+                            className="nova-compra__botao nova-compra__botao--principal"
                         >
                             Concluir
                         </button>
@@ -366,49 +388,48 @@ function PanelNovaCompra() {
             {/*Modal de adicionar item*/}
             {modalItemAberto && (
                 <div className="item-modal-overlay">
-                <form className="item-modal" onSubmit={salvarItem} role="dialog" aria-modal="true" aria-labelledby="titulo-item">
-                    <h2 id="titulo-item">{itemEditandoId === null ? "Adicionar item" : "Editar item"}</h2>
-                    <label>
-                        Nome do item
-                        <input
-                            name="nome_item"
-                            type="text"
-                            value={item.nome_item}
-                            placeholder="Ex: Arroz branco"
-                            onChange={alterarItem}
-                            maxLength={100}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Preço total do item
-                        <input
-                            name="preco_total_item"
-                            type="number"
-                            min="0"
-                            max={MAX_VALOR_DECIMAL}
-                            step="0.01"
-                            value={item.preco_total_item}
-                            placeholder="Ex: R$ 200,00"
-                            onChange={alterarItem}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Quantidade
-                        <input
-                            name="quantidade"
-                            type="number"
-                            min="0.01"
-                            max={MAX_VALOR_DECIMAL}
-                            step="0.01"
-                            value={item.quantidade}
-                            placeholder="Ex: 1,2 kg"
-                            onChange={alterarItem}
-                            required
-                        />
-                    </label>
-                    <div className="quantidade-medida">
+                    <form className="item-modal" onSubmit={salvarItem} role="dialog" aria-modal="true" aria-labelledby="titulo-item">
+                        <h2 id="titulo-item">{itemEditandoId === null ? "Adicionar item" : "Editar item"}</h2>
+                        <label>
+                            Nome do item
+                            <input
+                                name="nome_item"
+                                type="text"
+                                value={item.nome_item}
+                                placeholder="Ex: Arroz branco"
+                                onChange={alterarItem}
+                                maxLength={100}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Preço total do item
+                            <input
+                                name="preco_total_item"
+                                type="number"
+                                min="0"
+                                max={MAX_VALOR_DECIMAL}
+                                step="0.01"
+                                value={item.preco_total_item}
+                                placeholder="Ex: R$ 200,00"
+                                onChange={alterarItem}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Quantidade
+                            <input
+                                name="quantidade"
+                                type="number"
+                                min="0.01"
+                                max={MAX_VALOR_DECIMAL}
+                                step="0.01"
+                                value={item.quantidade}
+                                placeholder="Ex: 1,2"
+                                onChange={alterarItem}
+                                required
+                            />
+                        </label>
                         <label>
                             Unidade de medida
                             <select
@@ -423,27 +444,26 @@ function PanelNovaCompra() {
                                 <option value="mL">mL</option>
                             </select>
                         </label>
-                    </div>
 
-                    {itemErrorMsg && <p className="item-modal-erro" role="alert">{itemErrorMsg}</p>}
+                        {itemErrorMsg && <p className="item-modal-erro" role="alert">{itemErrorMsg}</p>}
 
-                    <button 
-                        type="button" 
-                        className="btn btn-cancela-novo-item" 
-                        onClick={fecharModalItem}
-                    >
-                        Cancelar
-                    </button>
-                    <button 
-                        type="submit" 
-                        className="btn btn-adiciona-novo-item"
-                    >
-                        {itemEditandoId === null ? "Adicionar" : "Salvar alterações"}
-                    </button>
-                </form>
-            </div>
+                        <button
+                            type="button"
+                            className="nova-compra__botao"
+                            onClick={fecharModalItem}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="nova-compra__botao nova-compra__botao--principal"
+                        >
+                            {itemEditandoId === null ? "Adicionar" : "Salvar alterações"}
+                        </button>
+                    </form>
+                </div>
             )}
-        </div>
+        </main>
     );
 }
 
