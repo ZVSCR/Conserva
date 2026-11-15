@@ -9,7 +9,6 @@ import EstoqueReceitas from '../../../assets/NavegacaoEstoque/receitas.svg';
 import EstoqueCompras from '../../../assets/NavegacaoEstoque/compras.svg';
 import EstoqueNovaCompra from '../../../assets/NavegacaoEstoque/nova-compra.svg';
 import EstoqueIngredientes from '../../../assets/NavegacaoEstoque/ingredientes.svg';
-import EstoqueConfiguracoes from '../../../assets/NavegacaoEstoque/configuracoes.svg';
 import styles from './BottomNav.module.css';
 
 function BottomNav({ variante } = {}) {
@@ -36,19 +35,17 @@ function BottomNav({ variante } = {}) {
                 >
                     <img src={estoque ? EstoqueNovaCompra : IconAdicionar} alt="" />
                 </button>
-                {!estoque && (
-                    <Link to="/estoque" className={styles.item} aria-label="Estoque">
-                        <img src={IconEstoque} alt="" />
-                    </Link>
-                )}
+                <Link
+                    to="/estoque"
+                    className={styles.item}
+                    aria-label="Estoque"
+                    aria-current={estoque ? 'page' : undefined}
+                >
+                    <img className={styles.iconeEstoque} src={IconEstoque} alt="" />
+                </Link>
                 <Link to="/ingredientes" className={styles.item} aria-label="Ingredientes">
                     <img src={estoque ? EstoqueIngredientes : IconIngredientes} alt="" />
                 </Link>
-                {estoque && (
-                    <Link to="/configuracoes" className={styles.item} aria-label="Configurações">
-                        <img src={EstoqueConfiguracoes} alt="" />
-                    </Link>
-                )}
             </nav>
         </>
     );
