@@ -4,10 +4,12 @@ import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import IconCompras from '../../../assets/IconsEstoque/carrinho.png';
 import IconAdicionar from '../../../assets/IconsEstoque/adicionar.png';
 import IconEstoque from '../../../assets/IconsEstoque/estoque.png';
-import IconIngredientes from '../../../assets/IconsEstoque/ingredientes.png'
+import IconIngredientes from '../../../assets/IconsEstoque/ingredientes.png';
+import IconConfiguracoes from '../../../assets/IconsEstoque/configuracao.png';
 import styles from './BottomNav.module.css';
 
-function BottomNav() {
+function BottomNav({ variante } = {}) {
+    const estoque = variante === 'estoque';
     const [animating, setAnimating] = useState(false);
     const navigate = useNavigate();
 
@@ -30,12 +32,19 @@ function BottomNav() {
                 >
                     <img src={IconAdicionar} alt="" />
                 </button>
-                <Link to="/estoque" className={styles.item} aria-label="Estoque">
-                    <img src={IconEstoque} alt="" />
-                </Link>
+                {!estoque && (
+                    <Link to="/estoque" className={styles.item} aria-label="Estoque">
+                        <img src={IconEstoque} alt="" />
+                    </Link>
+                )}
                 <Link to="/ingredientes" className={styles.item} aria-label="Ingredientes">
                     <img src={IconIngredientes} alt="" />
                 </Link>
+                {estoque && (
+                    <Link to="/configuracoes" className={styles.item} aria-label="Configurações">
+                        <img src={IconConfiguracoes} alt="" />
+                    </Link>
+                )}
             </nav>
         </>
     );
