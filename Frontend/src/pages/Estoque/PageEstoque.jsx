@@ -176,7 +176,7 @@ function PageEstoque(){
                     ))}
                 </div>
             </main>
-            <BottomNav variante="estoque" />
+            <BottomNav padronizada />
 
             {/*Modal de editar*/}
             {produtoEditando && (

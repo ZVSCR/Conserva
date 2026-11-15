@@ -45,7 +45,7 @@
     height: 45px;
 }
 
-.estoque {
+.padronizada {
     justify-content: center;
     box-sizing: content-box;
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -53,17 +53,17 @@
     box-shadow: 0 -2px 4px rgb(0 0 0 / 25%);
 }
 
-.spacerEstoque {
+.spacerPadronizada {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.estoque .item {
+.padronizada .item {
     max-width: 80px;
     min-width: 0;
     padding: 0;
 }
 
-.estoque .item img:not(.iconeEstoque) {
+.padronizada .item img:not(.iconeEstoque) {
     width: auto;
     height: auto;
 }

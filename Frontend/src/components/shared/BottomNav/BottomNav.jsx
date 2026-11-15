@@ -1,51 +1,52 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useMatch, useNavigate } from 'react-router-dom';
 import IconReceitas from '../../../assets/IconsEstoque/livro-de-receitas.png';
 import IconCompras from '../../../assets/IconsEstoque/carrinho.png';
 import IconAdicionar from '../../../assets/IconsEstoque/adicionar.png';
 import IconEstoque from '../../../assets/IconsEstoque/estoque.png';
 import IconIngredientes from '../../../assets/IconsEstoque/ingredientes.png';
-import EstoqueReceitas from '../../../assets/NavegacaoEstoque/receitas.svg';
-import EstoqueCompras from '../../../assets/NavegacaoEstoque/compras.svg';
-import EstoqueNovaCompra from '../../../assets/NavegacaoEstoque/nova-compra.svg';
-import EstoqueIngredientes from '../../../assets/NavegacaoEstoque/ingredientes.svg';
+import IconReceitasPadronizado from '../../../assets/NavegacaoEstoque/receitas.svg';
+import IconComprasPadronizado from '../../../assets/NavegacaoEstoque/compras.svg';
+import IconAdicionarPadronizado from '../../../assets/NavegacaoEstoque/nova-compra.svg';
+import IconIngredientesPadronizado from '../../../assets/NavegacaoEstoque/ingredientes.svg';
 import styles from './BottomNav.module.css';
 
-function BottomNav({ variante } = {}) {
-    const estoque = variante === 'estoque';
+function BottomNav({ padronizada = false }) {
     const [animating, setAnimating] = useState(false);
     const navigate = useNavigate();
+    const estaNaNovaCompra = useMatch('/nova-compra');
+
+    function abrirNovaCompra() {
+        setAnimating(false);
+        navigate('/nova-compra');
+    }
 
     return (
         <>
-            <div className={estoque ? `${styles.spacer} ${styles.spacerEstoque}` : styles.spacer} aria-hidden="true" />
-            <nav className={estoque ? `${styles.nav} ${styles.estoque}` : styles.nav} aria-label="Navegação principal">
-                <Link to="/receitas" className={styles.item} aria-label="Receitas">
-                    <img src={estoque ? EstoqueReceitas : IconReceitas} alt="" />
-                </Link>
-                <Link to="/extrato-compras" className={styles.item} aria-label="Extrato de compras">
-                    <img src={estoque ? EstoqueCompras : IconCompras} alt="" />
-                </Link>
+            <div className={padronizada ? `${styles.spacer} ${styles.spacerPadronizada}` : styles.spacer} aria-hidden="true" />
+            <nav className={padronizada ? `${styles.nav} ${styles.padronizada}` : styles.nav} aria-label="Navegação principal">
+                <NavLink to="/receitas" end className={styles.item} aria-label="Receitas">
+                    <img src={padronizada ? IconReceitasPadronizado : IconReceitas} alt="" />
+                </NavLink>
+                <NavLink to="/extrato-compras" end className={styles.item} aria-label="Extrato de compras">
+                    <img src={padronizada ? IconComprasPadronizado : IconCompras} alt="" />
+                </NavLink>
                 <button
                     type="button"
                     className={`${styles.item} ${styles.add} ${animating ? styles.addAnimating : ''}`}
                     onClick={() => setAnimating(true)}
-                    onAnimationEnd={() => navigate('/nova-compra')}
+                    onAnimationEnd={abrirNovaCompra}
                     aria-label="Nova compra"
+                    aria-current={estaNaNovaCompra ? 'page' : undefined}
                 >
-                    <img src={estoque ? EstoqueNovaCompra : IconAdicionar} alt="" />
+                    <img src={padronizada ? IconAdicionarPadronizado : IconAdicionar} alt="" />
                 </button>
-                <Link
-                    to="/estoque"
-                    className={styles.item}
-                    aria-label="Estoque"
-                    aria-current={estoque ? 'page' : undefined}
-                >
+                <NavLink to="/estoque" end className={styles.item} aria-label="Estoque">
                     <img className={styles.iconeEstoque} src={IconEstoque} alt="" />
-                </Link>
-                <Link to="/ingredientes" className={styles.item} aria-label="Ingredientes">
-                    <img src={estoque ? EstoqueIngredientes : IconIngredientes} alt="" />
-                </Link>
+                </NavLink>
+                <NavLink to="/ingredientes" end className={styles.item} aria-label="Ingredientes">
+                    <img src={padronizada ? IconIngredientesPadronizado : IconIngredientes} alt="" />
+                </NavLink>
             </nav>
         </>
     );

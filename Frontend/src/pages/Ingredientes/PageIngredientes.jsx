@@ -7,7 +7,7 @@ function PageIngredientes() {
         <div>
             <AppHeader />
             <PanelIngredientes />
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     );
 }
