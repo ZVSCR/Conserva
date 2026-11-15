@@ -29,9 +29,10 @@
 }
 
 .user-data__form .account-page__field select {
-    width: min(162px, 100%);
+    width: min(12rem, 100%);
     min-height: 42px;
     padding-block: 6px;
+    padding-inline-end: 58px;
 }
 
 .user-data__actions {
