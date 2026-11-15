@@ -4,7 +4,8 @@ import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
 import styles from './AppHeader.module.css';
 
-function AppHeader() {
+function AppHeader({ variante } = {}) {
+    const estoque = variante === 'estoque';
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -54,7 +55,7 @@ function AppHeader() {
     }
 
     return (
-        <header className={styles.header}>
+        <header className={estoque ? `${styles.header} ${styles.estoque}` : styles.header}>
             <Link to="/estoque" className={styles.logo}>Conserva</Link>
 
             <div className={styles.account} ref={accountRef}>

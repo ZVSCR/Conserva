@@ -129,7 +129,7 @@ function PageEstoque(){
 
         return (
         <div className="estoque-pagina">
-            <AppHeader />
+            <AppHeader variante="estoque" />
             <main className="estoque-conteudo">
                 <h1 className="estoque-titulo">Lista de produtos</h1>
 

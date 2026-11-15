@@ -9,6 +9,15 @@
     border-bottom: 1px solid #ded8de;
 }
 
+.estoque {
+    min-height: 127px;
+    padding: 12px clamp(12px, 4.7vw, 20px);
+    gap: 12px;
+    background: #fff3fd;
+    border-bottom: 0;
+    box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+}
+
 .logo {
     color: #47aa4e;
     font-size: 1.8rem;
