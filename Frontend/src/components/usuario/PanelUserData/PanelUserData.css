@@ -38,3 +38,31 @@
     margin-top: auto;
     padding-top: 22px;
 }
+
+.user-data__password {
+    position: relative;
+}
+
+.user-data__password input {
+    padding-inline-end: 52px;
+}
+
+.user-data__password-toggle {
+    position: absolute;
+    inset-inline-end: 4px;
+    top: 50%;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.user-data__password-toggle[aria-pressed='true'] {
+    background: #daefdc;
+}

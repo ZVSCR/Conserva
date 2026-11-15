@@ -3,8 +3,39 @@ import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
 import { useAuth } from "../../../contexts/useAuth";
 import fotoUsuario from "../../../assets/Account/foto-usuario.svg";
+import iconeSenha from "../../../assets/Account/ocultar-senha.svg";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
+
+function CampoSenha({ id, name, label, descricao, value, onChange, placeholder, visivel, onToggle }) {
+
+  return (
+    <div className="account-page__field">
+      <label htmlFor={id}>{label}</label>
+      <div className="user-data__password">
+        <input
+          type={visivel ? "text" : "password"}
+          name={name}
+          id={id}
+          autoComplete="new-password"
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          className="user-data__password-toggle"
+          aria-label={descricao}
+          aria-pressed={visivel}
+          aria-controls={id}
+          onClick={() => onToggle(name)}
+        >
+          <img src={iconeSenha} alt="" width="40" height="40" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function PanelUserData() {
   const navigate = useNavigate();
@@ -28,6 +59,7 @@ function PanelUserData() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [senhasVisiveis, setSenhasVisiveis] = useState({});
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -72,8 +104,13 @@ function PanelUserData() {
     }));
   };
 
+  const alternarSenha = (name) => {
+    setSenhasVisiveis((atuais) => ({ ...atuais, [name]: !atuais[name] }));
+  };
+
   // Função para resetar o formulário para os dados originais
   const handleCancel = () => {
+    setSenhasVisiveis({});
     setFormData({
       ...initialData,
       password: "",
@@ -167,31 +204,29 @@ function PanelUserData() {
           />
         </label>
 
-        <label className="account-page__field" htmlFor="senha">
-          Nova senha (opcional)
-          <input
-            type="password"
-            name="password"
-            id="senha"
-            autoComplete="new-password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Digite caso queira mudar sua senha"
-          />
-        </label>
+        <CampoSenha
+          id="senha"
+          name="password"
+          visivel={senhasVisiveis.password ?? false}
+          onToggle={alternarSenha}
+          label="Nova senha (opcional)"
+          descricao="Mostrar nova senha"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Digite a nova senha"
+        />
 
-        <label className="account-page__field" htmlFor="senha2">
-          Confirme sua nova senha
-          <input
-            type="password"
-            name="password2"
-            id="senha2"
-            autoComplete="new-password"
-            value={formData.password2}
-            onChange={handleChange}
-            placeholder="Repita a nova senha"
-          />
-        </label>
+        <CampoSenha
+          id="senha2"
+          name="password2"
+          visivel={senhasVisiveis.password2 ?? false}
+          onToggle={alternarSenha}
+          label="Confirme sua nova senha"
+          descricao="Mostrar confirmação da nova senha"
+          value={formData.password2}
+          onChange={handleChange}
+          placeholder="Repita a nova senha"
+        />
 
         <label className="account-page__field" htmlFor="TipoConta">
           Tipo de conta
