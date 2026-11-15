@@ -5,7 +5,11 @@ import IconCompras from '../../../assets/IconsEstoque/carrinho.png';
 import IconAdicionar from '../../../assets/IconsEstoque/adicionar.png';
 import IconEstoque from '../../../assets/IconsEstoque/estoque.png';
 import IconIngredientes from '../../../assets/IconsEstoque/ingredientes.png';
-import IconConfiguracoes from '../../../assets/IconsEstoque/configuracao.png';
+import EstoqueReceitas from '../../../assets/NavegacaoEstoque/receitas.svg';
+import EstoqueCompras from '../../../assets/NavegacaoEstoque/compras.svg';
+import EstoqueNovaCompra from '../../../assets/NavegacaoEstoque/nova-compra.svg';
+import EstoqueIngredientes from '../../../assets/NavegacaoEstoque/ingredientes.svg';
+import EstoqueConfiguracoes from '../../../assets/NavegacaoEstoque/configuracoes.svg';
 import styles from './BottomNav.module.css';
 
 function BottomNav({ variante } = {}) {
@@ -16,12 +20,12 @@ function BottomNav({ variante } = {}) {
     return (
         <>
             <div className={styles.spacer} aria-hidden="true" />
-            <nav className={styles.nav} aria-label="Navegação principal">
+            <nav className={estoque ? `${styles.nav} ${styles.estoque}` : styles.nav} aria-label="Navegação principal">
                 <Link to="/receitas" className={styles.item} aria-label="Receitas">
-                    <img src={IconReceitas} alt="" />
+                    <img src={estoque ? EstoqueReceitas : IconReceitas} alt="" />
                 </Link>
                 <Link to="/extrato-compras" className={styles.item} aria-label="Extrato de compras">
-                    <img src={IconCompras} alt="" />
+                    <img src={estoque ? EstoqueCompras : IconCompras} alt="" />
                 </Link>
                 <button
                     type="button"
@@ -30,7 +34,7 @@ function BottomNav({ variante } = {}) {
                     onAnimationEnd={() => navigate('/nova-compra')}
                     aria-label="Nova compra"
                 >
-                    <img src={IconAdicionar} alt="" />
+                    <img src={estoque ? EstoqueNovaCompra : IconAdicionar} alt="" />
                 </button>
                 {!estoque && (
                     <Link to="/estoque" className={styles.item} aria-label="Estoque">
@@ -38,11 +42,11 @@ function BottomNav({ variante } = {}) {
                     </Link>
                 )}
                 <Link to="/ingredientes" className={styles.item} aria-label="Ingredientes">
-                    <img src={IconIngredientes} alt="" />
+                    <img src={estoque ? EstoqueIngredientes : IconIngredientes} alt="" />
                 </Link>
                 {estoque && (
                     <Link to="/configuracoes" className={styles.item} aria-label="Configurações">
-                        <img src={IconConfiguracoes} alt="" />
+                        <img src={EstoqueConfiguracoes} alt="" />
                     </Link>
                 )}
             </nav>
