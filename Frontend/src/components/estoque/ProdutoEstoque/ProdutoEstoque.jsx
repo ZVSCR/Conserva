@@ -1,6 +1,6 @@
 import './ProdutoEstoque.css';
-import IconEditar from '../../../assets/IconsEstoque/editar.png';
-import IconDeletar from '../../../assets/IconsEstoque/delete.png';
+import IconEditar from '../../../assets/IconsEstoque/edit_item_icon_1.svg';
+import IconDeletar from '../../../assets/IconsEstoque/delete_item_icon_1.svg';
 import BarraConsumo from '../BarraConsumoEstoque/BarraConsumoEstoque';
 
 const formatoQuantidade = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
