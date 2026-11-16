@@ -7,7 +7,7 @@ function ExtratoCompras(){
         <div>
             <AppHeader />
             <PanelExtratoCompras/>
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     );
 }

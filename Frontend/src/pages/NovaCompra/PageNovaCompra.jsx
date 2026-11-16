@@ -8,7 +8,7 @@ function NovaCompra() {
         <div>
             <AppHeader />
             <PanelNovaCompra />
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     );
 }
