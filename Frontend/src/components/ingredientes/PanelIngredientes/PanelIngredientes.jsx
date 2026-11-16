@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PanelIngredientes.css";
 import { apiFetch } from "../../../services/api"; // Ajuste o caminho relativo conforme a pasta onde PanelIngredientes está
+import iconeBusca from "../../../assets/IconsEstoque/lupa.png";
+import iconeEditar from "../../../assets/Ingredientes/edit-item-icon.svg";
+import iconeExcluir from "../../../assets/Ingredientes/delete-item-icon.svg";
+import iconeAdicionar from "../../../assets/Ingredientes/add-icon.svg";
 
 const API_URL = "/api/ingredientes";
 const ROTA_VOLTAR = "/estoque";
@@ -183,14 +187,16 @@ function PanelIngredientes() {
         <div className="ingredientes-container">
             <h2 className="ingredientes-titulo">Ingredientes</h2>
 
-            <div className="ingredientes-busca">
+            <label className="ingredientes-busca">
+                <img src={iconeBusca} alt="" />
                 <input
                     type="text"
                     placeholder="Pesquisar..."
+                    aria-label="Pesquisar ingredientes"
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
                 />
-            </div>
+            </label>
 
             {errorMsg && <p className="ingredientes-erro" role="alert">{errorMsg}</p>}
 
@@ -208,7 +214,7 @@ function PanelIngredientes() {
                                     aria-label={`Editar ${ingrediente.nome}`}
                                     onClick={() => abrirModalEdicao(ingrediente)}
                                 >
-                                    Editar
+                                    <img src={iconeEditar} alt="" />
                                 </button>
                                 <button
                                     type="button"
@@ -216,7 +222,7 @@ function PanelIngredientes() {
                                     aria-label={`Excluir ${ingrediente.nome}`}
                                     onClick={() => abrirModalExcluir(ingrediente)}
                                 >
-                                    Excluir
+                                    <img src={iconeExcluir} alt="" />
                                 </button>
                             </div>
                         </div>
@@ -230,23 +236,19 @@ function PanelIngredientes() {
                 )}
             </div>
 
-            <button
-                type="button"
-                className="ingredientes-btn-novo"
-                aria-label="Adicionar ingrediente"
-                onClick={abrirModalNovo}
-            >
-                +
-            </button>
-
-            <div className="ingredientes-rodape">
+            <div className="ingredientes-add-row">
+                <span>Novo ingrediente:</span>
                 <button
                     type="button"
-                    className="ingredientes-btn-cancelar"
-                    onClick={() => navigate(ROTA_VOLTAR)}
+                    className="ingredientes-btn-novo"
+                    aria-label="Adicionar ingrediente"
+                    onClick={abrirModalNovo}
                 >
-                    CANCELAR
+                    <img src={iconeAdicionar} alt="" />
                 </button>
+            </div>
+
+            <div className="ingredientes-rodape">
                 <button
                     type="button"
                     className="ingredientes-btn-concluir"
