@@ -9,7 +9,11 @@ from google.genai import types
 from google.genai.errors import APIError
 from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 app = FastAPI(title="Microserviço de OCR e Inteligência Fiscal")
 
