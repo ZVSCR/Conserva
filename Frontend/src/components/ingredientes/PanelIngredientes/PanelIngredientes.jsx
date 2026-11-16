@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./PanelIngredientes.css";
 import { apiFetch } from "../../../services/api"; // Ajuste o caminho relativo conforme a pasta onde PanelIngredientes está
 import iconeBusca from "../../../assets/IconsEstoque/lupa.png";
-import iconeEditar from "../../../assets/Ingredientes/edit-item-icon.svg";
+import iconeEditar from "../../../assets/IconsEstoque/editar.png";
 import iconeExcluir from "../../../assets/Ingredientes/delete-item-icon.svg";
 import iconeAdicionar from "../../../assets/Ingredientes/add-icon.svg";
 
