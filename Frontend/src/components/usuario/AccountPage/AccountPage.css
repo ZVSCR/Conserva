@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bevan&display=swap');
+
 #root:has(> .account-page) {
     width: 100%;
     border-inline: 0;
@@ -190,4 +192,71 @@
 .account-page__notice--error {
     background: #fbe3e5;
     color: #8a1c2c;
+}
+
+.account-page--interior {
+    --account-green: #449f4a;
+}
+
+.account-page--interior .account-page__header {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(4px, 3.5vw, 16px);
+    min-height: 150px;
+    padding: 20px clamp(14px, 5vw, 22px);
+}
+
+.account-page__back {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    color: #111;
+}
+
+.account-page__back svg {
+    width: 34px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+}
+
+.account-page__brand {
+    display: flex;
+    align-items: center;
+    justify-self: center;
+    gap: clamp(5px, 2vw, 9px);
+    color: #47aa4e;
+    font: 400 clamp(1.4rem, 9vw, 36px)/1 Bevan, Georgia, serif;
+    text-shadow: 1px 1px #054415;
+}
+
+.account-page__brand img {
+    flex: 0 0 auto;
+}
+
+.account-page--interior .account-page__title {
+    font-weight: 600;
+}
+
+.account-page__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.account-page--interior .account-page__actions .account-page__button {
+    min-height: 40px;
+    padding: 6px 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.account-page--interior .account-page__actions .account-page__button--primary {
+    color: #fff;
+    box-shadow: var(--account-shadow);
 }

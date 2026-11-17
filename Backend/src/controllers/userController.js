@@ -6,7 +6,6 @@ const SALT_ROUNDS = 12;
 const validatePreferencesPayload = (body) => {
   const allowedFields = ['notify_push', 'notify_email', 'is_dark_theme'];
 
-  // Garante que ao menos um campo permitido foi enviado
   const hasAtLeastOneField = Object.keys(body).some((key) =>
     allowedFields.includes(key) && body[key] !== undefined
   );
@@ -21,10 +20,37 @@ const validatePreferencesPayload = (body) => {
   return { isValid: true };
 };
 
-const getUserPreferences = async (req, res, next) => {
+// Registrar novo usuário
+const registerUser = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: 'Preencha todos os campos obrigatórios.' });
+    }
+
+    const newUser = await userRepository.createUser({
+      username,
+      email,
+      password_hash: password,
+      tipo: 'user'
+    });
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Usuário cadastrado com sucesso!',
+      data: newUser
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar usuário:', error);
+    return res.status(500).json({ message: 'Erro interno ao salvar usuário.' });
+  }
+};
+
+// Buscar preferências
+const getUserPreferences = async (req, res) => {
   try {
     const userId = req.user.id;
-
     const preferences = await userRepository.findPreferencesByUserId(userId);
 
     if (!preferences) {
@@ -41,11 +67,11 @@ const getUserPreferences = async (req, res, next) => {
   }
 };
 
-const updateUserPreferences = async (req, res, next) => {
+// Atualizar preferências
+const updateUserPreferences = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Executa a validação do payload
     const validation = validatePreferencesPayload(req.body);
     if (!validation.isValid) {
       return res.status(400).json({ message: validation.message });
@@ -60,7 +86,7 @@ const updateUserPreferences = async (req, res, next) => {
     });
 
     if (!updatedPreferences) {
-    return res.status(404).json({ message: 'Usuário não encontrado para atualização.' });
+      return res.status(404).json({ message: 'Usuário não encontrado para atualização.' });
     }
 
     return res.status(200).json({
@@ -149,6 +175,7 @@ const updateUserData = async (req, res) => {
 };
 
 module.exports = {
+  registerUser,
   getUserPreferences,
   updateUserPreferences,
   listarGastosUsuarios,

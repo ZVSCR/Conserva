@@ -135,3 +135,67 @@
   color: #c0392b;
   font-size: 13px;
 }
+
+.comVoltar {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: clamp(4px, 2vw, 12px);
+    min-height: 127px;
+    padding: 14px clamp(10px, 4vw, 20px);
+    border-bottom: 0;
+    background: #fff3fd;
+    box-shadow: 0 3px 4px rgb(0 0 0 / 20%);
+}
+
+.comVoltar .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font: 400 clamp(1.3rem, 7.1vw, 2.25rem)/1 Bevan, Georgia, serif;
+    text-shadow: 1px 1px #054415;
+}
+
+.simboloCompra {
+    display: block;
+    width: clamp(48px, 14vw, 67px);
+    height: auto;
+    flex: 0 0 auto;
+}
+
+.voltar {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 6px;
+    color: #111;
+}
+
+.voltar svg {
+    width: 34px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.comVoltar .avatarButton {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+}
+
+.comVoltar .avatarButton img {
+    width: 36px;
+    height: 36px;
+}
+
+@media (max-width: 360px) {
+    .comVoltar {
+        min-height: 104px;
+    }
+}

@@ -4,8 +4,9 @@ Documentacao conferida com o codigo em 10/11/2026. Os valores abaixo descrevem
 o perfil atual, nao uma garantia de acuracia.
 
 O reconhecimento usa EasyOCR, com preprocessamento em OpenCV/NumPy. A tela
-de digitalizacao existe, mas ainda nao chama esse servico. Nao ha rota HTTP
-de OCR nem integracao automatica com o cadastro de compras.
+de digitalizacao envia imagens pela rota autenticada `POST /api/cupons/digitalizar`.
+O contrato de upload esta em [envio-cupom-ocr.md](envio-cupom-ocr.md).
+Nao ha integracao automatica com o cadastro de compras.
 
 ## Instalacao e execucao
 
@@ -57,7 +58,7 @@ python --version
 node Backend/src/index.js
 ```
 
-Iniciar a API nao cria uma rota de OCR. Para testar o servico diretamente,
+Para testar o servico diretamente, sem passar pela rota de upload,
 execute da raiz no mesmo ambiente ativado:
 
 ```powershell
@@ -79,8 +80,10 @@ Essas quebras separam caixas OCR, nao necessariamente linhas visuais do cupom.
 Erros do Python/EasyOCR rejeitam a Promise.
 `extrairTextoCupom(caminhoImagem)` retorna somente o texto como Promise;
 `extrairCupom(caminhoImagem)` retorna `{ texto, itens }`. Respostas JSON
-invalidas tambem rejeitam a Promise. O servico usa `execFile`, sem interpretar
-o caminho da imagem como comando de shell.
+invalidas tambem rejeitam a Promise. O servico usa `spawn`, sem interpretar
+o caminho da imagem como comando de shell. A saida JSON tem limite de 1 MiB.
+O stderr e consumido continuamente, mantendo apenas os ultimos 64 KiB como
+diagnostico de falhas; logs extensos nao interrompem o reconhecimento.
 
 Execute `npm.cmd test -- --runInBand Tests/cupomTests` no Windows.
 Os testes isolam o processo Python e nao exigem modelos nem acesso a rede.

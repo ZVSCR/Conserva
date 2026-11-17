@@ -1,7 +1,25 @@
-jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
+jest.mock('node:child_process', () => ({ spawn: jest.fn() }));
 
-const { execFile } = require('node:child_process');
+const { spawn } = require('node:child_process');
+const { EventEmitter } = require('node:events');
+const { PassThrough } = require('node:stream');
 const { extrairTextoCupom, extrairItensCupom, extrairCupom } = require('../../Backend/src/services/cupomService');
+
+function simularProcesso({ stdout = '', stderr = '', codigo = 0, erro } = {}) {
+    const processo = new EventEmitter();
+    processo.stdout = new PassThrough();
+    processo.stderr = new PassThrough();
+    processo.kill = jest.fn();
+    queueMicrotask(() => {
+        if (erro) processo.emit('error', erro);
+        else {
+            processo.stderr.end(stderr);
+            processo.stdout.end(stdout);
+            processo.emit('close', codigo, null);
+        }
+    });
+    return processo;
+}
 
 const cupom = `SUPERMERCADO PREÇO BOM LTDA
 CNPJ: 12.345.678/0001-99
@@ -43,9 +61,7 @@ describe('extrairItensCupom', () => {
 
 describe('extrairCupom', () => {
     test('retorna o texto OCR e seus itens a partir da imagem', async () => {
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
-            callback(null, JSON.stringify(cupom), '');
-        });
+        spawn.mockImplementation(() => simularProcesso({ stdout: JSON.stringify(cupom) }));
         await expect(extrairCupom('cupom.png')).resolves.toEqual({
             texto: cupom,
             itens: extrairItensCupom(cupom)
@@ -67,15 +83,29 @@ describe('extrairTextoCupom', () => {
     });
 
     test('extrai o texto sem interpretar o caminho como comando', async () => {
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
-            callback(null, JSON.stringify('ARROZ\n2 UN x 5,00 10,00'), '');
-        });
+        spawn.mockImplementation(() => simularProcesso({ stdout: JSON.stringify('ARROZ\n2 UN x 5,00 10,00') }));
 
         await expect(extrairTextoCupom('cupons/minha compra.png'))
             .resolves.toBe('ARROZ\n2 UN x 5,00 10,00');
+        expect(spawn).toHaveBeenCalledWith(
+            'python',
         expect(execFile).toHaveBeenCalledWith(
             process.platform === 'win32' ? 'python' : 'python3',
             [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupons/minha compra.png'],
+            expect.objectContaining({ stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+        );
+    });
+
+    test('permite configurar o executavel Python no ambiente de deploy', async () => {
+        process.env.PYTHON_EXECUTABLE = 'python-configurado';
+        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
+            callback(null, JSON.stringify('ARROZ'), '');
+        });
+
+        await expect(extrairTextoCupom('cupom.png')).resolves.toBe('ARROZ');
+        expect(execFile).toHaveBeenCalledWith(
+            'python-configurado',
+            [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupom.png'],
             expect.objectContaining({ encoding: 'utf8' }),
             expect.any(Function)
         );
@@ -98,17 +128,48 @@ describe('extrairTextoCupom', () => {
 
     test('propaga falhas do processo OCR', async () => {
         const erro = new Error('EasyOCR indisponivel');
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => callback(erro));
+        spawn.mockImplementation(() => simularProcesso({ erro }));
         await expect(extrairTextoCupom('cupom.png')).rejects.toBe(erro);
     });
 
     test('rejeita uma resposta invalida do processo OCR', async () => {
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => callback(null, 'aviso'));
+        spawn.mockImplementation(() => simularProcesso({ stdout: 'aviso' }));
         await expect(extrairTextoCupom('cupom.png')).rejects.toThrow();
     });
 
     test.each(['', '   ', null, 42])('rejeita caminho invalido %p', async (caminho) => {
         await expect(extrairTextoCupom(caminho)).rejects.toThrow('Informe o caminho da imagem.');
-        expect(execFile).not.toHaveBeenCalled();
+        expect(spawn).not.toHaveBeenCalled();
+    });
+
+    test('consome mais de 1 MB de stderr sem interromper o reconhecimento', async () => {
+        spawn.mockImplementation(() => simularProcesso({
+            stdout: JSON.stringify('AÇÃO\nCAFÉ'),
+            stderr: 'progresso do download\r'.repeat(100000)
+        }));
+        await expect(extrairTextoCupom('cupom.png')).resolves.toBe('AÇÃO\nCAFÉ');
+    });
+
+    test('preserva somente os últimos 64 KB de diagnóstico quando o Python falha', async () => {
+        const final = 'ModuleNotFoundError: dependencia ausente';
+        spawn.mockImplementation(() => simularProcesso({ stderr: 'x'.repeat(2 * 1024 * 1024) + final, codigo: 1 }));
+        try {
+            await extrairTextoCupom('cupom.png');
+            throw new Error('Deveria rejeitar a falha do Python');
+        } catch (erro) {
+            expect(erro.code).toBe(1);
+            expect(Buffer.byteLength(erro.stderr)).toBe(64 * 1024);
+            expect(erro.stderr.endsWith(final)).toBe(true);
+        }
+    });
+
+    test('interrompe respostas de texto acima de 1 MB', async () => {
+        let processo;
+        spawn.mockImplementation(() => {
+            processo = simularProcesso({ stdout: 'x'.repeat(1024 * 1024 + 1) });
+            return processo;
+        });
+        await expect(extrairTextoCupom('cupom.png')).rejects.toThrow('ultrapassou');
+        expect(processo.kill).toHaveBeenCalledTimes(1);
     });
 });

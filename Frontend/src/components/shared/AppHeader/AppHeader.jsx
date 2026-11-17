@@ -2,12 +2,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
-import marcaEstoque from '../../../assets/NavegacaoEstoque/marca.svg';
+import marca from '../../../assets/NavegacaoEstoque/marca.svg';
 import perfilEstoque from '../../../assets/NavegacaoEstoque/perfil.svg';
 import styles from './AppHeader.module.css';
 
-function AppHeader({ variante } = {}) {
+function AppHeader({ variante, voltarPara, rotuloVoltar } = {}) {
     const estoque = variante === 'estoque';
+    const classesHeader = [styles.header, estoque && styles.estoque, voltarPara && styles.comVoltar]
+        .filter(Boolean)
+        .join(' ');
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -57,9 +60,18 @@ function AppHeader({ variante } = {}) {
     }
 
     return (
-        <header className={estoque ? `${styles.header} ${styles.estoque}` : styles.header}>
+        <header className={classesHeader}>
+            {voltarPara && (
+                <Link className={styles.voltar} to={voltarPara} aria-label={rotuloVoltar}>
+                    <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+                        <path d="M16 5 3 18l13 13M4 18h29" />
+                    </svg>
+                </Link>
+            )}
             <Link to="/estoque" className={styles.logo}>
-                {estoque && <img className={styles.marcaEstoque} src={marcaEstoque} alt="" width="67" height="70" />}
+                {(voltarPara || estoque) && (
+                    <img className={voltarPara ? styles.simboloCompra : styles.marcaEstoque} src={marca} alt="" width="67" height="70" />
+                )}
                 Conserva
             </Link>
 

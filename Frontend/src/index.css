@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 :root {
-  
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
@@ -15,8 +13,8 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Poppins', sans-serif;
-  --heading: system-ui, 'Poppins', sans-serif;
+  --sans: 'Poppins', system-ui, sans-serif;
+  --heading: 'Poppins', system-ui, sans-serif;
   --mono: ui-monospace, 'Poppins', monospace;
 
   font: 18px/145% var(--sans);
@@ -28,8 +26,10 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
-  @media (max-width: 1024px) {
+@media (max-width: 1024px) {
+  :root {
     font-size: 16px;
   }
 }

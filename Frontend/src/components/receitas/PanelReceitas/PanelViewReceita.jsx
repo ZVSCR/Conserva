@@ -6,6 +6,8 @@ import ModalAdicionarReceita from "../ModalAdicionarReceita/ModalAdicionarReceit
 import ModalEditarReceita from "../ModalEditarReceita/ModalEditarReceita";
 import ExcluirProdutoEstoque from "../../estoque/ExcluirProdutoEstoque/ExcluirProdutoEstoque";
 import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
+import IconBusca from '../../../assets/IconsEstoque/lupa.png';
+import IconReceita from '../../../assets/IconsEstoque/livro-de-receitas.png';
 
 function PanelViewReceita() {
     const { user } = useAuth();
@@ -166,44 +168,43 @@ function PanelViewReceita() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="receita-container">
-                <p style={{ color: "#fff", textAlign: "center" }}>Carregando receitas...</p>
-            </div>
-        )
-    }
-
     return (
-        <div className="receita-container">
+        <main className="receita-container">
             <h2 className="receita-title">Catálogo de Receitas</h2>
 
-            {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
-            {(preparando || mensagemPreparo) && (
+            {errorMsg && <p className="receita-erro" role="alert">{errorMsg}</p>}
+            {!receitaExpandida && (preparando || mensagemPreparo) && (
                 <p role="status">{preparando ? "Preparando..." : mensagemPreparo}</p>
             )}
 
             <div className="receita-actions">
                 <button
                     type="button"
-                    className="btn-adicionar"
+                    className="receita-nova-botao"
                     onClick={abrirModalNovaReceita}
-                    disabled={loading /*|| receitaRegistrada*/}>
-                        Adicionar receita
+                    disabled={loading}>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                            <path d="M3 17h18M5 15a7 7 0 0 1 14 0M12 8V6" strokeLinecap="round" />
+                        </svg>
+                        Nova Receita
                 </button>
             </div>
 
-            <div className="search-box">
+            <div className="receita-busca">
+                <img src={IconBusca} alt="" />
                 <input
-                    type="text"
-                    placeholder="Pesquisar por nome ou descrição..."
+                    type="search"
+                    aria-label="Pesquisar receitas por nome ou descrição"
+                    placeholder="Pesquisar..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                 />
             </div>
 
             <div className="receitas-list">
-                {receitasFiltradas.length > 0 ? (
+                {loading ? (
+                    <p className="receita-status" role="status">Carregando receitas...</p>
+                ) : receitasFiltradas.length > 0 ? (
                     receitasFiltradas.map((receita) => (
                         <div
                             key={receita.id}
@@ -215,6 +216,9 @@ function PanelViewReceita() {
                                 aria-label={`Ver receita ${receita.nome}`}
                                 onClick={() => abrirReceita(receita.id)}
                             >
+                                <span className="receita-miniatura" aria-hidden="true">
+                                    <img src={IconReceita} alt="" />
+                                </span>
                                 <div className="receita-info">
                                     <h3>
                                         {receita.nome}
@@ -236,7 +240,7 @@ function PanelViewReceita() {
                         </div>
                     ))
                 ) : (
-                    <p className="no-results">Nenhuma receita encontrada.</p>
+                    <p className="receita-status">Nenhuma receita encontrada.</p>
                 )}
             </div>
 
@@ -288,6 +292,20 @@ function PanelViewReceita() {
                             <p className="modal-ingredientes-vazio">Nenhum ingrediente cadastrado.</p>
                         )}
 
+                        <button
+                            type="button"
+                            className="receita-nova-botao modal-preparar-botao"
+                            onClick={() => prepararReceita(receitaExpandida.id)}
+                            disabled={preparando}
+                        >
+                            {preparando ? "Preparando..." : "Preparar receita"}
+                        </button>
+                        {(preparando || mensagemPreparo) && (
+                            <p className="modal-preparar-status" role="status">
+                                {preparando ? "Preparando receita..." : mensagemPreparo}
+                            </p>
+                        )}
+
                     </div>
                 </div>
             )}
@@ -319,7 +337,7 @@ function PanelViewReceita() {
                     />
                 </div>
             )}
-        </div>
+        </main>
     );
 }
 
