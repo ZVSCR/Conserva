@@ -151,7 +151,12 @@ async def health_check():
 
 @app.post("/api/v1/process-receipt", response_model=RespostaNotaFiscal)
 async def process_receipt(payload: OCRRequest, x_api_secret: str = Header(None)):
-    internal_secret = os.getenv("INTERNAL_API_SECRET", "super-segredo-interno")
+    internal_secret = os.getenv("INTERNAL_API_SECRET")
+    if not internal_secret:
+        raise HTTPException(
+            status_code=500,
+            detail="Variável INTERNAL_API_SECRET não configurada na Vercel."
+        )
     if x_api_secret != internal_secret:
         raise HTTPException(status_code=401, detail="Não autorizado")
 

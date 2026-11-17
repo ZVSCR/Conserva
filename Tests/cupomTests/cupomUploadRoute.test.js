@@ -1,10 +1,14 @@
 jest.mock('../../Backend/src/services/cupomService', () => ({ extrairCupom: jest.fn() }));
+jest.mock('../../Backend/src/services/ingredienteService', () => ({ listIngredientesService: jest.fn() }));
+jest.mock('../../Backend/src/services/chatModelService', () => ({ processarCupomComGemini: jest.fn() }));
 
 const request = require('supertest');
 const express = require('express');
 const fs = require('node:fs/promises');
 const { createSessionToken, SESSION_COOKIE_NAME } = require('../../Backend/src/config/session');
 const { extrairCupom } = require('../../Backend/src/services/cupomService');
+const { listIngredientesService } = require('../../Backend/src/services/ingredienteService');
+const { processarCupomComGemini } = require('../../Backend/src/services/chatModelService');
 const cupomRoutes = require('../../Backend/src/routes/cupomRoutes');
 
 const app = express();
@@ -16,12 +20,19 @@ const enviar = () => request(app).post('/api/cupons/digitalizar')
 
 beforeEach(() => {
     jest.clearAllMocks();
+    listIngredientesService.mockResolvedValue([]);
+    processarCupomComGemini.mockResolvedValue({ itens_alimenticios: [] });
     caminhos.length = 0;
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     extrairCupom.mockImplementation(async (caminho) => {
         caminhos.push(caminho);
         expect(await fs.readFile(caminho)).toEqual(imagem);
         return { texto: `Cupom ${caminhos.length}`, itens: [] };
     });
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
 });
 
 test('exige sessão antes de receber as imagens', async () => {

@@ -32,8 +32,8 @@ const { resultados } = await digitalizarCupons(fotos);
 ## Fluxo no servidor
 
 `cupomRoutes` autentica antes do upload. `cupomUpload` usa Multer com nomes
-temporarios gerados pelo servidor. `cupomUploadService` chama o servico OCR
-existente sequencialmente e remove todos os arquivos de upload ao terminar,
+temporarios gerados pelo servidor. `cupomUploadService` chama o servico OCR e, em seguida, o modelo Gemini
+sequencialmente; tambem remove todos os arquivos de upload ao terminar,
 inclusive quando o OCR falha. Nao grava imagens nem resultados no banco.
 Referencia do middleware: [Multer](https://expressjs.com/en/resources/middleware/multer/).
 
@@ -41,6 +41,21 @@ O script Python, seu preprocessamento, parser e formato de saida nao foram
 alterados. O ambiente que inicia o Node precisa disponibilizar `python` no
 PATH com as dependencias de `Backend/requirements-ocr.txt` instaladas.
 O primeiro uso do EasyOCR pode baixar modelos.
+
+## Processamento pelo Gemini
+
+Depois do OCR, o backend envia o texto para `POST /api/v1/process-receipt`
+do serviço FastAPI em `Chat_model`. O endereço completo deve ser configurado
+no backend como `CHAT_MODEL_API_URL`; defina também `INTERNAL_API_SECRET` com
+o mesmo segredo configurado no deploy do serviço Gemini. Configure
+`GEMINI_API_KEY` no deploy de `Chat_model`. Não use um segredo padrão nem
+exponha essas variáveis no frontend.
+
+O catálogo atual de ingredientes do banco é enviado como `lista_referencia`.
+O backend imprime a resposta do Gemini no console do servidor para inspeção
+temporária, mas a resposta HTTP do upload continua contendo apenas os
+resultados OCR (`texto` e `itens`). Falhas de configuração, rede ou resposta
+do serviço interrompem o processamento e são reportadas como falha do upload.
 
 A configuracao atual do Python grava `cupom-processado.png` para depuracao.
 Essa gravacao preexistente permanece ativa e nao faz parte da limpeza dos
@@ -51,8 +66,8 @@ arquivos recebidos no upload.
 A tela informa andamento, sucesso ou falha e preserva as fotos para uma nova
 tentativa. O retorno e mantido em `resultadoOcr.current` no componente;
 o helper tambem retorna a resposta para quem implementar o consumo.
-Exibir/editar os itens reconhecidos ou preencher Nova Compra continua fora
-do escopo desta integracao de envio. Nenhuma compra e cadastrada.
+Exibir/editar os itens do Gemini ou preencher Nova Compra continua fora
+do escopo. Nenhuma compra e cadastrada.
 
 ## Verificacao
 
