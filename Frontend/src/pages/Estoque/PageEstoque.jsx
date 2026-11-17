@@ -131,7 +131,7 @@ function PageEstoque(){
         <div className="estoque-pagina">
             <AppHeader variante="estoque" />
             <main className="estoque-conteudo">
-                <h1 className="estoque-titulo">Lista de produtos</h1>
+                <h1 className="estoque-titulo">Lista de produtos disponíveis</h1>
 
                 {estoqueCarregado && !estoqueVazio && (
                     <div className="estoque-busca">
