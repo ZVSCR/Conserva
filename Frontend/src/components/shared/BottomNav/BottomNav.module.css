@@ -45,6 +45,29 @@
     height: 45px;
 }
 
+.padronizada {
+    justify-content: center;
+    box-sizing: content-box;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: 0;
+    box-shadow: 0 -2px 4px rgb(0 0 0 / 25%);
+}
+
+.spacerPadronizada {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.padronizada .item {
+    max-width: 80px;
+    min-width: 0;
+    padding: 0;
+}
+
+.padronizada .item img:not(.iconeEstoque) {
+    width: auto;
+    height: auto;
+}
+
 .addAnimating {
     animation: addPulse 180ms ease-out;
 }

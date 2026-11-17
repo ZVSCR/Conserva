@@ -9,7 +9,7 @@ function NovaCompra() {
         <div className="compra-pagina nova-compra">
             <AppHeader voltarPara="/estoque" rotuloVoltar="Voltar para o estoque" />
             <PanelNovaCompra />
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     );
 }

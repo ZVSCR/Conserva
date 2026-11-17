@@ -2,10 +2,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
-import marcaCompra from '../../../assets/NavegacaoEstoque/marca.svg';
+import marca from '../../../assets/NavegacaoEstoque/marca.svg';
+import perfilEstoque from '../../../assets/NavegacaoEstoque/perfil.svg';
 import styles from './AppHeader.module.css';
 
-function AppHeader({ voltarPara, rotuloVoltar }) {
+function AppHeader({ variante, voltarPara, rotuloVoltar } = {}) {
+    const estoque = variante === 'estoque';
+    const classesHeader = [styles.header, estoque && styles.estoque, voltarPara && styles.comVoltar]
+        .filter(Boolean)
+        .join(' ');
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -55,7 +60,7 @@ function AppHeader({ voltarPara, rotuloVoltar }) {
     }
 
     return (
-        <header className={voltarPara ? [styles.header, styles.comVoltar].join(" ") : styles.header}>
+        <header className={classesHeader}>
             {voltarPara && (
                 <Link className={styles.voltar} to={voltarPara} aria-label={rotuloVoltar}>
                     <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
@@ -64,7 +69,9 @@ function AppHeader({ voltarPara, rotuloVoltar }) {
                 </Link>
             )}
             <Link to="/estoque" className={styles.logo}>
-                {voltarPara && <img className={styles.simboloCompra} src={marcaCompra} alt="" width="67" height="70" />}
+                {(voltarPara || estoque) && (
+                    <img className={voltarPara ? styles.simboloCompra : styles.marcaEstoque} src={marca} alt="" width="67" height="70" />
+                )}
                 Conserva
             </Link>
 
@@ -78,7 +85,7 @@ function AppHeader({ voltarPara, rotuloVoltar }) {
                     aria-controls="menu-usuario"
                     aria-label="Menu do usuário"
                 >
-                    <img src={perfil} alt="" />
+                    <img src={estoque ? perfilEstoque : perfil} alt="" />
                 </button>
 
                 {menuAberto && (

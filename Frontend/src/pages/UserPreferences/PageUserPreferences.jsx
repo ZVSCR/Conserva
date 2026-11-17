@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import AccountPage from '../../components/usuario/AccountPage/AccountPage';
 import { loadPreferences, savePreferences } from '../../services/userPreferences';
 import './PageUserPreferences.css';
 
@@ -76,18 +76,7 @@ function PageUserPreferences() {
   };
 
   return (
-    <main className="preferences-page">
-      <header className="preferences-page__header">
-        <Link className="preferences-page__back" to="/Estoque" aria-label="Voltar para o estoque">
-          <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-            <path d="M16 5 3 18l13 13M4 18h29" />
-          </svg>
-        </Link>
-        <span className="preferences-page__brand">Conserva</span>
-      </header>
-
-      <h1 className="preferences-page__heading">Altere suas preferências</h1>
-
+    <AccountPage title="Altere suas preferências" className="preferences-page" voltarAoEstoque>
       <div className="preferences-page__options" aria-busy={isLoading || isSaving}>
         {draftPreferences ? preferences.map(({ id, label }) => (
           <label className="preferences-page__option" htmlFor={id} key={id}>
@@ -110,20 +99,20 @@ function PageUserPreferences() {
 
       {notice && (
         <p
-          className={`preferences-page__feedback${notice.type === 'error' ? ' preferences-page__feedback--error' : ''}`}
+          className={`account-page__notice preferences-page__feedback${notice.type === 'error' ? ' account-page__notice--error' : ''}`}
           role={notice.type === 'error' ? 'alert' : 'status'}
         >
           {notice.text}
         </p>
       )}
 
-      <div className="preferences-page__actions">
-        <button type="button" onClick={handleCancel} disabled={!hasChanges || isSaving}>Cancelar</button>
-        <button type="button" onClick={handleApply} disabled={!hasChanges || isSaving}>
+      <div className="account-page__actions preferences-page__actions">
+        <button className="account-page__button" type="button" onClick={handleCancel} disabled={!hasChanges || isSaving}>Cancelar</button>
+        <button className="account-page__button account-page__button--primary" type="button" onClick={handleApply} disabled={!hasChanges || isSaving}>
           {isSaving ? 'Aplicando...' : 'Aplicar'}
         </button>
       </div>
-    </main>
+    </AccountPage>
   );
 }
 
