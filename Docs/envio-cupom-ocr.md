@@ -1,76 +1,45 @@
-# Envio de imagens ao OCR
+# Envio de imagens para o Gemini Vision
 
 O botao **Digitalizar** de `PanelDigitalizarCupom` chama o helper
-`Frontend/src/services/cupom.js`. O helper converte as Data URLs da camera
-ou galeria em arquivos e envia `multipart/form-data` pela API autenticada.
-Nao define `Content-Type` manualmente: o navegador inclui o boundary.
+`Frontend/src/services/cupom.js`. O helper prepara cada imagem para no maximo
+3 MiB e a envia em uma requisicao autenticada separada. Assim, cada chamada
+permanece dentro do limite de payload das funcoes Vercel. Imagens grandes ou
+em outros formatos sao convertidas para JPEG no navegador.
 
 ## Contrato HTTP
 
 - Rota: `POST /api/cupons/digitalizar`.
 - Autenticacao: cookie de sessao existente, enviado por `apiFetch`.
-- Corpo: campo de arquivo repetido `imagens`, de 1 a 10 imagens.
-- Limite: 10 MiB por imagem (10 * 1024 * 1024 bytes).
-- Formato declarado: MIME `image/*`. A imagem tambem precisa ser
-  decodificavel pelo OpenCV existente; o upload nao converte formatos.
-- Resposta de sucesso: `{ resultados: [{ texto, itens }, ...] }`.
-  Cada elemento e o retorno original de `extrairCupom`, na ordem do upload.
-- Erros: `400` para upload invalido/ausente ou quantidade excedida,
-  `401` para sessao ausente/invalida, `413` para tamanho excedido e
-  `500` para falha no processamento. O corpo de erro usa `{ error: "..." }`.
-  Se uma imagem falhar, o lote falha; nao retorna resultados parciais.
-
-Exemplo de chamada no frontend:
-
-```js
-import { digitalizarCupons } from './services/cupom.js';
-
-const { resultados } = await digitalizarCupons(fotos);
-// resultados conserva os campos texto e itens retornados pelo OCR.
-```
+- Corpo: um arquivo no campo `imagens`.
+- Formatos: JPEG, PNG ou WebP.
+- Limite: 3 MiB por imagem antes de codificar para envio ao Gemini.
+- Resposta de sucesso: `{ resultados: [{ texto, itens }] }`.
+  O helper combina as respostas individuais na ordem selecionada.
+- Erros: `400` para upload invalido, formato nao suportado ou imagem ausente,
+  `401` para sessao ausente/invalida, `413` para tamanho excedido e `500` para
+  falha de processamento. O corpo de erro usa `{ error: "..." }`.
 
 ## Fluxo no servidor
 
-`cupomRoutes` autentica antes do upload. `cupomUpload` usa Multer com nomes
-temporarios gerados pelo servidor. `cupomUploadService` chama o servico OCR e, em seguida, o modelo Gemini
-sequencialmente; tambem remove todos os arquivos de upload ao terminar,
-inclusive quando o OCR falha. Nao grava imagens nem resultados no banco.
-Referencia do middleware: [Multer](https://expressjs.com/en/resources/middleware/multer/).
+`cupomRoutes` autentica antes do upload. `cupomUpload` grava a imagem em um
+arquivo temporario. `cupomUploadService` le os bytes e envia a imagem e o
+catalogo de ingredientes ao servico FastAPI em `Chat_model`. O Gemini Vision
+retorna o texto OCR e os itens alimenticios em uma chamada. O backend imprime
+essa resposta no console e preserva o contrato HTTP existente (`texto` e
+`itens`). Os arquivos temporarios sao removidos mesmo quando o processamento
+falha; nenhuma imagem ou resultado e salvo no banco.
 
-O script Python, seu preprocessamento, parser e formato de saida nao foram
-alterados. O ambiente que inicia o Node precisa disponibilizar Python (`python`
-no Windows ou `python3` nos demais sistemas, por padrao) e as dependencias de
-`Backend/requirements-ocr.txt`. Se necessario, configure `PYTHON_EXECUTABLE`
-com o nome ou caminho do interpretador. A Vercel precisa disponibilizar esse
-interpretador no runtime Node; a variavel nao instala Python nem suas dependencias.
-O primeiro uso do EasyOCR pode baixar modelos.
+O backend nao inicia mais Python nem depende de EasyOCR/OpenCV no runtime Node.
+Configure `CHAT_MODEL_API_URL` como a URL do endpoint
+`/api/v1/process-receipt`. Configure `INTERNAL_API_SECRET` no backend e no
+servico `Chat_model`, e `GEMINI_API_KEY` somente no servico `Chat_model`.
+Mantenha esses segredos fora do frontend.
 
-## Processamento pelo Gemini
-
-Depois do OCR, o backend envia o texto para `POST /api/v1/process-receipt`
-do serviço FastAPI em `Chat_model`. O endereço completo deve ser configurado
-no backend como `CHAT_MODEL_API_URL`; defina também `INTERNAL_API_SECRET` com
-o mesmo segredo configurado no deploy do serviço Gemini. Configure
-`GEMINI_API_KEY` no deploy de `Chat_model`. Não use um segredo padrão nem
-exponha essas variáveis no frontend.
-
-O catálogo atual de ingredientes do banco é enviado como `lista_referencia`.
-O backend imprime a resposta do Gemini no console do servidor para inspeção
-temporária, mas a resposta HTTP do upload continua contendo apenas os
-resultados OCR (`texto` e `itens`). Falhas de configuração, rede ou resposta
-do serviço interrompem o processamento e são reportadas como falha do upload.
-
-A configuracao atual do Python grava `cupom-processado.png` para depuracao.
-Essa gravacao preexistente permanece ativa e nao faz parte da limpeza dos
-arquivos recebidos no upload.
-
-## Integracao de resultados pendente
+## Integracao de resultados
 
 A tela informa andamento, sucesso ou falha e preserva as fotos para uma nova
-tentativa. O retorno e mantido em `resultadoOcr.current` no componente;
-o helper tambem retorna a resposta para quem implementar o consumo.
-Exibir/editar os itens do Gemini ou preencher Nova Compra continua fora
-do escopo. Nenhuma compra e cadastrada.
+tentativa. O retorno e mantido em `resultadoOcr.current`; nenhum item e
+automaticamente incluído em uma compra.
 
 ## Verificacao
 
@@ -79,5 +48,5 @@ npm.cmd test -- --runInBand Tests/cupomTests
 node --test Tests/frontendTests/cupomUpload.checks.mjs
 ```
 
-Os testes de upload exercitam HTTP, sessao, arquivos temporarios e limpeza,
-com o OCR simulado. Nao medem acuracia nem validam o ambiente Python real.
+Os testes validam upload, sessao, limpeza de temporarios, envio ao Gemini e
+compressao/preparacao do payload; nao medem a acuracia real do OCR.

@@ -1,12 +1,12 @@
-# OCR de cupom (independente)
+# OCR de cupom
 
 Documentacao conferida com o codigo em 10/11/2026. Os valores abaixo descrevem
 o perfil atual, nao uma garantia de acuracia.
 
-O reconhecimento usa EasyOCR, com preprocessamento em OpenCV/NumPy. A tela
-de digitalizacao envia imagens pela rota autenticada `POST /api/cupons/digitalizar`.
-O contrato de upload esta em [envio-cupom-ocr.md](envio-cupom-ocr.md).
-Nao ha integracao automatica com o cadastro de compras.
+A rota da aplicacao usa Gemini Vision para reconhecer o texto diretamente da
+imagem e identificar os itens. O contrato de upload esta em
+[envio-cupom-ocr.md](envio-cupom-ocr.md). O script EasyOCR descrito nesta pagina
+continua disponivel somente para experimentos locais e nao e usado pelo deploy.
 
 ## Instalacao e execucao
 
@@ -45,50 +45,11 @@ O stdout contem uma string JSON, por exemplo `"ARROZ\n2 UN 10,00"`.
 Avisos do EasyOCR ficam no stderr e podem aparecer junto do resultado no
 terminal. O script nao retorna itens, coordenadas nem confianca.
 
-## Servico Node
+## Uso local do EasyOCR
 
-O [servico](../Backend/src/services/cupomService.js) chama `python` no Windows
-e `python3` nos demais sistemas pelo PATH do processo Node. Configure
-`PYTHON_EXECUTABLE` se o interpretador tiver outro nome ou caminho. O ambiente
-precisa incluir o interpretador e as dependencias de OCR antes de iniciar a API:
-
-```powershell
-.\.venv-ocr\Scripts\Activate.ps1
-python --version
-node Backend/src/index.js
-```
-
-Para testar o servico diretamente, sem passar pela rota de upload,
-execute da raiz no mesmo ambiente ativado:
-
-```powershell
-node -e "require('./Backend/src/services/cupomService').extrairCupom('C:/caminho/cupom.png').then(console.log).catch(console.error)"
-```
-
-Exemplo de uso em um modulo CommonJS (ajuste o caminho relativo ao arquivo):
-
-```js
-const { extrairCupom } = require('../Backend/src/services/cupomService');
-const resultado = await extrairCupom('caminho/cupom.png');
-// { texto: '...', itens: [
-//   { nome_item: 'ARROZ INTEGRAL 1KG', quantidade: 2, preco_total_item: 11 }
-// ] }
-```
-
-O campo `texto` contem os trechos reconhecidos separados por quebra de linha.
-Essas quebras separam caixas OCR, nao necessariamente linhas visuais do cupom.
-Erros do Python/EasyOCR rejeitam a Promise.
-`extrairTextoCupom(caminhoImagem)` retorna somente o texto como Promise;
-`extrairCupom(caminhoImagem)` retorna `{ texto, itens }`. Respostas JSON
-invalidas tambem rejeitam a Promise. O servico usa `spawn`, sem interpretar
-o caminho da imagem como comando de shell. A saida JSON tem limite de 1 MiB.
-O stderr e consumido continuamente, mantendo apenas os ultimos 64 KiB como
-diagnostico de falhas; logs extensos nao interrompem o reconhecimento.
-
-Execute `npm.cmd test -- --runInBand Tests/cupomTests` no Windows.
-Os testes isolam o processo Python e nao exigem modelos nem acesso a rede.
-Esses testes nao medem acuracia. As leituras reais anteriores estao registradas
-em [ajuste-ocr.md](ajuste-ocr.md); novos perfis precisam de nova conferencia.
+Os comandos anteriores desta pagina executam o adaptador Python manualmente;
+eles nao sao necessarios para a API nem para o deploy. O backend usa Gemini
+Vision no fluxo da aplicacao e nao inicia um processo Python.
 
 ## Preprocessamento e parametros
 

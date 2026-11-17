@@ -1,21 +1,25 @@
-const { unlink } = require('node:fs/promises');
-const { extrairCupom } = require('./cupomService');
+const { readFile, unlink } = require('node:fs/promises');
+const { extrairItensCupom } = require('./cupomService');
 const { listIngredientesService } = require('./ingredienteService');
-const { processarCupomComGemini } = require('./chatModelService');
+const { processarImagemComGemini } = require('./chatModelService');
 
 async function extrairCuponsEnviados(arquivos) {
     try {
-        let listaReferencia;
+        const ingredientes = await listIngredientesService();
+        const listaReferencia = ingredientes.map(({ nome }) => nome);
         const resultados = [];
         for (const arquivo of arquivos) {
-            const resultado = await extrairCupom(arquivo.path);
-            if (!listaReferencia) {
-                const ingredientes = await listIngredientesService();
-                listaReferencia = ingredientes.map(({ nome }) => nome);
-            }
-            const resultadoGemini = await processarCupomComGemini(resultado.texto, listaReferencia);
+            const imagem = await readFile(arquivo.path);
+            const resultadoGemini = await processarImagemComGemini(
+                imagem,
+                arquivo.mimetype,
+                listaReferencia
+            );
             console.log('Resultado do modelo Gemini para o cupom:', resultadoGemini);
-            resultados.push(resultado);
+            resultados.push({
+                texto: resultadoGemini.ocr_text,
+                itens: extrairItensCupom(resultadoGemini.ocr_text)
+            });
         }
         return resultados;
     } finally {
