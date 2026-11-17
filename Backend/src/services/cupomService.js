@@ -9,7 +9,7 @@ async function extrairTextoCupom(caminhoImagem) {
     const script = path.join(__dirname, '../scripts/extrairTextoCupom.py');
     return new Promise((resolve, reject) => {
         const executavelPython = process.env.PYTHON_EXECUTABLE
-            || (process.platform === 'win32' ? 'python' : 'python3');
+            || 'python';
         const processo = spawn(executavelPython, [script, caminhoImagem], {
             stdio: ['ignore', 'pipe', 'pipe'],
             windowsHide: true

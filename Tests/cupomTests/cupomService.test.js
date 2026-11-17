@@ -89,8 +89,6 @@ describe('extrairTextoCupom', () => {
             .resolves.toBe('ARROZ\n2 UN x 5,00 10,00');
         expect(spawn).toHaveBeenCalledWith(
             'python',
-        expect(execFile).toHaveBeenCalledWith(
-            process.platform === 'win32' ? 'python' : 'python3',
             [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupons/minha compra.png'],
             expect.objectContaining({ stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
         );
@@ -98,31 +96,13 @@ describe('extrairTextoCupom', () => {
 
     test('permite configurar o executavel Python no ambiente de deploy', async () => {
         process.env.PYTHON_EXECUTABLE = 'python-configurado';
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
-            callback(null, JSON.stringify('ARROZ'), '');
-        });
+        spawn.mockImplementation(() => simularProcesso({ stdout: JSON.stringify('ARROZ') }));
 
         await expect(extrairTextoCupom('cupom.png')).resolves.toBe('ARROZ');
-        expect(execFile).toHaveBeenCalledWith(
+        expect(spawn).toHaveBeenCalledWith(
             'python-configurado',
             [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupom.png'],
-            expect.objectContaining({ encoding: 'utf8' }),
-            expect.any(Function)
-        );
-    });
-
-    test('permite configurar o executavel Python no ambiente de deploy', async () => {
-        process.env.PYTHON_EXECUTABLE = 'python-configurado';
-        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
-            callback(null, JSON.stringify('ARROZ'), '');
-        });
-
-        await expect(extrairTextoCupom('cupom.png')).resolves.toBe('ARROZ');
-        expect(execFile).toHaveBeenCalledWith(
-            'python-configurado',
-            [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupom.png'],
-            expect.objectContaining({ encoding: 'utf8' }),
-            expect.any(Function)
+            expect.objectContaining({ stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
         );
     });
 
