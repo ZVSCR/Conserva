@@ -15,7 +15,10 @@ async function extrairCuponsEnviados(arquivos) {
                 arquivo.mimetype,
                 listaReferencia
             );
-            console.log('Resultado do modelo Gemini para o cupom:', resultadoGemini);
+            console.log(
+                'Saída final do modelo Gemini para o cupom:',
+                JSON.stringify(resultadoGemini, null, 2)
+            );
             resultados.push({
                 texto: resultadoGemini.ocr_text,
                 itens: extrairItensCupom(resultadoGemini.ocr_text)
