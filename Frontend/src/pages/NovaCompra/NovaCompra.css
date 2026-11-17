@@ -1,20 +1,33 @@
-.Header {
-    position: relative;
-    width: 100%;
-    padding: 15px 20px;
-    box-sizing: border-box;
+.compra-pagina {
+    --compra-verde: #39833f;
+    --compra-verde-texto: #28642f;
+    --compra-rosa: #fff3fd;
+    --compra-texto: #171317;
+    --compra-secundario: #55545a;
+    --compra-campo: #f8f7f8;
+    --compra-foco: #256331;
+    --compra-cantos: 10px;
+    --compra-sombra: 0 2px 4px rgb(0 0 0 / 22%);
+    --compra-largura: 520px;
+    --compra-margem: clamp(16px, 5vw, 24px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    background: #fff;
+    color: var(--compra-texto);
+    color-scheme: light;
+    font: 1rem/1.45 Poppins, system-ui, sans-serif;
+    text-align: left;
+    letter-spacing: normal;
 }
 
-.Header a {
-    position: absolute;
-    top: 15px;      /* Distância do topo */
-    left: 20px;     /* Distância da esquerda */
-    text-decoration: none;
-    font-weight: bold;
+.compra-pagina :is(button, a, input, select):focus-visible {
+    outline: 2px solid var(--compra-foco);
+    outline-offset: 2px;
 }
 
-.Header h1 {
-    margin: 0;
-    text-align: center;
-    width: 100%;
+.nova-compra {
+    --compra-altura-barra: 70px;
+    --compra-espaco-scanner: 76px;
+    --compra-area-segura: env(safe-area-inset-bottom, 0px);
 }

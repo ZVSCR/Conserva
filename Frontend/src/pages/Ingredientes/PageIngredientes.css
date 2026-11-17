@@ -1,0 +1,7 @@
+.ingredientes-page {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background: #fff;
+    color: #111;
+}

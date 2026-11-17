@@ -1,11 +1,12 @@
 import PanelIngredientes from "../../components/ingredientes/PanelIngredientes/PanelIngredientes";
-import AppHeader from "../../components/shared/AppHeader/AppHeader";
 import BottomNav from "../../components/shared/BottomNav/BottomNav";
+import BackHeader from "../../components/shared/BackHeader/BackHeader";
+import "./PageIngredientes.css";
 
 function PageIngredientes() {
     return (
-        <div>
-            <AppHeader />
+        <div className="ingredientes-page">
+            <BackHeader />
             <PanelIngredientes />
             <BottomNav padronizada />
         </div>
