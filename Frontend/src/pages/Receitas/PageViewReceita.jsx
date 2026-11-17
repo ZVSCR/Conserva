@@ -4,8 +4,8 @@ import BottomNav from "../../components/shared/BottomNav/BottomNav";
 
 function ViewReceita() {
     return (
-        <div>
-            <AppHeader />
+        <div className="receitas-page">
+            <AppHeader variante="estoque" />
             <PanelViewReceita />
             <BottomNav padronizada />
         </div>
