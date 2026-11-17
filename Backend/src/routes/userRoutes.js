@@ -3,17 +3,15 @@ const userRouter = express.Router();
 const userController = require('../controllers/userController');
 const requireAuth = require('../middleware/requireAuth');
 
-userRouter.use(requireAuth);
+const mockAuth = (req, res, next) => {
+  req.user = { id: 1 };
+  next();
+};
 
-userRouter.get('/gastos', (req, res, next) => {
-    if (req.user.id !== 1) return res.status(403).json({ error: 'Apenas o administrador pode consultar gastos gerais.' });
-    next();
-}, userController.listarGastosUsuarios);
+// Rota de cadastro (POST /api/users)
+userRouter.post('/', userController.registerUser);
 
-userRouter.route('/me')
-    .get(userController.getUserData)
-    .patch(userController.updateUserData);
-
+// Rota de preferências (GET e PATCH /api/users/me/preferences)
 userRouter.route('/me/preferences')
     .get(userController.getUserPreferences)
     .patch(userController.updateUserPreferences);

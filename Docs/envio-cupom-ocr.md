@@ -38,8 +38,11 @@ inclusive quando o OCR falha. Nao grava imagens nem resultados no banco.
 Referencia do middleware: [Multer](https://expressjs.com/en/resources/middleware/multer/).
 
 O script Python, seu preprocessamento, parser e formato de saida nao foram
-alterados. O ambiente que inicia o Node precisa disponibilizar `python` no
-PATH com as dependencias de `Backend/requirements-ocr.txt` instaladas.
+alterados. O ambiente que inicia o Node precisa disponibilizar Python (`python`
+no Windows ou `python3` nos demais sistemas, por padrao) e as dependencias de
+`Backend/requirements-ocr.txt`. Se necessario, configure `PYTHON_EXECUTABLE`
+com o nome ou caminho do interpretador. A Vercel precisa disponibilizar esse
+interpretador no runtime Node; a variavel nao instala Python nem suas dependencias.
 O primeiro uso do EasyOCR pode baixar modelos.
 
 ## Processamento pelo Gemini

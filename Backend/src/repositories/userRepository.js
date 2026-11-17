@@ -1,8 +1,9 @@
 const sql = require('../config/database');
 
+// Buscar preferências do usuário
 async function findPreferencesByUserId(userId) {
     const result = await sql`
-        SELECT notify_push, notify_email, is_dark_theme
+        SELECT id, username, email, notify_push, notify_email, is_dark_theme
         FROM users
         WHERE id = ${userId};
     `;
@@ -10,60 +11,29 @@ async function findPreferencesByUserId(userId) {
     return result[0];
 }
 
+// Atualizar preferências no banco
 async function updatePreferences(userId, fieldsToUpdate) {
-    const result = await sql`
-        UPDATE users
-        SET
-            notify_push = CASE
-                WHEN ${fieldsToUpdate.notify_push !== undefined}
-                    THEN ${fieldsToUpdate.notify_push ?? null}
-                ELSE notify_push
-            END,
-            notify_email = CASE
-                WHEN ${fieldsToUpdate.notify_email !== undefined}
-                    THEN ${fieldsToUpdate.notify_email ?? null}
-                ELSE notify_email
-            END,
-            is_dark_theme = CASE
-                WHEN ${fieldsToUpdate.is_dark_theme !== undefined}
-                    THEN ${fieldsToUpdate.is_dark_theme ?? null}
-                ELSE is_dark_theme
-            END,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${userId}
-        RETURNING notify_push, notify_email, is_dark_theme;
-    `;
+    const updates = {};
 
-    return result[0];
-}
+    // Mapeia o que vem do controller para as colunas reais da tabela
+    if (fieldsToUpdate.push_notifications !== undefined) {
+        updates.notify_push = fieldsToUpdate.push_notifications;
+    }
 
-async function buscarGastosTotaisPorUsuario() {
-    const result = await sql`
-        SELECT 
-            u.id, 
-            u.username, 
-            COALESCE(SUM(c.valor_total), 0) AS total_gasto
-        FROM users u
-        LEFT JOIN compra c ON u.id = c.usuario_id
-        GROUP BY u.id, u.username
-        ORDER BY total_gasto DESC;
-    `;
+    if (fieldsToUpdate.email_notifications !== undefined) {
+        updates.notify_email = fieldsToUpdate.email_notifications;
+    }
 
-    return result;
-}
+    if (fieldsToUpdate.dark_theme !== undefined) {
+        updates.is_dark_theme = fieldsToUpdate.dark_theme;
+    }
 
-async function findUserDataById(userId) {
-    const result = await sql`
-        SELECT id, username, email, tipo, created_at, updated_at
-        FROM users
-        WHERE id = ${userId};
-    `;
+    // Se nenhum campo válido foi enviado, evita query inválida
+    if (Object.keys(updates).length === 0) {
+        return null;
+    }
 
-    return result[0];
-}
-
-async function updateUserData(userId, fieldsToUpdate) {
-    const { username, email, tipo, passwordHash } = fieldsToUpdate;
+    updates.updated_at = new Date();
 
     const result = await sql`
         UPDATE users
@@ -74,7 +44,18 @@ async function updateUserData(userId, fieldsToUpdate) {
             password_hash = COALESCE(${passwordHash}, password_hash),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ${userId}
-        RETURNING id, username, email, tipo, created_at, updated_at;
+        RETURNING id, notify_push, notify_email, is_dark_theme, updated_at;
+    `;
+
+    return result[0];
+}
+
+// Criar novo usuário na tabela users
+async function createUser({ username, email, password_hash, tipo = 'user' }) {
+    const result = await sql`
+        INSERT INTO users (username, email, tipo, password_hash)
+        VALUES (${username}, ${email}, ${tipo}, ${password_hash})
+        RETURNING id, username, email, tipo, created_at;
     `;
 
     return result[0];
@@ -83,7 +64,5 @@ async function updateUserData(userId, fieldsToUpdate) {
 module.exports = {
     findPreferencesByUserId,
     updatePreferences,
-    buscarGastosTotaisPorUsuario,
-    updateUserData,
-    findUserDataById
+    createUser
 };
