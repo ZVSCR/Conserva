@@ -7,7 +7,7 @@ function ViewReceita() {
         <div>
             <AppHeader />
             <PanelViewReceita />
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     )
 }

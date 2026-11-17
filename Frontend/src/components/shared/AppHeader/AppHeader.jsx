@@ -2,9 +2,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../contexts/useAuth';
 import perfil from '../../../assets/IconsEstoque/perfil.png';
+import marca from '../../../assets/NavegacaoEstoque/marca.svg';
+import perfilEstoque from '../../../assets/NavegacaoEstoque/perfil.svg';
 import styles from './AppHeader.module.css';
 
-function AppHeader() {
+function AppHeader({ variante, voltarPara, rotuloVoltar } = {}) {
+    const estoque = variante === 'estoque';
+    const classesHeader = [styles.header, estoque && styles.estoque, voltarPara && styles.comVoltar]
+        .filter(Boolean)
+        .join(' ');
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
@@ -54,8 +60,20 @@ function AppHeader() {
     }
 
     return (
-        <header className={styles.header}>
-            <Link to="/estoque" className={styles.logo}>Conserva</Link>
+        <header className={classesHeader}>
+            {voltarPara && (
+                <Link className={styles.voltar} to={voltarPara} aria-label={rotuloVoltar}>
+                    <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+                        <path d="M16 5 3 18l13 13M4 18h29" />
+                    </svg>
+                </Link>
+            )}
+            <Link to="/estoque" className={styles.logo}>
+                {(voltarPara || estoque) && (
+                    <img className={voltarPara ? styles.simboloCompra : styles.marcaEstoque} src={marca} alt="" width="67" height="70" />
+                )}
+                Conserva
+            </Link>
 
             <div className={styles.account} ref={accountRef}>
                 <button
@@ -67,7 +85,7 @@ function AppHeader() {
                     aria-controls="menu-usuario"
                     aria-label="Menu do usuário"
                 >
-                    <img src={perfil} alt="" />
+                    <img src={estoque ? perfilEstoque : perfil} alt="" />
                 </button>
 
                 {menuAberto && (

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bevan&display=swap');
+
 .header {
     min-height: 72px;
     padding: 12px 24px;
@@ -9,12 +11,45 @@
     border-bottom: 1px solid #ded8de;
 }
 
+.estoque {
+    min-height: 127px;
+    padding: 12px clamp(12px, 4.7vw, 20px);
+    gap: 12px;
+    background: #fff3fd;
+    border-bottom: 0;
+    box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+}
+
 .logo {
     color: #47aa4e;
     font-size: 1.8rem;
     font-weight: 800;
     line-height: 1;
     text-decoration: none;
+}
+
+.estoque .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(6px, 2vw, 9px);
+    font: 400 clamp(1.4rem, 9vw, 36px)/1 Bevan, Georgia, serif;
+    text-shadow: 1px 1px #054415;
+}
+
+.marcaEstoque {
+    display: block;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 360px) {
+    .estoque {
+        min-height: 104px;
+        gap: 8px;
+    }
+
+    .estoque .logo {
+        font-size: clamp(1.25rem, 8vw, 1.8rem);
+    }
 }
 
 .account {
@@ -37,6 +72,11 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
+}
+
+.estoque .avatarButton img {
+  width: 60px;
+  height: 60px;
 }
 
 .avatarButton:focus-visible,
@@ -94,4 +134,68 @@
   padding: 0 12px;
   color: #c0392b;
   font-size: 13px;
+}
+
+.comVoltar {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: clamp(4px, 2vw, 12px);
+    min-height: 127px;
+    padding: 14px clamp(10px, 4vw, 20px);
+    border-bottom: 0;
+    background: #fff3fd;
+    box-shadow: 0 3px 4px rgb(0 0 0 / 20%);
+}
+
+.comVoltar .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font: 400 clamp(1.3rem, 7.1vw, 2.25rem)/1 Bevan, Georgia, serif;
+    text-shadow: 1px 1px #054415;
+}
+
+.simboloCompra {
+    display: block;
+    width: clamp(48px, 14vw, 67px);
+    height: auto;
+    flex: 0 0 auto;
+}
+
+.voltar {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 6px;
+    color: #111;
+}
+
+.voltar svg {
+    width: 34px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.comVoltar .avatarButton {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+}
+
+.comVoltar .avatarButton img {
+    width: 36px;
+    height: 36px;
+}
+
+@media (max-width: 360px) {
+    .comVoltar {
+        min-height: 104px;
+    }
 }

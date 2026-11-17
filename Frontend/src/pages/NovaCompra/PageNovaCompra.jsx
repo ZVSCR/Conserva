@@ -2,13 +2,14 @@ import PanelNovaCompra from "../../components/compras/PanelNovaCompra/PanelNovaC
 import AppHeader from "../../components/shared/AppHeader/AppHeader";
 import BottomNav from "../../components/shared/BottomNav/BottomNav";
 
-import './NovaCompra.css';
+import "./NovaCompra.css";
+
 function NovaCompra() {
     return (
-        <div>
-            <AppHeader />
+        <div className="compra-pagina nova-compra">
+            <AppHeader voltarPara="/estoque" rotuloVoltar="Voltar para o estoque" />
             <PanelNovaCompra />
-            <BottomNav />
+            <BottomNav padronizada />
         </div>
     );
 }
