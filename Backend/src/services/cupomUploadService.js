@@ -8,9 +8,10 @@ async function extrairCuponsEnviados(arquivos) {
         const ingredientes = await listIngredientesService();
         const listaReferencia = ingredientes.map(({ nome }) => nome);
         const resultados = [];
+        let resultadoGemini;
         for (const arquivo of arquivos) {
             const imagem = await readFile(arquivo.path);
-            const resultadoGemini = await processarImagemComGemini(
+            resultadoGemini = await processarImagemComGemini(
                 imagem,
                 arquivo.mimetype,
                 listaReferencia
@@ -24,7 +25,7 @@ async function extrairCuponsEnviados(arquivos) {
                 itens: extrairItensCupom(resultadoGemini.ocr_text)
             });
         }
-        return resultados;
+        return { resultados, resultadoGemini };
     } finally {
         // Remove também as imagens ainda não processadas quando o OCR falha.
         await Promise.all(arquivos.map((arquivo) => unlink(arquivo.path)));
