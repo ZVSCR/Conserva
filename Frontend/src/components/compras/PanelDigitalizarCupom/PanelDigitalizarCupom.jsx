@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import IconCamera from "../../../assets/IconsEstoque/camera.png";
 import IconGaleria from "../../../assets/IconsEstoque/galeria-de-imagens.png";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./PanelDigitalizarCupom.css";
 
 function PanelDigitalizarCupom() {
@@ -9,12 +9,7 @@ function PanelDigitalizarCupom() {
     const navigate = useNavigate();
     return (
         <main className="digitalizar-cupom">
-            <div className="digitalizar-cupom-cabecalho">
-                <Link to="/nova-compra" className="digitalizar-cupom-voltar" aria-label="Voltar para nova compra">
-                    ←
-                </Link>
-                <h1>Digitalizar Cupom</h1>
-            </div>
+            <h1>Digitalizar Cupom</h1>
 
             <p className="digitalizar-cupom-descricao">Confira as imagens antes de continuar.</p>
 

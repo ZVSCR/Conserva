@@ -11,7 +11,7 @@ import IconAdicionarPadronizado from '../../../assets/NavegacaoEstoque/nova-comp
 import IconIngredientesPadronizado from '../../../assets/NavegacaoEstoque/ingredientes.svg';
 import styles from './BottomNav.module.css';
 
-function BottomNav({ padronizada = false }) {
+function BottomNav({ padronizada = true }) {
     const [animating, setAnimating] = useState(false);
     const navigate = useNavigate();
     const estaNaNovaCompra = useMatch('/nova-compra');
