@@ -1,8 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import "./PanelExtratoCompras.css";
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../../services/api';
 import EditarCompra from "../EditarCompra/EditarCompra";
+import iconeBusca from "../../../assets/IconsEstoque/lupa.png";
+import iconeEditar from "../../../assets/IconsEstoque/editar.png";
+import iconeExcluir from "../../../assets/Ingredientes/delete-item-icon.svg";
 
 
 function ExtratoCompras() {
@@ -11,7 +14,8 @@ function ExtratoCompras() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [busca, setBusca] = useState("");
-  const [compraExpandidaId, setCompraExpandidaId] = useState(null);
+  const [compraEditandoId, setCompraEditandoId] = useState(null);
+  const botaoEditarRef = useRef(null);
 
   const navigate = useNavigate();
   
@@ -26,7 +30,7 @@ function ExtratoCompras() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.message || "Erro ao carregar o extrato de compras.");
+        setErrorMsg(data.erro || data.message || "Erro ao carregar o extrato de compras.");
         return;
       }
 
@@ -49,13 +53,13 @@ function ExtratoCompras() {
   }, []);
 
   // Some com o fuso da data fornecida pelo banco
-  const formatarData = (dataString) => {
+  const formatarData = (dataString, comAno = true) => {
     if (!dataString) return "";
     const data = new Date(dataString);
     return new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
+      year: comAno ? "numeric" : undefined,
       timeZone: "UTC",
     }).format(data);
   };
@@ -72,10 +76,10 @@ function ExtratoCompras() {
     : comprasFiltradas.reduce((acc, item) => acc + Math.round(Number(item.valor_total || 0) * 100), 0) / 100,
   [busca, totalArmazenado, comprasFiltradas]);
 
-  // Abre o card e carrega os dados detalhados pra edição
-  const handleEditar = (id) => {
-    setCompraExpandidaId((atual) => (atual === id ? null : id));
-};
+  const fecharEdicao = () => {
+    setCompraEditandoId(null);
+    botaoEditarRef.current?.focus();
+  };
 
   // Apaga a compra e os itens dela em cascata
   const handleExcluir = async (id) => {
@@ -95,86 +99,85 @@ function ExtratoCompras() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="extrato-container">
-        <p style={{ color: "#fff", textAlign: "center" }}>Carregando extrato...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="extrato-container">
+    <main className="extrato-container">
       <h2 className="extrato-title">Extrato de compras</h2>
 
-      {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
+      {errorMsg && <p className="extrato-error" role="alert">{errorMsg}</p>}
 
-      <p className="extrato-total">
-        Gasto total: R${" "}
-        {gastoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      </p>
+      <div className="extrato-total">
+        <span>Gasto total:</span>
+        <strong>R$ {gastoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+      </div>
 
-      <div className="search-box">
+      <div className="extrato-busca">
+        <img src={iconeBusca} alt="" />
         <input
-          type="text"
-          placeholder="Pesquisar por estabelecimento ou data..."
+          type="search"
+          aria-label="Pesquisar compras por estabelecimento ou data"
+          placeholder="Pesquisar..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
       </div>
 
       <div className="compras-list">
-        {comprasFiltradas.length > 0 ? (
+        {loading ? (
+          <p className="extrato-status">Carregando extrato...</p>
+        ) : comprasFiltradas.length > 0 ? (
           comprasFiltradas.map((compra) => (
             <div key={compra.id} className="compra-card">
-              {/* Conteúdo principal do card que fica sempre visível */}
               <div className="compra-header-content">
                 <div className="compra-info">
                   <h3>
-                    {compra.estabelecimento} - {formatarData(compra.data_compra)}
+                    {compra.estabelecimento} - {formatarData(compra.data_compra, false)}
                   </h3>
                   <p className="compra-custo">
-                    Custo: R$ {Number(compra.valor_total).toFixed(2).replace(".", ",")}
+                    Custo: <strong>R$ {Number(compra.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                   </p>
                   <p className="compra-itens">Quantidade de itens: {compra.quantidadeItens ?? 0}</p>
                 </div>
     
                 <div className="compra-actions">
-                  <button className="btn-icon btn-edit" onClick={() => handleEditar(compra.id)} title="Editar">
-                    {compraExpandidaId === compra.id ? "Fechar" : "Editar"}
+                  <button type="button" className="compra-action" onClick={(event) => {
+                    botaoEditarRef.current = event.currentTarget;
+                    setCompraEditandoId(compra.id);
+                  }} aria-label={`Editar compra de ${compra.estabelecimento}`}>
+                    <img src={iconeEditar} alt="" />
                   </button>
-                  <button className="btn-icon btn-delete" onClick={() => handleExcluir(compra.id)} title="Excluir">
-                    Excluir
+                  <button type="button" className="compra-action" onClick={() => handleExcluir(compra.id)} aria-label={`Excluir compra de ${compra.estabelecimento}`}>
+                    <img src={iconeExcluir} alt="" />
                   </button>
                 </div>
               </div>
 
-              {compraExpandidaId === compra.id && (
-                <EditarCompra
-                  compraId={compra.id}
-                  onFechar={() => setCompraExpandidaId(null)}
-                  onSalvo={async () => {
-                    await fetchComprasComItens();
-                    setCompraExpandidaId(null);
-                  }}
-                />
-              )}
             </div>
           ))
         ) : (
-          <p className="no-results">Nenhuma compra encontrada.</p>
+          <p className="extrato-status">Nenhuma compra encontrada.</p>
         )}
       </div>
 
+      {compraEditandoId !== null && (
+        <EditarCompra
+          compraId={compraEditandoId}
+          onFechar={fecharEdicao}
+          onSalvo={async () => {
+            await fetchComprasComItens();
+            fecharEdicao();
+          }}
+        />
+      )}
+
       <div className="extrato-footer"> 
-        <button type="button" className="btn btn-cancel" onClick={() => navigate('/estoque')}> 
+        <button type="button" className="extrato-btn extrato-btn-cancelar" onClick={() => navigate('/estoque')}>
           CANCELAR
         </button>
-        <button type="button" className="btn btn-concluir" onClick={() => navigate('/estoque')}>
+        <button type="button" className="extrato-btn extrato-btn-concluir" onClick={() => navigate('/estoque')}>
           CONCLUIR
         </button>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiFetch } from "../../../services/api";
+import ModalEstoque from "../../estoque/ModalEstoque/ModalEstoque";
+import "../../estoque/CampoEstoque/CampoEstoque.css";
 import "./EditarCompra.css";
 
 const MAX_VALOR_DECIMAL = 9999999.99;
@@ -49,7 +51,22 @@ function camposAlterados(atual, original, campos) {
     return alterados;
 }
 
+function conterTab(event) {
+    if (event.key !== "Tab") return;
+    const botoesECampos = event.currentTarget.querySelectorAll("button:not([disabled]), input:not([disabled]), select:not([disabled])");
+    const primeiro = botoesECampos[0];
+    const ultimo = botoesECampos[botoesECampos.length - 1];
+    if (event.shiftKey && document.activeElement === primeiro) {
+        event.preventDefault();
+        ultimo.focus();
+    } else if (!event.shiftKey && document.activeElement === ultimo) {
+        event.preventDefault();
+        primeiro.focus();
+    }
+}
+
 function EditarCompra({ compraId, onSalvo, onFechar }) {
+    const focoAnterior = useRef(null);
     const [carregando, setCarregando] = useState(true);
     const [erroCarregar, setErroCarregar] = useState("");
 
@@ -70,6 +87,12 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
     const [itemEditandoId, setItemEditandoId] = useState(null);
     const [itemModal, setItemModal] = useState(null);
     const [itemModalErro, setItemModalErro] = useState("");
+
+    useEffect(() => {
+        const overflowAnterior = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = overflowAnterior; };
+    }, []);
 
     useEffect(() => {
         let cancelado = false;
@@ -120,8 +143,14 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
 
     // ---- Modal dos dados da compra ----
     function abrirModalCompra() {
+        focoAnterior.current = document.activeElement;
         setCompraModal({ estabelecimento: compra.estabelecimento, data_compra: compra.data_compra });
         setCompraModalErro("");
+    }
+
+    function fecharModalCompra() {
+        setCompraModal(null);
+        focoAnterior.current?.focus();
     }
 
     function alterarCompraModal(event) {
@@ -144,11 +173,12 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         }
 
         setCompra({ estabelecimento, data_compra: compraModal.data_compra });
-        setCompraModal(null);
+        fecharModalCompra();
     }
 
     // ---- Modal de item ----
     function abrirModalItem(item) {
+        focoAnterior.current = document.activeElement;
         setItemEditandoId(item.id);
         setItemModal({
             nome_item: item.nome_item,
@@ -164,6 +194,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         setItemEditandoId(null);
         setItemModal(null);
         setItemModalErro("");
+        focoAnterior.current?.focus();
     }
 
     function alterarItemModal(event) {
@@ -290,11 +321,20 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
         await onSalvo();
     }
 
-    if (carregando) return <p className="editar-compra-status">Carregando itens...</p>;
-    if (erroCarregar) return <p className="editar-compra-erro" role="alert">{erroCarregar}</p>;
+    return createPortal(
+        <ModalEstoque
+            titulo="Editar compra"
+            className="editar-compra"
+            onKeyDown={(event) => {
+                conterTab(event);
+                if (event.key === "Escape" && !salvando) onFechar();
+            }}
+        >
+            <button type="button" className="editar-compra-fechar" onClick={onFechar} disabled={salvando} aria-label="Fechar edição" autoFocus>×</button>
 
-    return (
-        <div className="editar-compra">
+            {carregando && <p className="editar-compra-status">Carregando itens...</p>}
+            {erroCarregar && <p className="editar-compra-erro" role="alert">{erroCarregar}</p>}
+            {compra && <>
             <div className="editar-compra-dados">
                 <div>
                     <p className="editar-compra-rotulo">Estabelecimento</p>
@@ -354,10 +394,10 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                 </ul>
             )}
 
-            <div className="editar-compra-acoes">
+            <div className="estoque-modal-acoes">
                 <button
                     type="button"
-                    className="editar-compra-btn-secundario"
+                    className="estoque-modal-botao-cancelar"
                     onClick={onFechar}
                     disabled={salvando}
                 >
@@ -365,40 +405,46 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                 </button>
                 <button
                     type="button"
-                    className="editar-compra-btn-primario"
+                    className="estoque-modal-botao-salvar"
                     onClick={salvarEdicao}
                     disabled={salvando}
                 >
                     {salvando ? "Salvando..." : "Salvar edição"}
                 </button>
             </div>
+            </>}
 
-            {/* Os modais vão para o document.body para não serem cortados pelo card */}
             {compraModal &&
                 createPortal(
-                    <div className="editar-compra-modal-overlay">
-                        <form
+                    <ModalEstoque
+                            titulo="Dados da compra"
+                            as="form"
                             className="editar-compra-modal"
+                            overlayClassName="editar-compra-submodal-overlay"
                             onSubmit={confirmarCompra}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="titulo-editar-dados-compra"
+                            onKeyDown={(event) => {
+                                event.stopPropagation();
+                                conterTab(event);
+                                if (event.key === "Escape") fecharModalCompra();
+                            }}
                         >
-                            <h2 id="titulo-editar-dados-compra">Dados da compra</h2>
-                            <label>
+                            <label className="estoque-campo-rotulo">
                                 Estabelecimento
                                 <input
+                                    className="estoque-campo-input"
                                     name="estabelecimento"
                                     type="text"
+                                    autoFocus
                                     maxLength={50}
                                     value={compraModal.estabelecimento}
                                     onChange={alterarCompraModal}
                                     required
                                 />
                             </label>
-                            <label>
+                            <label className="estoque-campo-rotulo">
                                 Data da compra
                                 <input
+                                    className="estoque-campo-input"
                                     name="data_compra"
                                     type="date"
                                     value={compraModal.data_compra}
@@ -409,46 +455,45 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
 
                             {compraModalErro && <p className="editar-compra-modal-erro" role="alert">{compraModalErro}</p>}
 
-                            <button
-                                type="button"
-                                className="editar-compra-btn-secundario"
-                                onClick={() => setCompraModal(null)}
-                            >
-                                Cancelar
-                            </button>
-                            <button type="submit" className="editar-compra-btn-primario">
-                                Aplicar
-                            </button>
-                        </form>
-                    </div>,
+                            <div className="estoque-modal-acoes">
+                                <button type="button" className="estoque-modal-botao-cancelar" onClick={fecharModalCompra}>Cancelar</button>
+                                <button type="submit" className="estoque-modal-botao-salvar">Aplicar</button>
+                            </div>
+                    </ModalEstoque>,
                     document.body
                 )}
 
             {itemModal &&
                 createPortal(
-                    <div className="editar-compra-modal-overlay">
-                        <form
+                    <ModalEstoque
+                            titulo="Editar item"
+                            as="form"
                             className="editar-compra-modal"
+                            overlayClassName="editar-compra-submodal-overlay"
                             onSubmit={confirmarItem}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="titulo-editar-item-compra"
+                            onKeyDown={(event) => {
+                                event.stopPropagation();
+                                conterTab(event);
+                                if (event.key === "Escape") fecharModalItem();
+                            }}
                         >
-                            <h2 id="titulo-editar-item-compra">Editar item</h2>
-                            <label>
+                            <label className="estoque-campo-rotulo">
                                 Nome do item
                                 <input
+                                    className="estoque-campo-input"
                                     name="nome_item"
                                     type="text"
+                                    autoFocus
                                     maxLength={100}
                                     value={itemModal.nome_item}
                                     onChange={alterarItemModal}
                                     required
                                 />
                             </label>
-                            <label>
+                            <label className="estoque-campo-rotulo">
                                 {ROTULO_PRECO}
                                 <input
+                                    className="estoque-campo-input"
                                     name="preco_total_item"
                                     type="number"
                                     min="0"
@@ -460,9 +505,10 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                                 />
                             </label>
                             <div className="editar-compra-modal-linha">
-                                <label>
+                                <label className="estoque-campo-rotulo">
                                     Quantidade
                                     <input
+                                        className="estoque-campo-input"
                                         name="quantidade"
                                         type="number"
                                         min={itemModal.unidade_de_medida === "un" ? "1" : "0.01"}
@@ -473,9 +519,10 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                                         required
                                     />
                                 </label>
-                                <label>
+                                <label className="estoque-campo-rotulo">
                                     Unidade de medida
                                     <select
+                                        className="estoque-campo-input"
                                         name="unidade_de_medida"
                                         value={itemModal.unidade_de_medida}
                                         onChange={alterarItemModal}
@@ -488,9 +535,10 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                                     </select>
                                 </label>
                             </div>
-                            <label>
+                            <label className="estoque-campo-rotulo">
                                 Validade estimada (opcional)
                                 <input
+                                    className="estoque-campo-input"
                                     name="validade_estimada"
                                     type="date"
                                     value={itemModal.validade_estimada}
@@ -500,21 +548,15 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
 
                             {itemModalErro && <p className="editar-compra-modal-erro" role="alert">{itemModalErro}</p>}
 
-                            <button
-                                type="button"
-                                className="editar-compra-btn-secundario"
-                                onClick={fecharModalItem}
-                            >
-                                Cancelar
-                            </button>
-                            <button type="submit" className="editar-compra-btn-primario">
-                                Aplicar
-                            </button>
-                        </form>
-                    </div>,
+                            <div className="estoque-modal-acoes">
+                                <button type="button" className="estoque-modal-botao-cancelar" onClick={fecharModalItem}>Cancelar</button>
+                                <button type="submit" className="estoque-modal-botao-salvar">Aplicar</button>
+                            </div>
+                    </ModalEstoque>,
                     document.body
                 )}
-        </div>
+        </ModalEstoque>,
+        document.body
     );
 }
 
