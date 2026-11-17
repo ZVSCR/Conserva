@@ -2,8 +2,40 @@ import { apiFetch } from '../../../services/api.js';
 import { useState, useEffect } from "react";
 import { getApiErrorMessage } from "../../../services/apiErrors";
 import { useAuth } from "../../../contexts/useAuth";
+import fotoUsuario from "../../../assets/Account/foto-usuario.svg";
+import iconeSenha from "../../../assets/Account/ocultar-senha.svg";
 import "./PanelUserData.css";
 import {useNavigate} from 'react-router-dom';
+
+function CampoSenha({ id, name, label, descricao, value, onChange, placeholder, visivel, onToggle }) {
+
+  return (
+    <div className="account-page__field">
+      <label htmlFor={id}>{label}</label>
+      <div className="user-data__password">
+        <input
+          type={visivel ? "text" : "password"}
+          name={name}
+          id={id}
+          autoComplete="new-password"
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          className="user-data__password-toggle"
+          aria-label={descricao}
+          aria-pressed={visivel}
+          aria-controls={id}
+          onClick={() => onToggle(name)}
+        >
+          <img src={iconeSenha} alt="" width="40" height="40" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function PanelUserData() {
   const navigate = useNavigate();
@@ -27,7 +59,7 @@ function PanelUserData() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [senhasVisiveis, setSenhasVisiveis] = useState({});
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -72,22 +104,25 @@ function PanelUserData() {
     }));
   };
 
+  const alternarSenha = (name) => {
+    setSenhasVisiveis((atuais) => ({ ...atuais, [name]: !atuais[name] }));
+  };
+
   // Função para resetar o formulário para os dados originais
   const handleCancel = () => {
+    setSenhasVisiveis({});
     setFormData({
       ...initialData,
       password: "",
       password2: "",
     });
     setErrorMsg("");
-    setSuccessMsg("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
-    setSuccessMsg("");
 
     if (formData.password || formData.password2) {
       if (formData.password !== formData.password2) {
@@ -120,20 +155,6 @@ function PanelUserData() {
       await refreshSession({ silent: true });
       navigate('/estoque');
 
-      // Atualiza também os dados originais com o que acabou de ser salvo com sucesso
-      const updatedOriginals = {
-        username: formData.username,
-        email: formData.email,
-        tipo: formData.tipo,
-      };
-      setInitialData(updatedOriginals);
-
-      // Limpa os campos de senha
-      setFormData((prev) => ({
-        ...prev,
-        password: "",
-        password2: "",
-      }));
     } catch (err) {
       console.error("Erro na requisição:", err);
       setErrorMsg("Não foi possível conectar ao servidor.");
@@ -145,85 +166,86 @@ function PanelUserData() {
   if (fetching) return <p role="status">Carregando dados do perfil...</p>;
 
   return (
-    <div className="panel-data">
-      <h2> Altere seus dados </h2>
+    <>
+      <button className="user-data__avatar" type="button" disabled>
+        <img src={fotoUsuario} alt="" width="75" height="75" />
+        Alterar foto
+      </button>
 
-      {errorMsg && <p className="error-message" style={{ color: "red" }}>{errorMsg}</p>}
-      {successMsg && <p className="success-message" style={{ color: "green" }}>{successMsg}</p>}
+      {errorMsg && <p className="account-page__notice account-page__notice--error" role="alert">{errorMsg}</p>}
 
-      <form className="data-form" onSubmit={handleSubmit}>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          name="username"
-          id="username"
-          maxLength={50}
-          pattern="[^@]+"
-          title="O nome de usuário não pode conter @."
-          value={formData.username}
-          onChange={handleChange}
-        />
+      <form className="account-page__form user-data__form" onSubmit={handleSubmit} aria-busy={loading}>
+        <label className="account-page__field" htmlFor="username">
+          Nome de usuário
+          <input
+            type="text"
+            name="username"
+            id="username"
+            maxLength={50}
+            pattern="[^@]+"
+            title="O nome de usuário não pode conter @."
+            autoComplete="username"
+            placeholder="Digite seu nome de usuário"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </label>
 
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
+        <label className="account-page__field" htmlFor="email">
+          E-mail
+          <input
+            type="email"
+            name="email"
+            id="email"
+            autoComplete="email"
+            placeholder="Digite seu e-mail"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </label>
 
-        <label htmlFor="senha">Nova senha (opcional): </label>
-        <input
-          type="password"
-          name="password"
+        <CampoSenha
           id="senha"
+          name="password"
+          visivel={senhasVisiveis.password ?? false}
+          onToggle={alternarSenha}
+          label="Nova senha (opcional)"
+          descricao="Mostrar nova senha"
           value={formData.password}
           onChange={handleChange}
-          placeholder="Digite caso queira mudar sua senha"
+          placeholder="Digite a nova senha"
         />
 
-        <label htmlFor="senha2">Confirme sua nova senha: </label>
-        <input
-          type="password"
-          name="password2"
+        <CampoSenha
           id="senha2"
+          name="password2"
+          visivel={senhasVisiveis.password2 ?? false}
+          onToggle={alternarSenha}
+          label="Confirme sua nova senha"
+          descricao="Mostrar confirmação da nova senha"
           value={formData.password2}
           onChange={handleChange}
-          placeholder="Repita a nova senha, elas devem coincidir"
+          placeholder="Repita a nova senha"
         />
 
-        <label htmlFor="TipoConta">Tipo de conta:</label>
-        <div>
-          <input
-            type="radio"
-            name="tipo"
-            id="TipoDomestico"
-            value="domestico"
-            checked={formData.tipo === "domestico"}
-            onChange={handleChange}
-          />
-          <label htmlFor="TipoDomestico">Doméstico</label>
+        <label className="account-page__field" htmlFor="TipoConta">
+          Tipo de conta
+          <select id="TipoConta" name="tipo" value={formData.tipo} onChange={handleChange}>
+            <option value="domestico">Doméstico</option>
+            <option value="comercial">Comercial</option>
+          </select>
+        </label>
 
-          <input
-            type="radio"
-            name="tipo"
-            id="TipoComercial"
-            value="comercial"
-            checked={formData.tipo === "comercial"}
-            onChange={handleChange}
-          />
-          <label htmlFor="TipoComercial">Comercial</label>
-        </div>
-
-        <div className="data-confirm">
-          <button type="button" onClick={handleCancel}>Cancelar</button>
-          <button type="submit" className="btn btn-primary-register" disabled={loading}>
+        <div className="account-page__actions user-data__actions">
+          <button className="account-page__button" type="button" onClick={handleCancel} disabled={loading}>
+            Cancelar
+          </button>
+          <button className="account-page__button account-page__button--primary" type="submit" disabled={loading}>
             {loading ? "Salvando..." : "Aplicar"}
           </button>
         </div>
       </form>
-    </div>
+    </>
   );
 }
 
