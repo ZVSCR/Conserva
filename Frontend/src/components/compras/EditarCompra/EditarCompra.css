@@ -1,21 +1,34 @@
+.editar-compra-submodal-overlay {
+  z-index: 1001;
+}
+
 .editar-compra {
-  flex: 1 0 100%;
-  grid-column: 1 / -1;
-  box-sizing: border-box;
-  width: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 12px;
-  padding-top: 14px;
-  border-top: 1px solid #424549;
-  color: #fff;
-  font-family: Arial, sans-serif;
+  gap: 16px;
+  color: #171717;
+  font-family: 'Poppins', sans-serif;
   text-align: left;
 }
 
-#root .editar-compra div {
-  height: auto;
+.editar-compra .estoque-modal-titulo {
+  margin-right: 40px;
+}
+
+.editar-compra .editar-compra-fechar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #333;
+  font-size: 23px;
+  line-height: 1;
 }
 
 .editar-compra p,
@@ -29,24 +42,27 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 10px 20px;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f6f6f6;
 }
 
 .editar-compra-rotulo {
-  color: #8e9297;
-  font-size: 12px;
-  text-transform: uppercase;
+  color: #454444;
+  font-size: 13px;
 }
 
 .editar-compra-valor {
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .editar-compra-subtitulo {
-  color: #b9bbbe;
-  font-size: 14px;
+  color: #454444;
+  font-size: 18px;
+  font-weight: 500;
 }
 
 .editar-compra-itens {
@@ -61,9 +77,9 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #424549;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  background: #2b2d31;
+  background: #fff;
 }
 
 .editar-compra-item-nome {
@@ -72,7 +88,7 @@
 }
 
 .editar-compra-item-detalhe {
-  color: #b9bbbe;
+  color: #454444;
   font-size: 13px;
 }
 
@@ -80,14 +96,15 @@
   margin-left: 8px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: #3ba55d;
+  background: #e5f4e6;
+  color: #20852d;
   font-size: 11px;
   font-weight: normal;
 }
 
 .editar-compra-aviso,
 .editar-compra-status {
-  color: #8e9297;
+  color: #454444;
   font-size: 12px;
 }
 
@@ -98,117 +115,70 @@
 .editar-compra-erro,
 .editar-compra-erros,
 .editar-compra-modal-erro {
-  color: #ffb4b4;
+  color: #d32f2f;
   font-size: 14px;
 }
 
 .editar-compra-erros {
-  margin: 0;
   padding-left: 18px;
 }
 
-.editar-compra-acoes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.editar-compra .editar-compra-btn-link {
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: #20852d;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
 }
 
 .editar-compra button,
 .editar-compra-modal button {
-  min-height: 40px;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
   cursor: pointer;
-}
-
-.editar-compra-btn-primario {
-  background: #3ba55d;
-  font-weight: bold;
-}
-
-.editar-compra-btn-secundario {
-  background: #4f545c;
-  font-weight: bold;
-}
-
-.editar-compra .editar-compra-btn-link {
-  min-height: 0;
-  padding: 6px 0;
-  background: transparent;
-  color: #57f287;
-  text-decoration: underline;
-}
-
-.editar-compra button:hover,
-.editar-compra-modal button:hover {
-  filter: brightness(1.12);
+  font-family: 'Poppins', sans-serif;
 }
 
 .editar-compra button:disabled,
 .editar-compra-modal button:disabled {
   cursor: default;
-  opacity: 0.65;
-  filter: none;
+  opacity: .65;
 }
 
 .editar-compra button:focus-visible,
 .editar-compra-modal button:focus-visible,
 .editar-compra-modal input:focus-visible,
 .editar-compra-modal select:focus-visible {
-  outline: 2px solid #57f287;
+  outline: 2px solid #47aa4e;
   outline-offset: 2px;
-}
-
-/* Modais (renderizados no document.body) */
-.editar-compra-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
 }
 
 .editar-compra-modal {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  width: min(100%, 420px);
-  max-height: 90vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: 24px;
-  border: 1px solid #424549;
-  border-radius: 8px;
-  background: #2b2d31;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  color-scheme: dark;
+  gap: 12px;
+  font-family: 'Poppins', sans-serif;
   text-align: left;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
-.editar-compra-modal h2 {
-  grid-column: 1 / -1;
-  margin: 0 0 10px;
-  font-size: 20px;
-}
-
+.editar-compra-modal .estoque-modal-titulo,
 .editar-compra-modal > label,
 .editar-compra-modal-linha,
-.editar-compra-modal-erro {
+.editar-compra-modal-erro,
+.editar-compra-modal > .estoque-modal-acoes {
   grid-column: 1 / -1;
 }
 
-.editar-compra-modal-erro {
+.editar-compra-modal .estoque-campo-rotulo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
   margin: 0;
+}
+
+.editar-compra-modal .estoque-campo-input {
+  font-family: 'Poppins', sans-serif;
+  color-scheme: light;
 }
 
 .editar-compra-modal-linha {
@@ -217,23 +187,8 @@
   gap: 10px;
 }
 
-.editar-compra-modal label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.editar-compra-modal input,
-.editar-compra-modal select {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid #424549;
-  border-radius: 6px;
-  background: #1e1f22;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
+@media (max-width: 380px) {
+  .editar-compra-modal-linha {
+    grid-template-columns: 1fr;
+  }
 }
