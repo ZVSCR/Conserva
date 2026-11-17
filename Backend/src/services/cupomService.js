@@ -8,7 +8,9 @@ async function extrairTextoCupom(caminhoImagem) {
 
     const script = path.join(__dirname, '../scripts/extrairTextoCupom.py');
     return new Promise((resolve, reject) => {
-        execFile('python', [script, caminhoImagem], { encoding: 'utf8', maxBuffer: 1024 * 1024 }, (erro, stdout) => {
+        const executavelPython = process.env.PYTHON_EXECUTABLE
+            || (process.platform === 'win32' ? 'python' : 'python3');
+        execFile(executavelPython, [script, caminhoImagem], { encoding: 'utf8', maxBuffer: 1024 * 1024 }, (erro, stdout) => {
             if (erro) return reject(erro);
             try {
                 const texto = JSON.parse(stdout);

@@ -54,7 +54,17 @@ describe('extrairCupom', () => {
 });
 
 describe('extrairTextoCupom', () => {
-    beforeEach(() => jest.clearAllMocks());
+    const executavelPythonOriginal = process.env.PYTHON_EXECUTABLE;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        delete process.env.PYTHON_EXECUTABLE;
+    });
+
+    afterAll(() => {
+        if (executavelPythonOriginal === undefined) delete process.env.PYTHON_EXECUTABLE;
+        else process.env.PYTHON_EXECUTABLE = executavelPythonOriginal;
+    });
 
     test('extrai o texto sem interpretar o caminho como comando', async () => {
         execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
@@ -64,8 +74,23 @@ describe('extrairTextoCupom', () => {
         await expect(extrairTextoCupom('cupons/minha compra.png'))
             .resolves.toBe('ARROZ\n2 UN x 5,00 10,00');
         expect(execFile).toHaveBeenCalledWith(
-            'python',
+            process.platform === 'win32' ? 'python' : 'python3',
             [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupons/minha compra.png'],
+            expect.objectContaining({ encoding: 'utf8' }),
+            expect.any(Function)
+        );
+    });
+
+    test('permite configurar o executavel Python no ambiente de deploy', async () => {
+        process.env.PYTHON_EXECUTABLE = 'python-configurado';
+        execFile.mockImplementation((programa, argumentos, opcoes, callback) => {
+            callback(null, JSON.stringify('ARROZ'), '');
+        });
+
+        await expect(extrairTextoCupom('cupom.png')).resolves.toBe('ARROZ');
+        expect(execFile).toHaveBeenCalledWith(
+            'python-configurado',
+            [expect.stringMatching(/extrairTextoCupom\.py$/), 'cupom.png'],
             expect.objectContaining({ encoding: 'utf8' }),
             expect.any(Function)
         );

@@ -46,9 +46,10 @@ terminal. O script nao retorna itens, coordenadas nem confianca.
 
 ## Servico Node
 
-O [servico](../Backend/src/services/cupomService.js) chama literalmente
-`python` pelo PATH do processo Node, nao o executavel `.venv-ocr` diretamente.
-Ative o ambiente antes de iniciar a API existente:
+O [servico](../Backend/src/services/cupomService.js) chama `python` no Windows
+e `python3` nos demais sistemas pelo PATH do processo Node. Configure
+`PYTHON_EXECUTABLE` se o interpretador tiver outro nome ou caminho. O ambiente
+precisa incluir o interpretador e as dependencias de OCR antes de iniciar a API:
 
 ```powershell
 .\.venv-ocr\Scripts\Activate.ps1
