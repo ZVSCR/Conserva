@@ -8,6 +8,7 @@ const estoqueRoutes = require('./routes/estoqueRoutes');  // Importa rotas do Es
 const comprasRoutes = require('./routes/compraRoutes');   // Importa rotas de manipulação de compras
 const receitasRoutes = require('./routes/receitaRoutes'); // Importa rotas de manipulação de receitas
 const ingredienteRoutes = require('./routes/ingredienteRoutes'); // Importa rotas de manipulação de ingredientes
+const cupomRoutes = require('./routes/cupomRoutes');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/estoque', estoqueRoutes);   // Rota de estoque
 app.use('/api/compras', comprasRoutes);   // Rota para operações de compras
 app.use('/api/receitas', receitasRoutes); // Rota para operações com receitas
 app.use('/api/ingredientes', ingredienteRoutes); // Rota para operações com ingredientes
+app.use('/api/cupons', cupomRoutes);
 
 app.get('/', (req, res) => {
   res.json({

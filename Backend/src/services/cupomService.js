@@ -1,4 +1,4 @@
-const { execFile } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 async function extrairTextoCupom(caminhoImagem) {
@@ -8,10 +8,41 @@ async function extrairTextoCupom(caminhoImagem) {
 
     const script = path.join(__dirname, '../scripts/extrairTextoCupom.py');
     return new Promise((resolve, reject) => {
-        execFile('python', [script, caminhoImagem], { encoding: 'utf8', maxBuffer: 1024 * 1024 }, (erro, stdout) => {
-            if (erro) return reject(erro);
+        const processo = spawn('python', [script, caminhoImagem], {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            windowsHide: true
+        });
+        const partes = [];
+        let tamanhoSaida = 0;
+        let diagnostico = Buffer.alloc(0);
+        let erroSaida;
+
+        processo.stdout.on('data', (parte) => {
+            if (erroSaida) return;
+            tamanhoSaida += parte.length;
+            if (tamanhoSaida > 1024 * 1024) {
+                erroSaida = new Error('A resposta de texto do OCR ultrapassou o limite de 1 MB.');
+                processo.kill();
+                return;
+            }
+            partes.push(parte);
+        });
+        processo.stderr.on('data', (parte) => {
+            // Progresso de downloads e avisos podem ser extensos. Consome tudo,
+            // conservando somente o final para diagnosticar uma eventual falha.
+            diagnostico = Buffer.concat([diagnostico, parte]).subarray(-64 * 1024);
+        });
+        processo.on('error', reject);
+        processo.on('close', (codigo, sinal) => {
+            if (erroSaida) return reject(erroSaida);
+            if (codigo !== 0) {
+                const erro = new Error(`O processo OCR falhou (${sinal || codigo}).`);
+                erro.code = codigo;
+                erro.stderr = diagnostico.toString('utf8');
+                return reject(erro);
+            }
             try {
-                const texto = JSON.parse(stdout);
+                const texto = JSON.parse(Buffer.concat(partes).toString('utf8'));
                 if (typeof texto !== 'string') throw new Error('Resposta OCR invalida.');
                 resolve(texto);
             } catch (erroResposta) {
