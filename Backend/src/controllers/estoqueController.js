@@ -3,7 +3,8 @@ const { buscarEstoque,
   atualizarQuantidade, 
   buscarValorEstoquePorUsuario, 
   buscarItensEstoquePorUsuario,
-  buscarConsumo } = require('../repositories/estoqueRepository');
+  buscarConsumo,
+  buscarItensComVidaUtilCritica } = require('../repositories/estoqueRepository');
 const { quantidadeRepresentavel } = require('../services/granularidadeService');
 
 async function listarEstoque(req, res) {
@@ -105,4 +106,13 @@ async function listarConsumo(req, res) {
     }
 }
 
-module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo };
+async function listarItensComVidaUtilCritica(req, res) {
+    try {
+        const itens = await buscarItensComVidaUtilCritica(req.user.id);
+        return res.json(itens);
+    } catch (erro) {
+        return res.status(500).json({ erro: 'Erro ao buscar itens com vida útil crítica.' });
+    }
+}
+
+module.exports = { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo, listarItensComVidaUtilCritica };

@@ -1,6 +1,6 @@
 const express = require('express');
 const estoqueRouter = express.Router();
-const { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo } = require('../controllers/estoqueController');
+const { listarEstoque, atualizarQuantidadeItem, listarGastosEstoque, listarItensEstoque, listarConsumo, listarItensComVidaUtilCritica } = require('../controllers/estoqueController');
 
 const estoqueUser = require('../middleware/estoqueUser');
 
@@ -17,6 +17,9 @@ estoqueRouter.route('/consumo')
     
 estoqueRouter.route('/itens')
     .get(listarItensEstoque);
+
+estoqueRouter.route('/vida-util-critica')
+    .get(listarItensComVidaUtilCritica);
 
 estoqueRouter.route('/:itemId')
     .patch(atualizarQuantidadeItem);
