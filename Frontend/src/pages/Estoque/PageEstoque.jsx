@@ -19,6 +19,7 @@ function PageEstoque(){
     const [carregando, setCarregando] = useState(true);
     const [erroEstoque, setErroEstoque] = useState('');
     const [busca, setBusca] = useState('');
+    const [filtroAberto, setFiltroAberto] = useState(false);
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
@@ -134,15 +135,38 @@ function PageEstoque(){
                 <h1 className="estoque-titulo">Lista de produtos disponíveis</h1>
 
                 {estoqueCarregado && !estoqueVazio && (
-                    <div className="estoque-busca">
-                        <img src={IconBusca} alt="" />
-                        <input
-                            type="search"
-                            aria-label="Pesquisar produtos por nome"
-                            placeholder="Pesquisar..."
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                        />
+                    <div className="estoque-controles">
+                        <div className="estoque-busca">
+                            <img src={IconBusca} alt="" />
+                            <input
+                                type="search"
+                                aria-label="Pesquisar produtos por nome"
+                                placeholder="Pesquisar..."
+                                value={busca}
+                                onChange={(event) => setBusca(event.target.value)}
+                            />
+                        </div>
+                        <div className="estoque-filtro-container">
+                            <button
+                                type="button"
+                                className="estoque-filtro-botao"
+                                aria-label="Abrir filtros"
+                                aria-expanded={filtroAberto}
+                                aria-haspopup="dialog"
+                                onClick={() => setFiltroAberto((aberto) => !aberto)}
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 6h16M7 12h10m-7 6h4" />
+                                </svg>
+                            </button>
+                            {filtroAberto && (
+                                <div className="estoque-filtro-modal" role="dialog" aria-label="Filtros do estoque">
+                                    <button type="button" className="estoque-filtro-opcao">
+                                        Próximos da validade
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
