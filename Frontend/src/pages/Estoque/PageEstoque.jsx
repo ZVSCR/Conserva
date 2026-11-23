@@ -72,6 +72,12 @@ function PageEstoque(){
     const estoqueCarregado = !carregando && !erroEstoque;
     const estoqueVazio = estoqueCarregado && filtroEstoque !== 'proximos' && produtosDisponiveis.length === 0;
     const buscaSemResultados = estoqueCarregado && !estoqueVazio && produtosFiltrados.length === 0;
+    const titulosEstoque = {
+        proximos: 'Lista de produtos próximos da validade',
+        disponiveis: 'Lista de produtos disponíveis',
+        vencidos: 'Lista de produtos vencidos',
+        'nao-vencidos': 'Lista de produtos não vencidos'
+    };
 
     const [produtoEditando, setProdutoEditando] = useState(null);
 
@@ -145,7 +151,7 @@ function PageEstoque(){
             <AppHeader variante="estoque" />
             <main className="estoque-conteudo">
                 <h1 className="estoque-titulo">
-                    {filtroEstoque === 'proximos' ? 'Lista de produtos próximos da validade' : 'Lista de produtos disponíveis'}
+                    {titulosEstoque[filtroEstoque]}
                 </h1>
 
                 {estoqueCarregado && (!estoqueVazio || filtroEstoque === 'proximos') && (
@@ -169,14 +175,6 @@ function PageEstoque(){
                                 aria-haspopup="dialog"
                                 onClick={() => setFiltroAberto((aberto) => !aberto)}
                             >
-                                <span className="estoque-filtro-rotulo">
-                                    {{
-                                        proximos: 'Próximos da validade',
-                                        disponiveis: 'Disponíveis',
-                                        vencidos: 'Vencidos',
-                                        'nao-vencidos': 'Não vencidos'
-                                    }[filtroEstoque]}
-                                </span>
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M4 6h16M7 12h10m-7 6h4" />
                                 </svg>

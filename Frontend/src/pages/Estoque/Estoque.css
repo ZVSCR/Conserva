@@ -93,13 +93,6 @@
     cursor: pointer;
 }
 
-.estoque-filtro-rotulo {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font: 500 0.8rem 'Poppins', sans-serif;
-}
-
 .estoque-filtro-botao:hover {
     background: #d2d2d2;
 }
