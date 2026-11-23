@@ -68,14 +68,10 @@ export async function digitalizarCupons(fotos) {
         if (!Array.isArray(dados.resultados) || dados.resultados.length !== 1) {
             throw new Error('A API retornou um resultado inválido para a imagem.');
         }
-        if (!dados.resultadoGemini || typeof dados.resultadoGemini.ocr_text !== 'string'
-            || !Array.isArray(dados.resultadoGemini.itens_alimenticios)) {
-            throw new Error('A API não retornou a saída final do Gemini.');
+        const resultado = dados.resultados[0];
+        if (typeof resultado.texto !== 'string' || !Array.isArray(resultado.itens_alimenticios)) {
+            throw new Error('A API não retornou os itens padronizados pelo modelo.');
         }
-        console.log(
-            'Saída final do modelo Gemini para o cupom:',
-            JSON.stringify(dados.resultadoGemini, null, 2)
-        );
         resultados.push(dados.resultados[0]);
     }
     return { resultados };

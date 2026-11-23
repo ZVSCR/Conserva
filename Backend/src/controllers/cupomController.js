@@ -6,8 +6,8 @@ async function digitalizarCupons(req, res) {
     }
 
     try {
-        const { resultados, resultadoGemini } = await extrairCuponsEnviados(req.files);
-        return res.json({ resultados, resultadoGemini });
+        const { resultados } = await extrairCuponsEnviados(req.files);
+        return res.json({ resultados });
     } catch (erro) {
         console.error('Falha ao digitalizar cupom:', erro);
         return res.status(500).json({ error: 'Não foi possível processar as imagens no OCR. Tente novamente.' });

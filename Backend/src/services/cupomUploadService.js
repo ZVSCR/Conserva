@@ -8,24 +8,20 @@ async function extrairCuponsEnviados(arquivos) {
         const ingredientes = await listIngredientesService();
         const listaReferencia = ingredientes.map(({ nome }) => nome);
         const resultados = [];
-        let resultadoGemini;
         for (const arquivo of arquivos) {
             const imagem = await readFile(arquivo.path);
-            resultadoGemini = await processarImagemComGemini(
+            const resultadoGemini = await processarImagemComGemini(
                 imagem,
                 arquivo.mimetype,
                 listaReferencia
             );
-            console.log(
-                'Saída final do modelo Gemini para o cupom:',
-                JSON.stringify(resultadoGemini, null, 2)
-            );
             resultados.push({
                 texto: resultadoGemini.ocr_text,
-                itens: extrairItensCupom(resultadoGemini.ocr_text)
+                itens: extrairItensCupom(resultadoGemini.ocr_text),
+                itens_alimenticios: resultadoGemini.itens_alimenticios
             });
         }
-        return { resultados, resultadoGemini };
+        return { resultados };
     } finally {
         // Remove também as imagens ainda não processadas quando o OCR falha.
         await Promise.all(arquivos.map((arquivo) => unlink(arquivo.path)));

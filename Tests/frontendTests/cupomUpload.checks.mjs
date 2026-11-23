@@ -6,7 +6,14 @@ const foto = 'data:image/png;base64,aW1hZ2Vt';
 const fetchOriginal = globalThis.fetch;
 
 test('converte as fotos em multipart, envia a sessão e preserva a resposta OCR', async (t) => {
-    const resultado = { resultados: [{ texto: 'ARROZ', itens: [] }] };
+    const resultado = {
+        resultados: [{
+            texto: 'ARROZ',
+            itens: [],
+            itens_alimenticios: [{ nome_padronizado: 'Arroz', quantidade: 1, medida: 'kg', valor_unitario: 5 }]
+        }]
+    };
+    const resultadoEsperado = { resultados: [...resultado.resultados, ...resultado.resultados] };
     let envios = 0;
     t.mock.method(globalThis, 'fetch', async (url, opcoes) => {
         if (url.startsWith('data:')) return fetchOriginal(url);
@@ -16,15 +23,13 @@ test('converte as fotos em multipart, envia a sessão e preserva a resposta OCR'
         assert.equal(opcoes.credentials, 'include');
         assert.equal(opcoes.headers, undefined);
         const imagens = opcoes.body.getAll('imagens');
-        assert.equal(imagens.length, 2);
-        for (const imagem of imagens) {
-            assert.equal(imagem.type, 'image/png');
-            assert.equal(await imagem.text(), 'imagem');
-        }
+        assert.equal(imagens.length, 1);
+        assert.equal(imagens[0].type, 'image/png');
+        assert.equal(await imagens[0].text(), 'imagem');
         return { status: 200, ok: true, json: async () => resultado };
     });
-    assert.deepEqual(await digitalizarCupons([foto, foto]), resultado);
-    assert.equal(envios, 1);
+    assert.deepEqual(await digitalizarCupons([foto, foto]), resultadoEsperado);
+    assert.equal(envios, 2);
 });
 
 test('propaga erro da API para permitir uma nova tentativa sem apagar as fotos', async (t) => {
