@@ -5,8 +5,12 @@ const {
     updateReceitaRepo,
     inserirIngredienteReceitaRepo,
     removerIngredienteReceitaRepo,
-    atualizarQuantidadeIngredienteReceitaRepo
+    atualizarQuantidadeIngredienteReceitaRepo,
+    listReceitasRepo,
 } = require('../repositories/receitaRepository');
+
+const { calcularSugestoes, DIAS_PADRAO } = require('./sugestaoReceita');
+const { buscarEstoquePorIngrediente } = require('../repositories/estoqueRepository');
 
 // Recebe o payload validado, normaliza o nome e envia para inserção SQL
 async function createReceitaService(usuarioId, payload) {
@@ -99,6 +103,15 @@ async function atualizarQuantidadeIngredienteReceitaService(receitaId, ingredien
     return atualizarQuantidadeIngredienteReceitaRepo(receitaId, ingredienteId, payload.quantidade, usuarioId);
 }
 
+async function sugerirReceitasService(usuarioId, dias = DIAS_PADRAO) {
+    const [receitas, estoque] = await Promise.all([
+        listReceitasRepo(usuarioId),
+        buscarEstoquePorIngrediente(usuarioId),
+    ]);
+
+    return calcularSugestoes(receitas, estoque, dias);
+}
+
 module.exports = {
     atualizarQuantidadeIngredienteReceitaService,
     removerIngredienteReceitaService,
@@ -107,4 +120,5 @@ module.exports = {
     getGastoPorReceitaService,
     getGastoReceitaService,
     updateReceitaService,
+    sugerirReceitasService,
 };
