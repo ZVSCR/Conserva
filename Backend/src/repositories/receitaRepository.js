@@ -5,6 +5,8 @@ const {
     identificarIngredienteCandidato
 } = require('../services/ingredienteService');
 
+const { DIAS_PADRAO } = require('../services/sugestaoReceita');
+
 class ReceitaNaoEncontradaError extends Error {
     constructor() {
         super('Receita não encontrada.');
@@ -187,9 +189,15 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
             WHERE e.usuario_id = $1
               AND it.ingrediente_id = ANY($2::int[])
               AND e.quantidade_disponivel > 0
-            ORDER BY e.gasto DESC, it.validade_estimada ASC NULLS LAST, e.id
+              AND (it.validade_estimada IS NULL
+                OR it.validade_estimada >= (now() AT TIME ZONE 'America/Sao_Paulo')::date)
+            ORDER BY 
+                LEAST(it.validade_estimada, (now() AT TIME ZONE 'America/Sao_Paulo')::date + $3::int + 1),
+                e.gasto DESC, 
+                it.validade_estimada ASC NULLS LAST, 
+                e.id
             FOR UPDATE OF e
-        `, [usuarioId, ingredientes.map((i) => i.ingrediente_id)]);
+        `, [usuarioId, ingredientes.map((i) => i.ingrediente_id), DIAS_PADRAO]);
 
         const plano = planejar(ingredientes, lotes);
 
