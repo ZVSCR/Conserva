@@ -19,7 +19,6 @@ function PageEstoque(){
     const [carregando, setCarregando] = useState(true);
     const [erroEstoque, setErroEstoque] = useState('');
     const [busca, setBusca] = useState('');
-    const [filtroValidade, setFiltroValidade] = useState('todos');
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
@@ -38,8 +37,7 @@ function PageEstoque(){
                     nome: item.nome_item,
                     quantidade: Number(item.quantidade_disponivel),
                     quantidadeOriginal: Number(item.quantidade_original),
-                    unidade: item.unidade_de_medida,
-                    validadeEstimada: item.validade_estimada
+                    unidade: item.unidade_de_medida
                 }))
             );
             setCarregando(false);
@@ -54,12 +52,9 @@ function PageEstoque(){
 }, []);
     const produtosDisponiveis = produtos.filter((produto) => produto.quantidade > 0);
     const termo = normalizarBusca(busca);
-    const hoje = new Date().toLocaleDateString('en-CA');
-    const produtosFiltrados = produtosDisponiveis.filter((produto) => {
-        const correspondeBusca = normalizarBusca(produto.nome).includes(termo);
-        const vencido = produto.validadeEstimada && produto.validadeEstimada <= hoje;
-        return correspondeBusca && (filtroValidade !== 'vencidos' || vencido);
-    });
+    const produtosFiltrados = produtosDisponiveis.filter((produto) =>
+        normalizarBusca(produto.nome).includes(termo)
+    );
 
     const estoqueCarregado = !carregando && !erroEstoque;
     const estoqueVazio = estoqueCarregado && produtosDisponiveis.length === 0;
@@ -139,8 +134,6 @@ function PageEstoque(){
                 <h1 className="estoque-titulo">Lista de produtos disponíveis</h1>
 
                 {estoqueCarregado && !estoqueVazio && (
-                    <>
-                    <div className="estoque-filtros">
                     <div className="estoque-busca">
                         <img src={IconBusca} alt="" />
                         <input
@@ -151,19 +144,6 @@ function PageEstoque(){
                             onChange={(event) => setBusca(event.target.value)}
                         />
                     </div>
-                    <label className="estoque-filtro-validade">
-                        <span>Validade</span>
-                        <select
-                            aria-label="Filtrar produtos pela validade"
-                            value={filtroValidade}
-                            onChange={(event) => setFiltroValidade(event.target.value)}
-                        >
-                            <option value="todos">Todos os itens</option>
-                            <option value="vencidos">Vencidos</option>
-                        </select>
-                    </label>
-                    </div>
-                    </>
                 )}
 
                 <div className="estoque-lista">
@@ -183,11 +163,7 @@ function PageEstoque(){
                     )}
 
                     {buscaSemResultados && (
-                        <p className="estoque-status" role="status">
-                            {filtroValidade === 'vencidos' && !termo
-                                ? 'Nenhum item vencido encontrado.'
-                                : 'Nenhum produto encontrado.'}
-                        </p>
+                        <p className="estoque-status" role="status">Nenhum produto encontrado.</p>
                     )}
 
                     {produtosFiltrados.map((produto) => (

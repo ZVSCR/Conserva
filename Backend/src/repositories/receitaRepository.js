@@ -187,7 +187,6 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
             WHERE e.usuario_id = $1
               AND it.ingrediente_id = ANY($2::int[])
               AND e.quantidade_disponivel > 0
-              AND (it.validade_estimada IS NULL OR it.validade_estimada > CURRENT_DATE)
             ORDER BY e.gasto DESC, it.validade_estimada ASC NULLS LAST, e.id
             FOR UPDATE OF e
         `, [usuarioId, ingredientes.map((i) => i.ingrediente_id)]);
