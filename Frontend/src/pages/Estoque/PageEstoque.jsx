@@ -19,10 +19,15 @@ function PageEstoque(){
     const [carregando, setCarregando] = useState(true);
     const [erroEstoque, setErroEstoque] = useState('');
     const [busca, setBusca] = useState('');
+    const [filtroAberto, setFiltroAberto] = useState(false);
+    const [proximosValidade, setProximosValidade] = useState(false);
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
-    apiFetch(`/api/estoque`, { signal: controller.signal })
+    setCarregando(true);
+    setErroEstoque('');
+    const endpoint = proximosValidade ? '/api/estoque/vida-util-critica' : '/api/estoque';
+    apiFetch(endpoint, { signal: controller.signal })
         .then((res) => {
             if (res.status === 401) return null; // O controle de sessão encaminha para o login.
             if (!res.ok) throw new Error('Não foi possível carregar o estoque.');
@@ -49,15 +54,17 @@ function PageEstoque(){
             setCarregando(false);
         });
     return () => controller.abort();
-}, []);
-    const produtosDisponiveis = produtos.filter((produto) => produto.quantidade > 0);
+}, [proximosValidade]);
+    const produtosDisponiveis = proximosValidade
+        ? produtos
+        : produtos.filter((produto) => produto.quantidade > 0);
     const termo = normalizarBusca(busca);
     const produtosFiltrados = produtosDisponiveis.filter((produto) =>
         normalizarBusca(produto.nome).includes(termo)
     );
 
     const estoqueCarregado = !carregando && !erroEstoque;
-    const estoqueVazio = estoqueCarregado && produtosDisponiveis.length === 0;
+    const estoqueVazio = estoqueCarregado && !proximosValidade && produtosDisponiveis.length === 0;
     const buscaSemResultados = estoqueCarregado && !estoqueVazio && produtosFiltrados.length === 0;
 
     const [produtoEditando, setProdutoEditando] = useState(null);
@@ -131,18 +138,64 @@ function PageEstoque(){
         <div className="estoque-pagina">
             <AppHeader variante="estoque" />
             <main className="estoque-conteudo">
-                <h1 className="estoque-titulo">Lista de produtos disponíveis</h1>
+                <h1 className="estoque-titulo">
+                    {proximosValidade ? 'Lista de produtos próximos da validade' : 'Lista de produtos disponíveis'}
+                </h1>
 
-                {estoqueCarregado && !estoqueVazio && (
-                    <div className="estoque-busca">
-                        <img src={IconBusca} alt="" />
-                        <input
-                            type="search"
-                            aria-label="Pesquisar produtos por nome"
-                            placeholder="Pesquisar..."
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                        />
+                {estoqueCarregado && (!estoqueVazio || proximosValidade) && (
+                    <div className="estoque-controles">
+                        <div className="estoque-busca">
+                            <img src={IconBusca} alt="" />
+                            <input
+                                type="search"
+                                aria-label="Pesquisar produtos por nome"
+                                placeholder="Pesquisar..."
+                                value={busca}
+                                onChange={(event) => setBusca(event.target.value)}
+                            />
+                        </div>
+                        <div className="estoque-filtro-container">
+                            <button
+                                type="button"
+                                className="estoque-filtro-botao"
+                                aria-label="Abrir filtros"
+                                aria-expanded={filtroAberto}
+                                aria-haspopup="dialog"
+                                onClick={() => setFiltroAberto((aberto) => !aberto)}
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 6h16M7 12h10m-7 6h4" />
+                                </svg>
+                            </button>
+                            {filtroAberto && (
+                                <div className="estoque-filtro-modal" role="dialog" aria-label="Filtros do estoque">
+                                    <button
+                                        type="button"
+                                        className="estoque-filtro-opcao"
+                                        aria-pressed={proximosValidade}
+                                        onClick={() => {
+                                            setProximosValidade(true);
+                                            setFiltroAberto(false);
+                                            setBusca('');
+                                        }}
+                                    >
+                                        Próximos da validade
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="estoque-filtro-opcao"
+                                        aria-pressed={!proximosValidade}
+                                        onClick={() => {
+                                            setProximosValidade(false);
+                                            setFiltroAberto(false);
+                                            setBusca('');
+                                        }}
+                                    >
+                                        Disponíveis
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -160,6 +213,10 @@ function PageEstoque(){
                                 + Registrar nova compra
                             </Link>
                         </div>
+                    )}
+
+                    {estoqueCarregado && proximosValidade && produtosDisponiveis.length === 0 && (
+                        <p className="estoque-status" role="status">Nenhum produto próximo da validade.</p>
                     )}
 
                     {buscaSemResultados && (
