@@ -4,12 +4,27 @@ import IconDeletar from '../../../assets/IconsEstoque/delete_item_icon_1.svg';
 import BarraConsumo from '../BarraConsumoEstoque/BarraConsumoEstoque';
 
 const formatoQuantidade = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+const DIAS_ALERTA = 3; // mesmo padrão do backend
+
+function rotuloVencimento(dias) {
+    if (dias === null || dias === undefined || dias > DIAS_ALERTA) return null;
+    if (dias < 0) return { texto: 'Vencido', nivel: 'vencido' };
+    if (dias === 0) return { texto: 'Vence hoje', nivel: 'urgente' };
+    if (dias === 1) return { texto: 'Vence amanhã', nivel: 'urgente' };
+    return { texto: `Vence em ${dias} dias`, nivel: 'proximo' };
+}
 
 function ProdutoEstoque({ produto, onEditar, onExcluir }) {
+    const vencimento = rotuloVencimento(produto.diasParaVencer);
     return (
         <div className="estoque-produto">
             <div className="estoque-produto-nome-e-barra">
                 <span className="estoque-produto-nome">{produto.nome}</span>
+                {vencimento && (
+                    <span className={`estoque-produto-vencimento estoque-produto-vencimento--${vencimento.nivel}`}>
+                        {vencimento.texto}
+                    </span>
+                )}
                 <BarraConsumo
                     quantidadeAtual={produto.quantidade}
                     quantidadeMaxima={produto.quantidadeOriginal}
