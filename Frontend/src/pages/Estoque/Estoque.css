@@ -78,16 +78,26 @@
 }
 
 .estoque-filtro-botao {
-    display: grid;
-    width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    max-width: 220px;
     height: 42px;
-    place-items: center;
-    padding: 9px;
+    padding: 8px 12px;
     border: 0;
     border-radius: 12px;
     background: #ddd;
     color: #245b32;
     cursor: pointer;
+}
+
+.estoque-filtro-rotulo {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 500 0.8rem 'Poppins', sans-serif;
 }
 
 .estoque-filtro-botao:hover {

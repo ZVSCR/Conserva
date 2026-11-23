@@ -127,6 +127,7 @@ async function buscarItensComVidaUtilCritica(usuarioId) {
         JOIN compra c ON c.id = i.compra_id
         WHERE e.usuario_id = ${usuarioId}
           AND i.validade_estimada IS NOT NULL
+          AND i.validade_estimada > CURRENT_DATE
           AND c.data_compra IS NOT NULL
           AND i.validade_estimada > c.data_compra::date
           AND CURRENT_DATE - c.data_compra::date >=

@@ -169,6 +169,14 @@ function PageEstoque(){
                                 aria-haspopup="dialog"
                                 onClick={() => setFiltroAberto((aberto) => !aberto)}
                             >
+                                <span className="estoque-filtro-rotulo">
+                                    {{
+                                        proximos: 'Próximos da validade',
+                                        disponiveis: 'Disponíveis',
+                                        vencidos: 'Vencidos',
+                                        'nao-vencidos': 'Não vencidos'
+                                    }[filtroEstoque]}
+                                </span>
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M4 6h16M7 12h10m-7 6h4" />
                                 </svg>
