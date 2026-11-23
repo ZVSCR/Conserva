@@ -38,7 +38,11 @@ RETURNS TRIGGER AS $$
 DECLARE
     id_item INTEGER;
 BEGIN
-    id_item := CASE WHEN TG_TABLE_NAME = 'item' THEN NEW.id ELSE NEW.item_id END;
+    IF TG_TABLE_NAME = 'item' THEN
+        id_item := NEW.id;
+    ELSE
+        id_item := NEW.item_id;
+    END IF;
 
     IF EXISTS (
         SELECT 1
