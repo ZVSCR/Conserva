@@ -20,13 +20,13 @@ function PageEstoque(){
     const [erroEstoque, setErroEstoque] = useState('');
     const [busca, setBusca] = useState('');
     const [filtroAberto, setFiltroAberto] = useState(false);
-    const [proximosValidade, setProximosValidade] = useState(false);
+    const [filtroEstoque, setFiltroEstoque] = useState('disponiveis');
 
     useEffect(() => { //Mapeia o retorno da API para buscar os dados reais ao carregar a página
     const controller = new AbortController();
     setCarregando(true);
     setErroEstoque('');
-    const endpoint = proximosValidade ? '/api/estoque/vida-util-critica' : '/api/estoque';
+    const endpoint = filtroEstoque === 'proximos' ? '/api/estoque/vida-util-critica' : '/api/estoque';
     apiFetch(endpoint, { signal: controller.signal })
         .then((res) => {
             if (res.status === 401) return null; // O controle de sessão encaminha para o login.
@@ -42,7 +42,8 @@ function PageEstoque(){
                     nome: item.nome_item,
                     quantidade: Number(item.quantidade_disponivel),
                     quantidadeOriginal: Number(item.quantidade_original),
-                    unidade: item.unidade_de_medida
+                    unidade: item.unidade_de_medida,
+                    validadeEstimada: item.validade_estimada
                 }))
             );
             setCarregando(false);
@@ -54,17 +55,22 @@ function PageEstoque(){
             setCarregando(false);
         });
     return () => controller.abort();
-}, [proximosValidade]);
-    const produtosDisponiveis = proximosValidade
+}, [filtroEstoque]);
+    const produtosDisponiveis = filtroEstoque === 'proximos'
         ? produtos
         : produtos.filter((produto) => produto.quantidade > 0);
     const termo = normalizarBusca(busca);
-    const produtosFiltrados = produtosDisponiveis.filter((produto) =>
-        normalizarBusca(produto.nome).includes(termo)
-    );
+    const hoje = new Date().toLocaleDateString('en-CA');
+    const produtosFiltrados = produtosDisponiveis.filter((produto) => {
+        const vencido = produto.validadeEstimada && produto.validadeEstimada <= hoje;
+        const correspondeFiltro = filtroEstoque === 'vencidos' ? vencido
+            : filtroEstoque === 'nao-vencidos' ? !vencido
+                : true;
+        return correspondeFiltro && normalizarBusca(produto.nome).includes(termo);
+    });
 
     const estoqueCarregado = !carregando && !erroEstoque;
-    const estoqueVazio = estoqueCarregado && !proximosValidade && produtosDisponiveis.length === 0;
+    const estoqueVazio = estoqueCarregado && filtroEstoque !== 'proximos' && produtosDisponiveis.length === 0;
     const buscaSemResultados = estoqueCarregado && !estoqueVazio && produtosFiltrados.length === 0;
 
     const [produtoEditando, setProdutoEditando] = useState(null);
@@ -139,10 +145,10 @@ function PageEstoque(){
             <AppHeader variante="estoque" />
             <main className="estoque-conteudo">
                 <h1 className="estoque-titulo">
-                    {proximosValidade ? 'Lista de produtos próximos da validade' : 'Lista de produtos disponíveis'}
+                    {filtroEstoque === 'proximos' ? 'Lista de produtos próximos da validade' : 'Lista de produtos disponíveis'}
                 </h1>
 
-                {estoqueCarregado && (!estoqueVazio || proximosValidade) && (
+                {estoqueCarregado && (!estoqueVazio || filtroEstoque === 'proximos') && (
                     <div className="estoque-controles">
                         <div className="estoque-busca">
                             <img src={IconBusca} alt="" />
@@ -172,9 +178,9 @@ function PageEstoque(){
                                     <button
                                         type="button"
                                         className="estoque-filtro-opcao"
-                                        aria-pressed={proximosValidade}
+                                        aria-pressed={filtroEstoque === 'proximos'}
                                         onClick={() => {
-                                            setProximosValidade(true);
+                                            setFiltroEstoque('proximos');
                                             setFiltroAberto(false);
                                             setBusca('');
                                         }}
@@ -184,15 +190,17 @@ function PageEstoque(){
                                     <button
                                         type="button"
                                         className="estoque-filtro-opcao"
-                                        aria-pressed={!proximosValidade}
+                                        aria-pressed={filtroEstoque === 'disponiveis'}
                                         onClick={() => {
-                                            setProximosValidade(false);
+                                            setFiltroEstoque('disponiveis');
                                             setFiltroAberto(false);
                                             setBusca('');
                                         }}
                                     >
                                         Disponíveis
                                     </button>
+                                    <button type="button" className="estoque-filtro-opcao" aria-pressed={filtroEstoque === 'vencidos'} onClick={() => { setFiltroEstoque('vencidos'); setFiltroAberto(false); setBusca(''); }}>Vencidos</button>
+                                    <button type="button" className="estoque-filtro-opcao" aria-pressed={filtroEstoque === 'nao-vencidos'} onClick={() => { setFiltroEstoque('nao-vencidos'); setFiltroAberto(false); setBusca(''); }}>Não vencidos</button>
                                 </div>
                             )}
                         </div>
@@ -215,7 +223,7 @@ function PageEstoque(){
                         </div>
                     )}
 
-                    {estoqueCarregado && proximosValidade && produtosDisponiveis.length === 0 && (
+                    {estoqueCarregado && filtroEstoque === 'proximos' && produtosDisponiveis.length === 0 && (
                         <p className="estoque-status" role="status">Nenhum produto próximo da validade.</p>
                     )}
 
