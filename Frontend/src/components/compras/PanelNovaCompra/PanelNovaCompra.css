@@ -305,3 +305,9 @@
     color: inherit;
     font: inherit;
 }
+
+.nova-compra__item-validade {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: #555;
+}
