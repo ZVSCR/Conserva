@@ -223,3 +223,46 @@
     .receitas-list { padding-inline: 12px; }
     .receita-miniatura { flex-basis: 44px; width: 44px; height: 44px; }
 }
+
+.receita-vencimento {
+    margin: 4px 0 0;
+    color: #a14a00;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.receita-filtro-vencimento {
+    display: inline-block;
+    margin: 0 18px 8px;
+    padding: 8px 14px;
+    border: 1px solid #a14a00;
+    border-radius: 999px;
+    background: transparent;
+    color: #a14a00;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.receita-filtro-vencimento--ativo {
+    background: #a14a00;
+    color: #fff;
+}
+
+.modal-vencimento {
+    margin-top: 16px;
+    padding: 12px;
+    border: 1px solid #f0c27a;
+    border-radius: 8px;
+    background: #fff7e8;
+    color: #3a2a00;
+}
+
+.modal-vencimento ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+}
+
+.modal-vencimento-ok {
+    color: #1f6b3a;
+}
