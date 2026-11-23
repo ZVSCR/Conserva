@@ -23,10 +23,16 @@ function formatarDataLocal(data) {
 function novoItemVazio() {
     return {
         nome_item: "",
-        preco_total_item: "",
+        valor_unitario: "",
         quantidade: "",
         unidade_medida: "un",
+        validade_estimada: "",
     };
+}
+
+function formatarDataBR(dataIso) {
+    const [ano, mes, dia] = dataIso.split("-");
+    return `${dia}/${mes}/${ano}`;
 }
 
 function totalEmCentavos(itens) {
@@ -104,6 +110,7 @@ function PanelNovaCompra() {
             quantidade: itemCompra.quantidade,
             unidade_de_medida: itemCompra.unidade_medida,
             preco_total_item: itemCompra.preco_total_item,
+            ...(itemCompra.validade_estimada ? { validade_estimada: itemCompra.validade_estimada } : {}),
         }));
 
         setLoading(true);
@@ -178,6 +185,7 @@ function PanelNovaCompra() {
             preco_total_item: String(itemAtual.preco_total_item),
             quantidade: String(itemAtual.quantidade),
             unidade_medida: itemAtual.unidade_medida,
+            validade_estimada: itemAtual.validade_estimada ?? "",
         });
         setItemEditandoId(itemAtual.idLocal);
         setItemErrorMsg("");
@@ -216,6 +224,7 @@ function PanelNovaCompra() {
             quantidade,
             unidade_medida: item.unidade_medida,
             preco_total_item: precoTotal,
+            validade_estimada: item.validade_estimada || null,
         };
         const novosItens = itemEditandoId === null
             ? [...itens, { ...itemValidado, idLocal: crypto.randomUUID() }]
@@ -278,6 +287,11 @@ function PanelNovaCompra() {
                                         <span aria-hidden="true">/</span>
                                         <span>{formatoQuantidade.format(item.quantidade)} {item.unidade_medida}</span>
                                     </p>
+                                    {item.validade_estimada && (
+                                        <p className="nova-compra__item-validade">
+                                            Validade: {formatarDataBR(item.validade_estimada)}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="nova-compra__item-acoes">
                                     <button
@@ -428,6 +442,15 @@ function PanelNovaCompra() {
                                 placeholder="Ex: 1,2"
                                 onChange={alterarItem}
                                 required
+                            />
+                        </label>
+                        <label>
+                            Validade (opcional)
+                            <input
+                                name="validade_estimada"
+                                type="date"
+                                value={item.validade_estimada}
+                                onChange={alterarItem}
                             />
                         </label>
                         <label>

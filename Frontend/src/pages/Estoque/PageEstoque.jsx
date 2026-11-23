@@ -37,7 +37,8 @@ function PageEstoque(){
                     nome: item.nome_item,
                     quantidade: Number(item.quantidade_disponivel),
                     quantidadeOriginal: Number(item.quantidade_original),
-                    unidade: item.unidade_de_medida
+                    unidade: item.unidade_de_medida,
+                    diasParaVencer: item.dias_para_vencer == null ? null : Number(item.dias_para_vencer)
                 }))
             );
             setCarregando(false);
