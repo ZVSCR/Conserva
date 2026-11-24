@@ -43,7 +43,7 @@ function PageEstoque(){
                     quantidade: Number(item.quantidade_disponivel),
                     quantidadeOriginal: Number(item.quantidade_original),
                     unidade: item.unidade_de_medida,
-                    validadeEstimada: item.validade_estimada
+                    diasParaVencer: item.dias_para_vencer == null ? null : Number(item.dias_para_vencer)
                 }))
             );
             setCarregando(false);
@@ -60,9 +60,8 @@ function PageEstoque(){
         ? produtos
         : produtos.filter((produto) => produto.quantidade > 0);
     const termo = normalizarBusca(busca);
-    const hoje = new Date().toLocaleDateString('en-CA');
     const produtosFiltrados = produtosDisponiveis.filter((produto) => {
-        const vencido = produto.validadeEstimada && produto.validadeEstimada <= hoje;
+        const vencido = produto.diasParaVencer !== null && produto.diasParaVencer <= 0;
         const correspondeFiltro = filtroEstoque === 'vencidos' ? vencido
             : filtroEstoque === 'nao-vencidos' ? !vencido
                 : true;

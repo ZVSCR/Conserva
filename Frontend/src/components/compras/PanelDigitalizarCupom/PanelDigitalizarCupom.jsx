@@ -6,6 +6,35 @@ import IconScannerBranco from "../../../assets/IconsEstoque/scanner branco.png";
 import { useNavigate } from "react-router-dom";
 import "./PanelDigitalizarCupom.css";
 import { digitalizarCupons } from "../../../services/cupom";
+import { apiFetch } from "../../../services/api";
+import { getApiErrorMessage } from "../../../services/apiErrors";
+
+const UNIDADES_MEDIDA = ["un", "kg", "g", "L", "mL"];
+const FORMATO_MOEDA = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function totalDoItem(item) {
+    return Math.round(Number(item.quantidade) * Number(item.valor_unitario) * 100) / 100;
+}
+
+function dataHoje() {
+    const data = new Date();
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
+}
+
+function prepararItem(item) {
+    const unidade = item.medida?.trim().toLowerCase();
+    const unidadesConhecidas = { un: "un", kg: "kg", g: "g", l: "L", ml: "mL" };
+    return {
+        ...item,
+        nome_padronizado: item.nome_padronizado ?? "",
+        quantidade: String(item.quantidade ?? ""),
+        medida: unidadesConhecidas[unidade] ?? "",
+        valor_unitario: String(item.valor_unitario ?? ""),
+    };
+}
 
 function IconeLixeira({ size = 24 }) {
     return (
@@ -41,7 +70,12 @@ function PanelDigitalizarCupom() {
     const [digitalizando, setDigitalizando] = useState(false);
     const [erroDigitalizacao, setErroDigitalizacao] = useState("");
     const [digitalizacaoConcluida, setDigitalizacaoConcluida] = useState(false);
-    const resultadoOcr = useRef(null);
+    const [resultadosOcr, setResultadosOcr] = useState([]);
+    const [itensDetectados, setItensDetectados] = useState([]);
+    const [dataCompra, setDataCompra] = useState(dataHoje);
+    const [estabelecimento, setEstabelecimento] = useState("");
+    const [erroCompra, setErroCompra] = useState("");
+    const [salvandoCompra, setSalvandoCompra] = useState(false);
     const envioEmAndamento = useRef(false);
 
     async function enviarParaOcr() {
@@ -49,10 +83,16 @@ function PanelDigitalizarCupom() {
         envioEmAndamento.current = true;
         setDigitalizando(true);
         setErroDigitalizacao("");
+        setErroCompra("");
         setDigitalizacaoConcluida(false);
-        resultadoOcr.current = null;
+        setResultadosOcr([]);
+        setItensDetectados([]);
         try {
-            resultadoOcr.current = await digitalizarCupons(fotos);
+            const resultado = await digitalizarCupons(fotos);
+            setResultadosOcr(resultado.resultados);
+            setItensDetectados(resultado.resultados.flatMap(({ itens_alimenticios }) =>
+                itens_alimenticios.map(prepararItem)
+            ));
             setDigitalizacaoConcluida(true);
         } catch (erro) {
             setErroDigitalizacao(erro.message || "Não foi possível enviar as imagens ao OCR.");
@@ -97,7 +137,8 @@ function PanelDigitalizarCupom() {
     function confirmarFoto(foto) {
         setDigitalizacaoConcluida(false);
         setErroDigitalizacao("");
-        resultadoOcr.current = null;
+        setResultadosOcr([]);
+        setItensDetectados([]);
         setFotos((atuais) => [...atuais, foto]);
         fecharScanner();
     }
@@ -105,8 +146,72 @@ function PanelDigitalizarCupom() {
     function removerFoto(indice) {
         setDigitalizacaoConcluida(false);
         setErroDigitalizacao("");
-        resultadoOcr.current = null;
+        setResultadosOcr([]);
+        setItensDetectados([]);
         setFotos((atuais) => atuais.filter((_, indiceAtual) => indiceAtual !== indice));
+    }
+
+    function alterarItem(indice, campo, valor) {
+        setItensDetectados((atuais) => atuais.map((item, indiceAtual) =>
+            indiceAtual === indice ? { ...item, [campo]: valor } : item
+        ));
+        setErroCompra("");
+    }
+
+    async function salvarCompra(event) {
+        event.preventDefault();
+        if (salvandoCompra || !itensDetectados.length) return;
+
+        const estabelecimentoInformado = estabelecimento.trim();
+        if (!estabelecimentoInformado || estabelecimentoInformado.length > 50) {
+            setErroCompra("Informe um estabelecimento com até 50 caracteres.");
+            return;
+        }
+
+        const itensParaEnviar = itensDetectados.map((item) => {
+            const quantidade = Number(item.quantidade);
+            return {
+                nome_item: item.nome_padronizado.trim(),
+                quantidade,
+                unidade_de_medida: item.medida,
+                preco_total_item: totalDoItem(item),
+            };
+        });
+        const itemInvalido = itensParaEnviar.some((item) =>
+            !item.nome_item || item.nome_item.length > 100 ||
+            !Number.isFinite(item.quantidade) || item.quantidade <= 0 ||
+            (item.unidade_de_medida === "un" && !Number.isInteger(item.quantidade)) ||
+            !UNIDADES_MEDIDA.includes(item.unidade_de_medida) ||
+            !Number.isFinite(item.preco_total_item) || item.preco_total_item < 0
+        );
+        if (itemInvalido) {
+            setErroCompra("Revise os itens: nome, quantidade, unidade de medida e valor unitário devem ser válidos.");
+            return;
+        }
+
+        setSalvandoCompra(true);
+        setErroCompra("");
+        try {
+            const resposta = await apiFetch("/api/compras", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    data_compra: dataCompra,
+                    estabelecimento: estabelecimentoInformado,
+                    itens: itensParaEnviar,
+                }),
+            });
+            const dados = await resposta.json();
+            if (!resposta.ok) {
+                setErroCompra(getApiErrorMessage(dados, "Não foi possível registrar a compra."));
+                return;
+            }
+            navigate("/extrato-compras", { replace: true });
+        } catch {
+            setErroCompra("Não foi possível conectar ao servidor para registrar a compra.");
+        } finally {
+            setSalvandoCompra(false);
+        }
     }
 
     function cancelarDigitalizacao() {
@@ -123,7 +228,7 @@ function PanelDigitalizarCupom() {
             <section aria-labelledby="digitalizar-cupom-imagens">
                 <div className="digitalizar-cupom-selecao">
                     <h2 id="digitalizar-cupom-imagens">Imagens selecionadas ({fotos.length})</h2>
-                    <button type="button" className="digitalizar-cupom-adicionar" disabled={digitalizando} aria-haspopup="dialog" onClick={() => modalScanner.current.showModal()}>Adicionar +</button>
+                    <button type="button" className="digitalizar-cupom-adicionar" disabled={digitalizando || salvandoCompra} aria-haspopup="dialog" onClick={() => modalScanner.current.showModal()}>Adicionar +</button>
                 </div>
 
                 <div className="digitalizar-cupom-preview">
@@ -145,7 +250,7 @@ function PanelDigitalizarCupom() {
                                     className="digitalizar-cupom-lixeira"
                                     aria-label={`Remover imagem ${indice + 1}`}
                                     onClick={() => removerFoto(indice)}
-                                    disabled={digitalizando}
+                                    disabled={digitalizando || salvandoCompra}
                                 >
                                     <IconeLixeira size={20} />
                                 </button>
@@ -162,7 +267,7 @@ function PanelDigitalizarCupom() {
             </p>
             {fotos.length > 0 && (
                 <div className="digitalizar-cupom-acoes">
-                    <button type="button" className="digitalizar-cupom-cancelar" disabled={digitalizando} onClick={cancelarDigitalizacao}>
+                    <button type="button" className="digitalizar-cupom-cancelar" disabled={digitalizando || salvandoCompra} onClick={cancelarDigitalizacao}>
                         Cancelar
                     </button>
                     <button type="button" className="digitalizar-cupom-digitalizar" disabled={digitalizando || carregandoImagem} onClick={enviarParaOcr}>
@@ -174,6 +279,109 @@ function PanelDigitalizarCupom() {
             {digitalizando && <p role="status">Processando imagens…</p>}
             {digitalizacaoConcluida && <p role="status">Imagens processadas pelo OCR.</p>}
             {erroDigitalizacao && <p className="scanner-erro" role="alert">{erroDigitalizacao}</p>}
+            {digitalizacaoConcluida && (
+                <section className="digitalizar-cupom-resultados" aria-labelledby="digitalizar-cupom-resultados-titulo">
+                    <h2 id="digitalizar-cupom-resultados-titulo">Itens reconhecidos</h2>
+                    {itensDetectados.length === 0 ? (
+                        <p role="status">Nenhum item alimentício foi reconhecido nas imagens.</p>
+                    ) : (
+                        <>
+                            <p>Confira os dados padronizados antes de registrar a compra.</p>
+                            <form className="digitalizar-cupom-formulario" onSubmit={salvarCompra}>
+                                <label>
+                                    Estabelecimento
+                                    <input
+                                        type="text"
+                                        maxLength={50}
+                                        value={estabelecimento}
+                                        onChange={(event) => setEstabelecimento(event.target.value)}
+                                        required
+                                    />
+                                </label>
+                                <label>
+                                    Data da compra
+                                    <input
+                                        type="date"
+                                        value={dataCompra}
+                                        onChange={(event) => setDataCompra(event.target.value)}
+                                        required
+                                    />
+                                </label>
+                                <ul className="digitalizar-cupom-itens" aria-label="Itens padronizados pelo OCR">
+                                    {itensDetectados.map((item, indice) => (
+                                        <li key={`${indice}-${item.nome_padronizado}`}>
+                                            <label>
+                                                Item
+                                                <input
+                                                    type="text"
+                                                    maxLength={100}
+                                                    value={item.nome_padronizado}
+                                                    onChange={(event) => alterarItem(indice, "nome_padronizado", event.target.value)}
+                                                    required
+                                                />
+                                            </label>
+                                            <label>
+                                                Quantidade
+                                                <input
+                                                    type="number"
+                                                    min="0.01"
+                                                    max="9999999.99"
+                                                    step="0.01"
+                                                    value={item.quantidade}
+                                                    onChange={(event) => alterarItem(indice, "quantidade", event.target.value)}
+                                                    required
+                                                />
+                                            </label>
+                                            <label>
+                                                Unidade
+                                                <select
+                                                    value={item.medida}
+                                                    onChange={(event) => alterarItem(indice, "medida", event.target.value)}
+                                                    required
+                                                >
+                                                    <option value="" disabled>Selecione</option>
+                                                    {UNIDADES_MEDIDA.map((unidade) => (
+                                                        <option key={unidade} value={unidade}>{unidade}</option>
+                                                    ))}
+                                                </select>
+                                            </label>
+                                            <label>
+                                                Valor unitário
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={item.valor_unitario}
+                                                    onChange={(event) => alterarItem(indice, "valor_unitario", event.target.value)}
+                                                    required
+                                                />
+                                            </label>
+                                            <p className="digitalizar-cupom-total">
+                                                Total do item: {FORMATO_MOEDA.format(totalDoItem(item))}
+                                            </p>
+                                            {item.is_item_novo && <span className="digitalizar-cupom-item-novo">Novo ingrediente</span>}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {resultadosOcr.map((resultado, indice) => (
+                                    <details key={indice}>
+                                        <summary>Texto reconhecido da imagem {indice + 1}</summary>
+                                        <pre>{resultado.texto}</pre>
+                                    </details>
+                                ))}
+                                {erroCompra && <p className="scanner-erro" role="alert">{erroCompra}</p>}
+                                <button
+                                    type="submit"
+                                    className="digitalizar-cupom-salvar"
+                                    disabled={salvandoCompra}
+                                >
+                                    {salvandoCompra ? "Salvando compra…" : "Registrar compra"}
+                                </button>
+                            </form>
+                        </>
+                    )}
+                </section>
+            )}
             <dialog
                 ref={modalFoto}
                 className="digitalizar-cupom-foto-modal"

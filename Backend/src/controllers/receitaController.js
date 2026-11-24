@@ -25,6 +25,9 @@ const {
     listarPreparosPorUsuario
 } = require('../repositories/receitaRepository')
 
+const { sugerirReceitasService } = require('../services/receitaService');
+const { DIAS_PADRAO } = require('../services/sugestaoReceita');
+
 // Converte valor para inteiro positivo; retorna null se inválido
 function parsePositiveInt(value) {
 
@@ -405,6 +408,28 @@ async function deleteIngredienteReceitaById(req, res) {
     }
 }
 
+function lerDias(valor) {
+    if (valor === undefined) return DIAS_PADRAO;
+    if (typeof valor !== 'string' || !/^[1-9]\d{0,2}$/.test(valor)) return null;
+    const dias = Number(valor);
+    return dias <= 365 ? dias : null;
+}
+
+async function sugerirReceitas(req, res) {
+    const dias = lerDias(req.query.dias);
+    if (dias === null) {
+        return res.status(400).json({ error: 'dias deve ser um inteiro entre 1 e 365.' });
+    }
+
+    try {
+        const sugestoes = await sugerirReceitasService(req.user.id, dias);
+        return res.status(200).json({ sugestoes });
+    } catch (error) {
+        console.error('Erro ao sugerir receitas:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+}
+
 module.exports = {
     createReceita,
     verificarReceita,
@@ -419,4 +444,5 @@ module.exports = {
     getGastoPorReceita,
     getGastoReceita,
     listarPreparos,
+    sugerirReceitas,
 };

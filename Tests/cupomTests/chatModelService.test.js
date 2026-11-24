@@ -1,6 +1,6 @@
-const { processarCupomComGemini } = require('../../Backend/src/services/chatModelService');
+const { processarImagemComGemini } = require('../../Backend/src/services/chatModelService');
 
-describe('processarCupomComGemini', () => {
+describe('processarImagemComGemini', () => {
     const originalUrl = process.env.CHAT_MODEL_API_URL;
     const originalSecret = process.env.INTERNAL_API_SECRET;
     const fetchOriginal = global.fetch;
@@ -19,15 +19,16 @@ describe('processarCupomComGemini', () => {
         global.fetch = fetchOriginal;
     });
 
-    test('envia texto OCR e referência ao endpoint configurado com autenticação interna', async () => {
-        const resultado = { itens_alimenticios: [] };
+    test('envia a imagem e a lista de referencia ao Chat_model autenticado', async () => {
+        const resultado = { ocr_text: 'ARROZ 1KG', itens_alimenticios: [] };
         global.fetch.mockResolvedValue({
             ok: true,
             status: 200,
             json: async () => resultado
         });
 
-        await expect(processarCupomComGemini('ARROZ 1KG', ['arroz'])).resolves.toBe(resultado);
+        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', ['arroz']))
+            .resolves.toBe(resultado);
         expect(global.fetch).toHaveBeenCalledWith(
             new URL('https://gemini.example.com/api/v1/process-receipt'),
             expect.objectContaining({
@@ -37,32 +38,33 @@ describe('processarCupomComGemini', () => {
                     'x-api-secret': 'test-secret'
                 },
                 body: JSON.stringify({
-                    ocr_text: 'ARROZ 1KG',
+                    image_base64: Buffer.from('imagem').toString('base64'),
+                    mime_type: 'image/png',
                     lista_referencia: ['arroz']
                 })
             })
         );
     });
 
-    test('propaga erros HTTP informados pelo serviço Gemini', async () => {
+    test('propaga erros HTTP informados pelo Chat_model', async () => {
         global.fetch.mockResolvedValue({
             ok: false,
             status: 503,
             json: async () => ({ detail: 'Modelos indisponíveis' })
         });
 
-        await expect(processarCupomComGemini('texto', []))
+        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', []))
             .rejects.toThrow('Falha no serviço Gemini: Modelos indisponíveis');
     });
 
-    test('falha claramente quando falta a URL de deploy ou o segredo', async () => {
+    test('falha claramente quando falta a URL ou o segredo interno', async () => {
         delete process.env.CHAT_MODEL_API_URL;
-        await expect(processarCupomComGemini('texto', []))
+        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', []))
             .rejects.toThrow('Configure CHAT_MODEL_API_URL');
 
         process.env.CHAT_MODEL_API_URL = 'https://gemini.example.com';
         delete process.env.INTERNAL_API_SECRET;
-        await expect(processarCupomComGemini('texto', []))
+        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', []))
             .rejects.toThrow('Configure INTERNAL_API_SECRET');
         expect(global.fetch).not.toHaveBeenCalled();
     });

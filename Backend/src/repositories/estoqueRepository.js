@@ -12,10 +12,28 @@ async function buscarEstoque(usuarioId) {
                item.tipo_medida,
                item.unidade_de_medida,
                item.validade_estimada,
+               (item.validade_estimada - (now() AT TIME ZONE 'America/Sao_Paulo')::date) AS dias_para_vencer,
                item.ingrediente_id
         FROM estoque
         JOIN item ON estoque.item_id = item.id
         WHERE estoque.usuario_id = ${usuarioId};
+    `;
+
+    return query;
+}
+
+// Saldo por ingrediente, usado para sugerir receitas conforme a validade
+async function buscarEstoquePorIngrediente(usuarioId) {
+    const query = await sql`
+        SELECT i.ingrediente_id,
+               i.unidade_de_medida,
+               e.quantidade_disponivel,
+               (i.validade_estimada - (now() AT TIME ZONE 'America/Sao_Paulo')::date) AS dias_para_vencer
+        FROM estoque e
+        JOIN item i ON i.id = e.item_id
+        WHERE e.usuario_id = ${usuarioId}
+          AND e.quantidade_disponivel > 0
+          AND i.ingrediente_id IS NOT NULL;
     `;
 
     return query;
@@ -119,21 +137,31 @@ async function buscarItensComVidaUtilCritica(usuarioId) {
                i.unidade_de_medida,
                e.quantidade_disponivel,
                i.validade_estimada,
+               (i.validade_estimada - (now() AT TIME ZONE 'America/Sao_Paulo')::date) AS dias_para_vencer,
                c.data_compra,
-               (CURRENT_DATE - c.data_compra::date)::numeric
+               (((now() AT TIME ZONE 'America/Sao_Paulo')::date - c.data_compra::date))::numeric
                    / NULLIF((i.validade_estimada - c.data_compra::date)::numeric, 0) AS percentual_consumido
         FROM estoque e
         JOIN item i ON i.id = e.item_id
         JOIN compra c ON c.id = i.compra_id
         WHERE e.usuario_id = ${usuarioId}
           AND i.validade_estimada IS NOT NULL
-          AND i.validade_estimada > CURRENT_DATE
+          AND i.validade_estimada > (now() AT TIME ZONE 'America/Sao_Paulo')::date
           AND c.data_compra IS NOT NULL
           AND i.validade_estimada > c.data_compra::date
-          AND CURRENT_DATE - c.data_compra::date >=
+          AND (now() AT TIME ZONE 'America/Sao_Paulo')::date - c.data_compra::date >=
               (i.validade_estimada - c.data_compra::date) * 0.75
         ORDER BY percentual_consumido DESC, i.nome_item;
     `;
 }
 
-module.exports = { buscarEstoque, buscarDetalheEstoque, atualizarQuantidade, buscarValorEstoquePorUsuario, buscarItensEstoquePorUsuario, buscarConsumo, buscarItensComVidaUtilCritica };
+module.exports = { 
+    buscarEstoque,
+    buscarDetalheEstoque, 
+    atualizarQuantidade, 
+    buscarValorEstoquePorUsuario, 
+    buscarItensEstoquePorUsuario, 
+    buscarConsumo,
+    buscarEstoquePorIngrediente,
+    buscarItensComVidaUtilCritica 
+};
