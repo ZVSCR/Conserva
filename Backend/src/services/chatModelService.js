@@ -1,7 +1,7 @@
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const TIPOS_IMAGEM_SUPORTADOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-async function processarImagemComGemini(imagem, mimeType, listaReferencia) {
+async function processarImagemComGemini(imagem, mimeType, listaReferencia, dataCompra) {
     const apiUrl = process.env.CHAT_MODEL_API_URL;
     const apiSecret = process.env.INTERNAL_API_SECRET;
     if (!apiUrl) {
@@ -39,7 +39,8 @@ async function processarImagemComGemini(imagem, mimeType, listaReferencia) {
         body: JSON.stringify({
             image_base64: imagem.toString('base64'),
             mime_type: mimeType,
-            lista_referencia: listaReferencia
+            lista_referencia: listaReferencia,
+            data_compra: dataCompra
         })
     });
 

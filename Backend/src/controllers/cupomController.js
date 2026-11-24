@@ -6,7 +6,7 @@ async function digitalizarCupons(req, res) {
     }
 
     try {
-        const { resultados } = await extrairCuponsEnviados(req.files);
+        const { resultados } = await extrairCuponsEnviados(req.files, req.body.data_compra);
         return res.json({ resultados });
     } catch (erro) {
         console.error('Falha ao digitalizar cupom:', erro);

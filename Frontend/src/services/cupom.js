@@ -49,7 +49,7 @@ async function prepararImagem(foto) {
     }
 }
 
-export async function digitalizarCupons(fotos) {
+export async function digitalizarCupons(fotos, dataCompra) {
     if (!fotos.length || fotos.length > 10) {
         throw new Error('Selecione de 1 a 10 imagens para digitalizar.');
     }
@@ -59,6 +59,7 @@ export async function digitalizarCupons(fotos) {
         const imagem = await prepararImagem(foto);
         const formulario = new FormData();
         formulario.append('imagens', imagem, `cupom-${indice + 1}`);
+        formulario.append('data_compra', dataCompra);
 
         const resposta = await apiFetch('/api/cupons/digitalizar', { method: 'POST', body: formulario });
         const dados = await resposta.json();

@@ -33,15 +33,15 @@ test('retorna os itens padronizados de cada imagem na ordem recebida', async () 
             .mockResolvedValueOnce(respostas[1]);
         extrairItensCupom.mockImplementation((texto) => [{ nome_item: texto }]);
 
-        await expect(extrairCuponsEnviados(arquivos)).resolves.toEqual({
+        await expect(extrairCuponsEnviados(arquivos, '2026-11-24')).resolves.toEqual({
             resultados: [
                 { texto: 'ARROZ 1KG', itens: [{ nome_item: 'ARROZ 1KG' }], itens_alimenticios: respostas[0].itens_alimenticios },
                 { texto: 'FEIJAO 1KG', itens: [{ nome_item: 'FEIJAO 1KG' }], itens_alimenticios: respostas[1].itens_alimenticios }
             ]
         });
         expect(listIngredientesService).toHaveBeenCalledTimes(1);
-        expect(processarImagemComGemini).toHaveBeenNthCalledWith(1, Buffer.from('imagem'), 'image/png', ['arroz']);
-        expect(processarImagemComGemini).toHaveBeenNthCalledWith(2, Buffer.from('imagem'), 'image/png', ['arroz']);
+        expect(processarImagemComGemini).toHaveBeenNthCalledWith(1, Buffer.from('imagem'), 'image/png', ['arroz'], '2026-11-24');
+        expect(processarImagemComGemini).toHaveBeenNthCalledWith(2, Buffer.from('imagem'), 'image/png', ['arroz'], '2026-11-24');
         for (const arquivo of arquivos) {
             await expect(fs.access(arquivo.path)).rejects.toMatchObject({ code: 'ENOENT' });
         }
