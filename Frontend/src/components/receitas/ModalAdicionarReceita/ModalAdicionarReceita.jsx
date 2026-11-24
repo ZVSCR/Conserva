@@ -180,39 +180,42 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     };
 
     return (
-        <ModalFormularioReceita titulo="Adicionar receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
+        <ModalFormularioReceita titulo="Nova Receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
             <form className="receita-formulario" onSubmit={handleSubmit}>
-                <label htmlFor="nome-receita">Nome</label>
-                <input
-                    id="nome-receita"
-                    name="nome"
-                    type="text"
-                    value={receita.nome}
-                    onChange={atualizarCampo}
-                    maxLength={100}
-                    autoFocus
-                    required
-                />
+                <section className="receita-formulario-dados" aria-labelledby="dados-nova-receita">
+                    <h3 id="dados-nova-receita">Dados da receita</h3>
+                    <label htmlFor="nome-receita">Nome</label>
+                    <input
+                        id="nome-receita"
+                        name="nome"
+                        type="text"
+                        value={receita.nome}
+                        onChange={atualizarCampo}
+                        maxLength={100}
+                        autoFocus
+                        required
+                    />
 
-                <label htmlFor="descricao-receita">Descrição</label>
-                <textarea
-                    id="descricao-receita"
-                    name="descricao"
-                    value={receita.descricao}
-                    onChange={atualizarCampo}
-                    maxLength={1000}
-                    required
-                />
+                    <label htmlFor="descricao-receita">Descrição</label>
+                    <textarea
+                        id="descricao-receita"
+                        name="descricao"
+                        value={receita.descricao}
+                        onChange={atualizarCampo}
+                        maxLength={1000}
+                        required
+                    />
 
-                <label htmlFor="modo-preparo-receita">Modo de preparo</label>
-                <textarea
-                    id="modo-preparo-receita"
-                    name="modo_preparo"
-                    value={receita.modo_preparo}
-                    onChange={atualizarCampo}
-                    maxLength={10000}
-                    required
-                />
+                    <label htmlFor="modo-preparo-receita">Modo de preparo</label>
+                    <textarea
+                        id="modo-preparo-receita"
+                        name="modo_preparo"
+                        value={receita.modo_preparo}
+                        onChange={atualizarCampo}
+                        maxLength={10000}
+                        required
+                    />
+                </section>
 
                 <section className="adicionar-receita-ingredientes" aria-labelledby="titulo-ingredientes-receita">
                     <h3 id="titulo-ingredientes-receita">Ingredientes</h3>
@@ -356,20 +359,22 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                     </ul>
                 </section>
 
-                <button
-                    type="button"
-                    disabled={enviando}
-                    onClick={onClose}
-                >
-                    Cancelar
-                </button>
-                <button
-                    type="submit"
-                    disabled={enviando}
-                    className="receita-formulario-primario"
-                >
-                    {enviando ? "Adicionando..." : "Adicionar receita"}
-                </button>
+                <footer className="receita-formulario-acoes">
+                    <button
+                        type="button"
+                        disabled={enviando}
+                        onClick={onClose}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={enviando}
+                        className="receita-formulario-primario"
+                    >
+                        {enviando ? "Adicionando..." : "Adicionar receita"}
+                    </button>
+                </footer>
             </form>
         </ModalFormularioReceita>
     );

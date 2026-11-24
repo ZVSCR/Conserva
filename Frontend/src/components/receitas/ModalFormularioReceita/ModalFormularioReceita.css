@@ -147,3 +147,24 @@
     font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
+
+.receita-formulario-dados {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.receita-formulario h3 {
+    margin: 0 0 2px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.receita-formulario-acoes {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+}
