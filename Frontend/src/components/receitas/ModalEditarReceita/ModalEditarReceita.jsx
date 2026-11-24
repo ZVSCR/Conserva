@@ -50,46 +50,50 @@ function ModalEditarReceita({ receita, onClose, onUpdated }) {
     }
 
     return (
-        <ModalFormularioReceita titulo="Editar receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
+        <ModalFormularioReceita titulo="Editar receita" compacto enviando={enviando} erro={errorMsg} onClose={onClose}>
             <form className="receita-formulario" onSubmit={handleSubmit}>
-                <label htmlFor="nome-receita-editar">Nome</label>
-                <input
-                    id="nome-receita-editar"
-                    name="nome"
-                    type="text"
-                    value={dadosReceita.nome}
-                    onChange={atualizarCampo}
-                    maxLength={100}
-                    autoFocus
-                    required
-                />
+                <div className="receita-formulario-dados">
+                    <label htmlFor="nome-receita-editar">Nome</label>
+                    <input
+                        id="nome-receita-editar"
+                        name="nome"
+                        type="text"
+                        value={dadosReceita.nome}
+                        onChange={atualizarCampo}
+                        maxLength={100}
+                        autoFocus
+                        required
+                    />
 
-                <label htmlFor="descricao-receita-editar">Descrição</label>
-                <textarea
-                    id="descricao-receita-editar"
-                    name="descricao"
-                    value={dadosReceita.descricao}
-                    onChange={atualizarCampo}
-                    maxLength={1000}
-                    required
-                />
+                    <label htmlFor="descricao-receita-editar">Descrição</label>
+                    <textarea
+                        id="descricao-receita-editar"
+                        name="descricao"
+                        value={dadosReceita.descricao}
+                        onChange={atualizarCampo}
+                        maxLength={1000}
+                        required
+                    />
 
-                <label htmlFor="modo-preparo-receita-editar">Modo de preparo</label>
-                <textarea
-                    id="modo-preparo-receita-editar"
-                    name="modo_preparo"
-                    value={dadosReceita.modo_preparo}
-                    onChange={atualizarCampo}
-                    maxLength={10000}
-                    required
-                />
+                    <label htmlFor="modo-preparo-receita-editar">Modo de preparo</label>
+                    <textarea
+                        id="modo-preparo-receita-editar"
+                        name="modo_preparo"
+                        value={dadosReceita.modo_preparo}
+                        onChange={atualizarCampo}
+                        maxLength={10000}
+                        required
+                    />
+                </div>
 
-                <button type="button" disabled={enviando} onClick={onClose}>
-                    Cancelar
-                </button>
-                <button type="submit" disabled={enviando} className="receita-formulario-primario">
-                    {enviando ? "Salvando..." : "Salvar alterações"}
-                </button>
+                <footer className="receita-formulario-acoes">
+                    <button type="button" disabled={enviando} onClick={onClose}>
+                        Cancelar
+                    </button>
+                    <button type="submit" disabled={enviando} className="receita-formulario-primario">
+                        {enviando ? "Salvando..." : "Salvar alterações"}
+                    </button>
+                </footer>
             </form>
         </ModalFormularioReceita>
     );

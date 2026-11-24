@@ -33,6 +33,10 @@
     box-shadow: 0 8px 28px rgb(0 0 0 / 20%);
 }
 
+.receita-formulario-dialogo--compacto {
+    width: min(100%, 460px);
+}
+
 .receita-formulario-cabecalho {
     display: flex;
     align-items: center;
@@ -66,12 +70,8 @@
 
 .receita-formulario {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-}
-
-.receita-formulario > :is(label, input, textarea, select) {
-    grid-column: 1 / -1;
 }
 
 .receita-formulario label {
