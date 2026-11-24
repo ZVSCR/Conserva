@@ -13,8 +13,8 @@ em outros formatos sao convertidas para JPEG no navegador.
 - Corpo: um arquivo no campo `imagens`.
 - Formatos: JPEG, PNG ou WebP.
 - Limite: 3 MiB por imagem antes de codificar para envio ao Gemini.
-- Resposta de sucesso: `{ resultados: [{ texto, itens }] }`.
-  O helper combina as respostas individuais na ordem selecionada.
+- Resposta de sucesso: `{ resultados: [{ texto, itens, itens_alimenticios }] }`.
+  Cada imagem retorna seu texto OCR e a lista padronizada pelo Chat_model.
 - Erros: `400` para upload invalido, formato nao suportado ou imagem ausente,
   `401` para sessao ausente/invalida, `413` para tamanho excedido e `500` para
   falha de processamento. O corpo de erro usa `{ error: "..." }`.
@@ -24,10 +24,9 @@ em outros formatos sao convertidas para JPEG no navegador.
 `cupomRoutes` autentica antes do upload. `cupomUpload` grava a imagem em um
 arquivo temporario. `cupomUploadService` le os bytes e envia a imagem e o
 catalogo de ingredientes ao servico FastAPI em `Chat_model`. O Gemini Vision
-retorna o texto OCR e os itens alimenticios em uma chamada. O backend imprime
-essa resposta no console e preserva o contrato HTTP existente (`texto` e
-`itens`). Os arquivos temporarios sao removidos mesmo quando o processamento
-falha; nenhuma imagem ou resultado e salvo no banco.
+retorna o texto OCR e os itens alimenticios padronizados em uma chamada. O
+backend devolve ambos ao frontend e remove os arquivos temporarios mesmo quando
+o processamento falha. O resultado OCR nao e salvo automaticamente.
 
 O backend nao inicia mais Python nem depende de EasyOCR/OpenCV no runtime Node.
 Configure `CHAT_MODEL_API_URL` como a URL do endpoint
@@ -35,11 +34,14 @@ Configure `CHAT_MODEL_API_URL` como a URL do endpoint
 servico `Chat_model`, e `GEMINI_API_KEY` somente no servico `Chat_model`.
 Mantenha esses segredos fora do frontend.
 
-## Integracao de resultados
+## Revisao e registro da compra
 
-A tela informa andamento, sucesso ou falha e preserva as fotos para uma nova
-tentativa. O retorno e mantido em `resultadoOcr.current`; nenhum item e
-automaticamente incluído em uma compra.
+A tela exibe os itens, quantidades, unidades e valores identificados, junto com
+o texto OCR para conferencia. Nome, quantidade, unidade, valor unitario, data e
+estabelecimento podem ser revisados antes do envio. Ao selecionar **Registrar
+compra**, o frontend converte o valor unitario em preco total e chama
+`POST /api/compras`; o endpoint autenticado grava a compra e seus itens no
+banco. Medidas nao suportadas pela compra precisam ser corrigidas na revisao.
 
 ## Verificacao
 

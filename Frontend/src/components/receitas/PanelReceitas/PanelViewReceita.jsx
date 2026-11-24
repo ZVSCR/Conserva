@@ -9,6 +9,25 @@ import EllipsisMenuReceita from "../EllipsisMenuReceita/EllipsisMenuReceita";
 import IconBusca from '../../../assets/IconsEstoque/lupa.png';
 import IconReceita from '../../../assets/IconsEstoque/livro-de-receitas.png';
 
+function textoDias(dias) {
+    if (dias === 0) return "vence hoje";
+    if (dias === 1) return "vence amanhã";
+    return `vence em ${dias} dias`;
+}
+
+function textoVencimento(sugestao) {
+    const [primeiro, ...outros] = sugestao.ingredientes_vencendo;
+    const extra = outros.length > 0 ? ` e mais ${outros.length}` : "";
+    return `Usa ${primeiro.nome} (${textoDias(primeiro.dias_para_vencer)})${extra}`;
+}
+
+function textoFalta(item) {
+    if (item.motivo === "unidade_diferente") {
+        return `${item.nome}: você tem em outra unidade de medida (a receita pede ${item.quantidade} ${item.unidade_de_medida})`;
+    }
+    return `${item.quantidade} ${item.unidade_de_medida} de ${item.nome}`;
+}
+
 function PanelViewReceita() {
     const { user } = useAuth();
     const [receitas, setReceitas] = useState([]);
@@ -24,6 +43,8 @@ function PanelViewReceita() {
     const [excluindo, setExcluindo] = useState(false);
     const [erroExclusao, setErroExclusao] = useState("");
     //const [receitaRegistrada, setReceitaRegistrada] = useState(false);
+    const [sugestoes, setSugestoes] = useState({});
+    const [apenasVencendo, setApenasVencendo] = useState(false);
 
     // Busca as receitas registradas para exibição
     const fetchReceitas = async () => {
@@ -54,8 +75,22 @@ function PanelViewReceita() {
         }
     };
 
+    const fetchSugestoes = async () => {
+    try {
+        const response = await apiFetch("/api/receitas/sugestoes");
+        const data = await response.json();
+
+        if (!response.ok || !Array.isArray(data.sugestoes)) return;
+
+        setSugestoes(Object.fromEntries(data.sugestoes.map((sugestao) => [sugestao.id, sugestao])));
+    } catch (error) {
+        console.error("Erro ao carregar sugestões por validade:", error);
+    }
+    };
+
     useEffect(() => {
         fetchReceitas();
+        fetchSugestoes();
     }, []);
 
     // Fecha o pop-up com a tecla Esc enquanto ele estiver aberto
@@ -71,11 +106,21 @@ function PanelViewReceita() {
     }, [receitaExpandidaId]);
 
     // Barra de busca do catálogo de receitas
-    const receitasFiltradas = receitas.filter(
-        (receita) =>
-            (receita.nome && receita.nome.toLowerCase().includes(busca.toLowerCase())) ||
-            (receita.descricao && receita.descricao.toLowerCase().includes(busca.toLowerCase()))
-    );
+    const receitasFiltradas = receitas
+        .filter(
+            (receita) =>
+                (receita.nome && receita.nome.toLowerCase().includes(busca.toLowerCase())) ||
+                (receita.descricao && receita.descricao.toLowerCase().includes(busca.toLowerCase()))
+        )
+        .filter((receita) => !apenasVencendo || sugestoes[receita.id])
+        .sort((a, b) => {
+            const diasA = sugestoes[a.id]?.proxima_validade_dias ?? Infinity;
+            const diasB = sugestoes[b.id]?.proxima_validade_dias ?? Infinity;
+            if (diasA === diasB) return 0;
+            return diasA < diasB ? -1 : 1;
+    });
+
+    const totalSugestoes = Object.keys(sugestoes).length;
 
     // Receita exibida no pop-up (undefined quando nenhuma está expandida)
     const receitaExpandida = receitas.find((receita) => receita.id === receitaExpandidaId);
@@ -160,6 +205,7 @@ function PanelViewReceita() {
             }
 
             setMensagemPreparo("Receita preparada com sucesso. O estoque foi atualizado.");
+            fetchSugestoes();
         } catch (error) {
             console.error("Erro ao preparar receita:", error);
             setMensagemPreparo("Não foi possível conectar ao servidor para preparar a receita.");
@@ -201,6 +247,17 @@ function PanelViewReceita() {
                 />
             </div>
 
+            {totalSugestoes > 0 && (
+                <button
+                    type="button"
+                    className={`receita-filtro-vencimento${apenasVencendo ? " receita-filtro-vencimento--ativo" : ""}`}
+                    aria-pressed={apenasVencendo}
+                    onClick={() => setApenasVencendo((atual) => !atual)}
+                >
+                    Aproveitar o que vai vencer ({totalSugestoes})
+                </button>
+            )}
+
             <div className="receitas-list">
                 {loading ? (
                     <p className="receita-status" role="status">Carregando receitas...</p>
@@ -226,6 +283,9 @@ function PanelViewReceita() {
                                     <p className="receita-descricao">
                                         {receita.descricao}
                                     </p>
+                                    {sugestoes[receita.id] && (
+                                        <p className="receita-vencimento">{textoVencimento(sugestoes[receita.id])}</p>
+                                    )}
                                 </div>
                             </button>
                             <EllipsisMenuReceita
@@ -292,6 +352,32 @@ function PanelViewReceita() {
                             <p className="modal-ingredientes-vazio">Nenhum ingrediente cadastrado.</p>
                         )}
 
+                        {sugestoes[receitaExpandida.id] && (
+                            <section className="modal-vencimento">
+                                <h3 className="modal-subtitulo">Aproveite o que vai vencer</h3>
+                                <ul>
+                                    {sugestoes[receitaExpandida.id].ingredientes_vencendo.map((ingrediente) => (
+                                        <li key={ingrediente.ingrediente_id}>
+                                            {ingrediente.nome}: {textoDias(ingrediente.dias_para_vencer)}
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                {sugestoes[receitaExpandida.id].pode_preparar ? (
+                                    <p className="modal-vencimento-ok">Você tem tudo o que precisa para preparar esta receita.</p>
+                                ) : (
+                                    <>
+                                        <h3 className="modal-subtitulo">O que falta</h3>
+                                        <ul>
+                                            {sugestoes[receitaExpandida.id].faltando.map((item) => (
+                                                <li key={item.ingrediente_id}>{textoFalta(item)}</li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                            </section>
+                        )}
+
                         <button
                             type="button"
                             className="receita-nova-botao modal-preparar-botao"
@@ -324,7 +410,13 @@ function PanelViewReceita() {
 
             {modalNovaReceitaAberto && (
                 <div className="modal-nova-receita">
-                    <ModalAdicionarReceita onClose={fecharModalNovaReceita} onCreated={fetchReceitas}/>
+                    <ModalAdicionarReceita
+                        onClose={fecharModalNovaReceita}
+                        onCreated={async () => {
+                            await fetchReceitas();
+                            await fetchSugestoes();
+                        }}
+                    />
                 </div>
             )}
 
