@@ -1,112 +1,149 @@
 .receita-formulario-overlay {
     position: fixed;
     inset: 0;
-    z-index: 1000;
+    z-index: 1100;
     display: grid;
     place-items: center;
     box-sizing: border-box;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    padding: 16px;
+    background: rgb(0 0 0 / 45%);
 }
 
 .receita-formulario-dialogo {
-    position: relative;
+    --receita-texto: #171717;
+    --receita-secundario: #55545a;
+    --receita-campo: #f8f7f8;
+    --receita-borda: #d8d4d8;
+    --receita-verde: #39833f;
+    --receita-verde-hover: #2d6b33;
+    --receita-foco: #256331;
+    --receita-cantos: 10px;
     box-sizing: border-box;
     width: min(100%, 560px);
-    max-height: 90vh;
+    max-height: calc(100dvh - 32px);
     overflow-y: auto;
-    padding: 24px;
-    border: 1px solid #424549;
-    border-radius: 8px;
-    background: #2b2d31;
-    color: #fff;
+    padding: clamp(16px, 5vw, 24px);
+    border: 1px solid #eee;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--receita-texto);
+    color-scheme: light;
+    font: 1rem/1.45 Poppins, system-ui, sans-serif;
     text-align: left;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 28px rgb(0 0 0 / 20%);
 }
 
-.receita-formulario-dialogo h2 {
-    margin: 0 32px 16px 0;
-    color: #fff;
+.receita-formulario-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.receita-formulario-cabecalho h2 {
+    margin: 0;
+    color: inherit;
+    font: 600 1.25rem/1.3 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
 }
 
 .receita-formulario-fechar {
-    position: absolute;
-    top: 12px;
-    right: 16px;
+    display: grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    place-items: center;
     padding: 0;
     border: 0;
-    background: none;
-    color: #fff;
-    font-size: 28px;
+    border-radius: var(--receita-cantos);
+    background: #f1f0f1;
+    color: var(--receita-texto);
+    font-size: 1.5rem;
+    line-height: 1;
     cursor: pointer;
 }
 
 .receita-formulario {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
 }
 
-.receita-formulario label,
-.receita-formulario input,
-.receita-formulario textarea,
-.receita-formulario select {
+.receita-formulario > :is(label, input, textarea, select) {
     grid-column: 1 / -1;
 }
 
-.receita-formulario input,
-.receita-formulario textarea {
-    box-sizing: border-box;
+.receita-formulario label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.receita-formulario :is(input, textarea, select) {
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #424549;
-    border-radius: 6px;
-    background: #232428;
-    color: #fff;
+    min-width: 0;
+    min-height: 44px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--receita-borda);
+    border-radius: var(--receita-cantos);
+    background: var(--receita-campo);
+    color: var(--receita-texto);
     font: inherit;
+    font-size: 0.9375rem;
 }
 
 .receita-formulario textarea {
-    min-height: 80px;
+    min-height: 90px;
     resize: vertical;
 }
 
-.receita-formulario button {
-    min-height: 40px;
-    padding: 10px 12px;
-    border: 0;
-    border-radius: 6px;
-    background: #4f545c;
-    color: #fff;
+.receita-formulario :where(button) {
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid var(--receita-borda);
+    border-radius: var(--receita-cantos);
+    background: #f1f0f1;
+    color: var(--receita-texto);
     font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
 }
 
+.receita-formulario :where(button):hover:not(:disabled),
+.receita-formulario-fechar:hover:not(:disabled) {
+    background: #e8e7e8;
+}
+
 .receita-formulario .receita-formulario-primario {
-    background: #3ba55d;
+    border-color: transparent;
+    background: var(--receita-verde);
+    color: #fff;
 }
 
-.receita-formulario .receita-formulario-primario:hover {
-    background: #2d8d4b;
+.receita-formulario .receita-formulario-primario:hover:not(:disabled) {
+    background: var(--receita-verde-hover);
 }
 
-.receita-formulario button:disabled {
+.receita-formulario-dialogo :is(button, input, textarea, select):disabled {
     opacity: 0.65;
     cursor: default;
 }
 
-.receita-formulario-erro {
-    margin-bottom: 12px;
-    color: #ffb4b4;
+.receita-formulario-dialogo :is(button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--receita-foco);
+    outline-offset: 2px;
 }
 
-@media (max-width: 480px) {
-    .receita-formulario-dialogo {
-        padding: 18px;
-    }
-
-    .receita-formulario {
-        grid-template-columns: minmax(0, 1fr);
-    }
+.receita-formulario-erro {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #f4c7c4;
+    border-radius: var(--receita-cantos);
+    background: #fef3f2;
+    color: #a52218;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
 }
