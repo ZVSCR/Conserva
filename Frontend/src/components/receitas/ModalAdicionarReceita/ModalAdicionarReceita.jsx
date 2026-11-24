@@ -8,6 +8,7 @@ import {
     formatarQuantidadeIngrediente,
     removerIngredienteDaReceita,
 } from "./receitaIngredientUtils";
+import ModalFormularioReceita from "../ModalFormularioReceita/ModalFormularioReceita";
 import "./ModalAdicionarReceita.css";
 
 const UNIDADES_DE_MEDIDA = ["un", "kg", "g", "L", "mL"];
@@ -179,26 +180,8 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     };
 
     return (
-        <div
-            className="container-modal-adicionar-receita"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-adicionar-receita"
-        >
-            <h2 id="titulo-adicionar-receita">Adicionar receita</h2>
-            <button
-                type="button"
-                className="modal-adicionar-receita-fechar"
-                aria-label="Fechar"
-                disabled={enviando}
-                onClick={onClose}
-            >
-                ×
-            </button>
-
-            {errorMsg && <p className="receita-feedback receita-erro" role="alert">{errorMsg}</p>}
-
-            <form className="form-modal-nova-receita" onSubmit={handleSubmit}>
+        <ModalFormularioReceita titulo="Adicionar receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
+            <form className="receita-formulario" onSubmit={handleSubmit}>
                 <label htmlFor="nome-receita">Nome</label>
                 <input
                     id="nome-receita"
@@ -383,12 +366,12 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                 <button
                     type="submit"
                     disabled={enviando}
-                    className="btn-adicionar-receita"
+                    className="receita-formulario-primario"
                 >
                     {enviando ? "Adicionando..." : "Adicionar receita"}
                 </button>
             </form>
-        </div>
+        </ModalFormularioReceita>
     );
 }
 

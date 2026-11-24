@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from '../../../services/api';
-import "../ModalAdicionarReceita/ModalAdicionarReceita.css";
+import ModalFormularioReceita from "../ModalFormularioReceita/ModalFormularioReceita";
 
 function ModalEditarReceita({ receita, onClose, onUpdated }) {
     const [dadosReceita, setDadosReceita] = useState({
@@ -50,25 +50,8 @@ function ModalEditarReceita({ receita, onClose, onUpdated }) {
     }
 
     return (
-        <div
-            className="container-modal-adicionar-receita"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-editar-receita"
-        >
-            <h2 id="titulo-editar-receita">Editar receita</h2>
-            <button
-                type="button"
-                aria-label="Fechar"
-                disabled={enviando}
-                onClick={onClose}
-            >
-                ×
-            </button>
-
-            {errorMsg && <p className="receita-feedback receita-erro" role="alert">{errorMsg}</p>}
-
-            <form className="form-modal-nova-receita" onSubmit={handleSubmit}>
+        <ModalFormularioReceita titulo="Editar receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
+            <form className="receita-formulario" onSubmit={handleSubmit}>
                 <label htmlFor="nome-receita-editar">Nome</label>
                 <input
                     id="nome-receita-editar"
@@ -104,11 +87,11 @@ function ModalEditarReceita({ receita, onClose, onUpdated }) {
                 <button type="button" disabled={enviando} onClick={onClose}>
                     Cancelar
                 </button>
-                <button type="submit" disabled={enviando} className="btn-adicionar-receita">
+                <button type="submit" disabled={enviando} className="receita-formulario-primario">
                     {enviando ? "Salvando..." : "Salvar alterações"}
                 </button>
             </form>
-        </div>
+        </ModalFormularioReceita>
     );
 }
 
