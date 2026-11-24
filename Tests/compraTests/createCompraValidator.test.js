@@ -341,12 +341,12 @@ describe('validateCreateCompraPayload', () => {
             }
         );
 
-        test('rejeita fração que o banco arredondaria', () => {
+        test('arredonda quantidade abaixo de uma centésima e rejeita resultado zero', () => {
             expectSingleError(createValidPayload({
                 itens: [createValidItem({ quantidade: 0.001 })]
             }), {
                 field: 'itens[0].quantidade',
-                message: 'Quantidade deve ter até duas casas decimais e caber no campo do banco.'
+                message: 'Quantidade do item 1 deve ser maior que zero.'
             });
         });
     });
