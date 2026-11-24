@@ -288,7 +288,7 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                         Adicionar ingrediente
                     </button>
 
-                    <ul className="lista-ingredientes-receita">
+                    <ul className="lista-ingredientes-receita" aria-label="Ingredientes adicionados">
                         {ingredientesReceita.map((ingrediente) => (
                             <li key={ingrediente.id} className="item-ingrediente-receita">
                                 {ingredienteEditandoId === ingrediente.id ? (
@@ -330,28 +330,32 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
                                         <span className="item-ingrediente-nome">
                                             <strong>{formatarQuantidadeIngrediente(ingrediente.quantidade)} {ingrediente.unidade_de_medida}</strong>{" "}{ingrediente.nome}
                                         </span>
-                                        <div className="menu-ingrediente-receita">
-                                            <button
-                                                type="button"
-                                                className="menu-ingrediente-botao"
-                                                aria-label={`Opções de ${ingrediente.nome}`}
-                                                aria-expanded={menuIngredienteAbertoId === ingrediente.id}
-                                                onClick={() => setMenuIngredienteAbertoId((id) => id === ingrediente.id ? null : ingrediente.id)}
-                                                disabled={enviando}
+                                        <button
+                                            type="button"
+                                            className="menu-ingrediente-botao"
+                                            aria-label={`Opções de ${ingrediente.nome}`}
+                                            aria-expanded={menuIngredienteAbertoId === ingrediente.id}
+                                            aria-controls={menuIngredienteAbertoId === ingrediente.id ? `opcoes-ingrediente-${ingrediente.id}` : undefined}
+                                            onClick={() => setMenuIngredienteAbertoId((id) => id === ingrediente.id ? null : ingrediente.id)}
+                                            disabled={enviando}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <circle cx="5" cy="12" r="2" />
+                                                <circle cx="12" cy="12" r="2" />
+                                                <circle cx="19" cy="12" r="2" />
+                                            </svg>
+                                        </button>
+                                        {menuIngredienteAbertoId === ingrediente.id && (
+                                            <div
+                                                id={`opcoes-ingrediente-${ingrediente.id}`}
+                                                className="menu-ingrediente-opcoes"
+                                                role="group"
+                                                aria-label={`Ações para ${ingrediente.nome}`}
                                             >
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                                    <circle cx="5" cy="12" r="2" />
-                                                    <circle cx="12" cy="12" r="2" />
-                                                    <circle cx="19" cy="12" r="2" />
-                                                </svg>
-                                            </button>
-                                            {menuIngredienteAbertoId === ingrediente.id && (
-                                                <div className="menu-ingrediente-opcoes" role="group" aria-label={`Ações para ${ingrediente.nome}`}>
-                                                    <button type="button" onClick={() => iniciarEdicaoIngrediente(ingrediente)}>Modificar</button>
-                                                    <button type="button" onClick={() => removerIngrediente(ingrediente.id)}>Remover</button>
-                                                </div>
-                                            )}
-                                        </div>
+                                                <button type="button" disabled={enviando} onClick={() => iniciarEdicaoIngrediente(ingrediente)}>Modificar</button>
+                                                <button type="button" className="menu-ingrediente-remover" disabled={enviando} onClick={() => removerIngrediente(ingrediente.id)}>Remover</button>
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </li>
