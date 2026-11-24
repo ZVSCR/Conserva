@@ -27,7 +27,7 @@ describe('processarImagemComGemini', () => {
             json: async () => resultado
         });
 
-        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', ['arroz']))
+        await expect(processarImagemComGemini(Buffer.from('imagem'), 'image/png', ['arroz'], '2026-11-24'))
             .resolves.toBe(resultado);
         expect(global.fetch).toHaveBeenCalledWith(
             new URL('https://gemini.example.com/api/v1/process-receipt'),
@@ -40,7 +40,8 @@ describe('processarImagemComGemini', () => {
                 body: JSON.stringify({
                     image_base64: Buffer.from('imagem').toString('base64'),
                     mime_type: 'image/png',
-                    lista_referencia: ['arroz']
+                    lista_referencia: ['arroz'],
+                    data_compra: '2026-11-24'
                 })
             })
         );

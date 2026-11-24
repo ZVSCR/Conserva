@@ -3,7 +3,7 @@ const { extrairItensCupom } = require('./cupomService');
 const { listIngredientesService } = require('./ingredienteService');
 const { processarImagemComGemini } = require('./chatModelService');
 
-async function extrairCuponsEnviados(arquivos) {
+async function extrairCuponsEnviados(arquivos, dataCompra) {
     try {
         const ingredientes = await listIngredientesService();
         const listaReferencia = ingredientes.map(({ nome }) => nome);
@@ -13,7 +13,8 @@ async function extrairCuponsEnviados(arquivos) {
             const resultadoGemini = await processarImagemComGemini(
                 imagem,
                 arquivo.mimetype,
-                listaReferencia
+                listaReferencia,
+                dataCompra
             );
             resultados.push({
                 texto: resultadoGemini.ocr_text,

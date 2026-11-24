@@ -6,7 +6,7 @@ const MAX_BYTES = 3 * 1024 * 1024;
 
 const upload = multer({
     dest: os.tmpdir(),
-    limits: { files: MAX_IMAGENS, fileSize: MAX_BYTES, fields: 0, parts: MAX_IMAGENS },
+    limits: { files: MAX_IMAGENS, fileSize: MAX_BYTES, fields: 1, parts: MAX_IMAGENS + 1 },
     fileFilter(req, arquivo, callback) {
         if (!arquivo.mimetype.startsWith('image/')) {
             const erro = new Error('Envie apenas arquivos de imagem.');

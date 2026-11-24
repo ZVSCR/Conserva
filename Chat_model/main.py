@@ -45,6 +45,10 @@ class ItemAlimenticio(BaseModel):
     categoria: str = Field(
         description="Categoria: Laticínios, Mercearia, Hortifrúti, Açougue/Peixaria, Bebidas, Padaria ou Outros."
     )
+    validade_estimada: Optional[str] = Field(
+        default=None,
+        description="Data estimada de validade no formato YYYY-MM-DD, ou null quando não houver base segura para estimar."
+    )
 
 
 class RespostaNotaFiscal(BaseModel):
@@ -61,6 +65,7 @@ class OCRRequest(BaseModel):
     image_base64: Optional[str] = None
     mime_type: Optional[str] = None
     lista_referencia: List[str]
+    data_compra: Optional[str] = None
 
 
 SYSTEM_INSTRUCTION = """
@@ -71,11 +76,12 @@ REGRAS:
 2. Remova marcas, selos e fabricantes (ex: "IOG NAT NESTLE 170G" -> "Iogurte").
 3. Separe a quantidade numérica e a unidade de medida (g, kg, ml, l, un, cx).
 4. Compare o produto padronizado com a lista de referência recebida. Se o produto não constar na lista, marque `is_item_novo = true`.
+5. Estime `validade_estimada` em formato YYYY-MM-DD com base no tipo de produto e em uma estimativa típica de armazenamento após a compra. Use a data da compra recebida como ponto inicial; use uma data futura coerente e conservadora. Retorne null quando não houver como estimar com segurança, como em itens sem embalagem ou classificação insuficiente.
 """
 
 SYSTEM_INSTRUCTION_IMAGEM = SYSTEM_INSTRUCTION + """
-5. Em `ocr_text`, transcreva todo o texto legível da imagem, inclusive cabecalhos e totais, preservando linhas, códigos, quantidades e valores.
-6. Use o conteúdo visual para identificar os itens alimentícios, sem inventar dados ilegíveis.
+6. Em `ocr_text`, transcreva todo o texto legível da imagem, inclusive cabecalhos e totais, preservando linhas, códigos, quantidades e valores.
+7. Use o conteúdo visual para identificar os itens alimentícios, sem inventar dados ilegíveis.
 """
 
 MAX_IMAGE_BYTES = 3 * 1024 * 1024
@@ -105,6 +111,7 @@ async def processar_chunk(
     semaphore: asyncio.Semaphore,
     chunk_texto: str,
     lista_referencia: List[str],
+    data_compra: Optional[str] = None,
 ) -> List[ItemAlimenticio]:
     user_prompt = f"""
 LISTA DE REFERÊNCIA DE PRODUTOS CONHECIDOS:
@@ -114,6 +121,9 @@ TEXTO DO OCR DA NOTA FISCAL:
 ---
 {chunk_texto}
 ---
+
+DATA DA COMPRA:
+{data_compra or "Não informada"}
 """
 
     config = types.GenerateContentConfig(
@@ -163,6 +173,7 @@ async def processar_imagem(
     imagem: bytes,
     mime_type: str,
     lista_referencia: List[str],
+    data_compra: Optional[str] = None,
 ) -> RespostaOCRImagem:
     user_prompt = f"""
 LISTA DE REFERÊNCIA DE PRODUTOS CONHECIDOS:
@@ -170,6 +181,9 @@ LISTA DE REFERÊNCIA DE PRODUTOS CONHECIDOS:
 
 Leia o cupom fiscal anexado e retorne o texto OCR completo junto com os itens
 alimentícios identificados na imagem.
+
+DATA DA COMPRA:
+{data_compra or "Não informada"}
 """
 
     config = types.GenerateContentConfig(
@@ -247,7 +261,13 @@ async def process_receipt(payload: OCRRequest, x_api_secret: str = Header(None))
         if len(imagem) > MAX_IMAGE_BYTES:
             raise HTTPException(status_code=413, detail="A imagem deve ter no máximo 3 MB.")
         client = get_gemini_client()
-        return await processar_imagem(client, imagem, payload.mime_type, payload.lista_referencia)
+        return await processar_imagem(
+            client,
+            imagem,
+            payload.mime_type,
+            payload.lista_referencia,
+            payload.data_compra,
+        )
 
     if payload.ocr_text is None:
         raise HTTPException(status_code=400, detail="Envie o texto OCR ou a imagem do cupom.")
@@ -260,7 +280,13 @@ async def process_receipt(payload: OCRRequest, x_api_secret: str = Header(None))
     semaphore = asyncio.Semaphore(3)
     resultados_lotes = await asyncio.gather(
         *[
-            processar_chunk(client, semaphore, chunk, payload.lista_referencia)
+            processar_chunk(
+                client,
+                semaphore,
+                chunk,
+                payload.lista_referencia,
+                payload.data_compra,
+            )
             for chunk in chunks
         ]
     )

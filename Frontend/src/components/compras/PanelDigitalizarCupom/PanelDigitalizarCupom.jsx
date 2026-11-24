@@ -27,12 +27,17 @@ function dataHoje() {
 function prepararItem(item) {
     const unidade = item.medida?.trim().toLowerCase();
     const unidadesConhecidas = { un: "un", kg: "kg", g: "g", l: "L", ml: "mL" };
+    const validade = typeof item.validade_estimada === "string"
+        && /^\d{4}-\d{2}-\d{2}$/.test(item.validade_estimada)
+        ? item.validade_estimada
+        : "";
     return {
         ...item,
         nome_padronizado: item.nome_padronizado ?? "",
         quantidade: String(item.quantidade ?? ""),
         medida: unidadesConhecidas[unidade] ?? "",
         valor_unitario: String(item.valor_unitario ?? ""),
+        validade_estimada: validade,
     };
 }
 
@@ -88,7 +93,7 @@ function PanelDigitalizarCupom() {
         setResultadosOcr([]);
         setItensDetectados([]);
         try {
-            const resultado = await digitalizarCupons(fotos);
+            const resultado = await digitalizarCupons(fotos, dataCompra);
             setResultadosOcr(resultado.resultados);
             setItensDetectados(resultado.resultados.flatMap(({ itens_alimenticios }) =>
                 itens_alimenticios.map(prepararItem)
@@ -175,6 +180,7 @@ function PanelDigitalizarCupom() {
                 quantidade,
                 unidade_de_medida: item.medida,
                 preco_total_item: totalDoItem(item),
+                ...(item.validade_estimada ? { validade_estimada: item.validade_estimada } : {}),
             };
         });
         const itemInvalido = itensParaEnviar.some((item) =>
@@ -354,6 +360,14 @@ function PanelDigitalizarCupom() {
                                                     value={item.valor_unitario}
                                                     onChange={(event) => alterarItem(indice, "valor_unitario", event.target.value)}
                                                     required
+                                                />
+                                            </label>
+                                            <label>
+                                                Validade estimada (opcional)
+                                                <input
+                                                    type="date"
+                                                    value={item.validade_estimada}
+                                                    onChange={(event) => alterarItem(indice, "validade_estimada", event.target.value)}
                                                 />
                                             </label>
                                             <p className="digitalizar-cupom-total">
