@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from '../../../services/api';
-import "../ModalAdicionarReceita/ModalAdicionarReceita.css";
+import ModalFormularioReceita from "../ModalFormularioReceita/ModalFormularioReceita";
 
 function ModalEditarReceita({ receita, onClose, onUpdated }) {
     const [dadosReceita, setDadosReceita] = useState({
@@ -50,65 +50,54 @@ function ModalEditarReceita({ receita, onClose, onUpdated }) {
     }
 
     return (
-        <div
-            className="container-modal-adicionar-receita"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-editar-receita"
-        >
-            <h2 id="titulo-editar-receita">Editar receita</h2>
-            <button
-                type="button"
-                aria-label="Fechar"
-                disabled={enviando}
-                onClick={onClose}
-            >
-                ×
-            </button>
+        <ModalFormularioReceita titulo="Editar receita" compacto enviando={enviando} erro={errorMsg} onClose={onClose}>
+            <form className="receita-formulario" onSubmit={handleSubmit}>
+                <div className="receita-formulario-corpo">
+                    <div className="receita-formulario-dados">
+                        <label htmlFor="nome-receita-editar">Nome</label>
+                        <input
+                            id="nome-receita-editar"
+                            name="nome"
+                            type="text"
+                            value={dadosReceita.nome}
+                            onChange={atualizarCampo}
+                            maxLength={100}
+                            data-foco-inicial
+                            required
+                        />
 
-            {errorMsg && <p className="receita-feedback receita-erro" role="alert">{errorMsg}</p>}
+                        <label htmlFor="descricao-receita-editar">Descrição</label>
+                        <textarea
+                            id="descricao-receita-editar"
+                            name="descricao"
+                            value={dadosReceita.descricao}
+                            onChange={atualizarCampo}
+                            maxLength={1000}
+                            required
+                        />
 
-            <form className="form-modal-nova-receita" onSubmit={handleSubmit}>
-                <label htmlFor="nome-receita-editar">Nome</label>
-                <input
-                    id="nome-receita-editar"
-                    name="nome"
-                    type="text"
-                    value={dadosReceita.nome}
-                    onChange={atualizarCampo}
-                    maxLength={100}
-                    autoFocus
-                    required
-                />
+                        <label htmlFor="modo-preparo-receita-editar">Modo de preparo</label>
+                        <textarea
+                            id="modo-preparo-receita-editar"
+                            name="modo_preparo"
+                            value={dadosReceita.modo_preparo}
+                            onChange={atualizarCampo}
+                            maxLength={10000}
+                            required
+                        />
+                    </div>
+                </div>
 
-                <label htmlFor="descricao-receita-editar">Descrição</label>
-                <textarea
-                    id="descricao-receita-editar"
-                    name="descricao"
-                    value={dadosReceita.descricao}
-                    onChange={atualizarCampo}
-                    maxLength={1000}
-                    required
-                />
-
-                <label htmlFor="modo-preparo-receita-editar">Modo de preparo</label>
-                <textarea
-                    id="modo-preparo-receita-editar"
-                    name="modo_preparo"
-                    value={dadosReceita.modo_preparo}
-                    onChange={atualizarCampo}
-                    maxLength={10000}
-                    required
-                />
-
-                <button type="button" disabled={enviando} onClick={onClose}>
-                    Cancelar
-                </button>
-                <button type="submit" disabled={enviando} className="btn-adicionar-receita">
-                    {enviando ? "Salvando..." : "Salvar alterações"}
-                </button>
+                <footer className="receita-formulario-acoes">
+                    <button type="button" disabled={enviando} onClick={onClose}>
+                        Cancelar
+                    </button>
+                    <button type="submit" disabled={enviando} className="receita-formulario-primario">
+                        {enviando ? "Salvando..." : "Salvar alterações"}
+                    </button>
+                </footer>
             </form>
-        </div>
+        </ModalFormularioReceita>
     );
 }
 

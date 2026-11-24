@@ -409,25 +409,21 @@ function PanelViewReceita() {
             )}
 
             {modalNovaReceitaAberto && (
-                <div className="modal-nova-receita">
-                    <ModalAdicionarReceita
-                        onClose={fecharModalNovaReceita}
-                        onCreated={async () => {
-                            await fetchReceitas();
-                            await fetchSugestoes();
-                        }}
-                    />
-                </div>
+                <ModalAdicionarReceita
+                    onClose={fecharModalNovaReceita}
+                    onCreated={async () => {
+                        await fetchReceitas();
+                        await fetchSugestoes();
+                    }}
+                />
             )}
 
             {receitaEditando && (
-                <div className="modal-nova-receita">
-                    <ModalEditarReceita
-                        receita={receitaEditando}
-                        onClose={fecharModalEditarReceita}
-                        onUpdated={atualizarReceitaNaLista}
-                    />
-                </div>
+                <ModalEditarReceita
+                    receita={receitaEditando}
+                    onClose={fecharModalEditarReceita}
+                    onUpdated={atualizarReceitaNaLista}
+                />
             )}
         </main>
     );
