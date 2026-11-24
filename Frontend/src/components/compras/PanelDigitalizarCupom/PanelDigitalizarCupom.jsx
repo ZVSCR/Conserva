@@ -13,7 +13,17 @@ const UNIDADES_MEDIDA = ["un", "kg", "g", "L", "mL"];
 const FORMATO_MOEDA = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function totalDoItem(item) {
+    const totalNota = Number(item.valor_total_item);
+    if (Number.isFinite(totalNota) && totalNota >= 0) return Math.round(totalNota * 100) / 100;
     return Math.round(Number(item.quantidade) * Number(item.valor_unitario) * 100) / 100;
+}
+
+function arredondarQuantidade(valor, unidade) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return "";
+    return unidade === "un"
+        ? String(Math.round(numero))
+        : String(Math.round((numero + Number.EPSILON) * 100) / 100);
 }
 
 function dataHoje() {
@@ -27,6 +37,7 @@ function dataHoje() {
 function prepararItem(item) {
     const unidade = item.medida?.trim().toLowerCase();
     const unidadesConhecidas = { un: "un", kg: "kg", g: "g", l: "L", ml: "mL" };
+    const medidaPadronizada = unidadesConhecidas[unidade] ?? "";
     const validade = typeof item.validade_estimada === "string"
         && /^\d{4}-\d{2}-\d{2}$/.test(item.validade_estimada)
         ? item.validade_estimada
@@ -34,9 +45,10 @@ function prepararItem(item) {
     return {
         ...item,
         nome_padronizado: item.nome_padronizado ?? "",
-        quantidade: String(item.quantidade ?? ""),
-        medida: unidadesConhecidas[unidade] ?? "",
+        quantidade: arredondarQuantidade(item.quantidade, medidaPadronizada),
+        medida: medidaPadronizada,
         valor_unitario: String(item.valor_unitario ?? ""),
+        valor_total_item: item.valor_total_item == null ? "" : String(item.valor_total_item),
         validade_estimada: validade,
     };
 }
@@ -174,7 +186,7 @@ function PanelDigitalizarCupom() {
         }
 
         const itensParaEnviar = itensDetectados.map((item) => {
-            const quantidade = Number(item.quantidade);
+            const quantidade = Number(arredondarQuantidade(item.quantidade, item.medida));
             return {
                 nome_item: item.nome_padronizado.trim(),
                 quantidade,
@@ -332,9 +344,10 @@ function PanelDigitalizarCupom() {
                                                     type="number"
                                                     min="0.01"
                                                     max="9999999.99"
-                                                    step="0.01"
+                                                    step={item.medida === "un" ? "1" : "any"}
                                                     value={item.quantidade}
                                                     onChange={(event) => alterarItem(indice, "quantidade", event.target.value)}
+                                                    onBlur={(event) => alterarItem(indice, "quantidade", arredondarQuantidade(event.target.value, item.medida))}
                                                     required
                                                 />
                                             </label>
@@ -359,7 +372,17 @@ function PanelDigitalizarCupom() {
                                                     step="0.01"
                                                     value={item.valor_unitario}
                                                     onChange={(event) => alterarItem(indice, "valor_unitario", event.target.value)}
-                                                    required
+                                                />
+                                            </label>
+                                            <label>
+                                                Preço total da nota
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={item.valor_total_item}
+                                                    onChange={(event) => alterarItem(indice, "valor_total_item", event.target.value)}
+                                                    placeholder="Valor da linha fiscal"
                                                 />
                                             </label>
                                             <label>

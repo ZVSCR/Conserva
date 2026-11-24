@@ -13,6 +13,14 @@ const CAMPOS_ITEM = ["nome_item", "quantidade", "unidade_de_medida", "preco_tota
 
 const ROTULO_PRECO = "Preço total do item";
 
+function arredondarQuantidade(valor, unidade) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return valor;
+    return unidade === "un"
+        ? Math.round(numero)
+        : Math.round((numero + Number.EPSILON) * 100) / 100;
+}
+
 function paraInputData(valor) {
     return valor ? String(valor).slice(0, 10) : "";
 }
@@ -212,11 +220,11 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
             return;
         }
 
-        const quantidade = Number(itemModal.quantidade);
+        const quantidade = arredondarQuantidade(itemModal.quantidade, itemModal.unidade_de_medida);
         const precoTotal = Number(itemModal.preco_total_item);
 
-        if (!ATE_DUAS_CASAS.test(itemModal.quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
-            setItemModalErro("A quantidade deve ser maior que zero, ter até duas casas decimais e não ultrapassar 9.999.999,99.");
+        if (!Number.isFinite(quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
+            setItemModalErro("A quantidade deve ser maior que zero e não ultrapassar 9.999.999,99.");
             return;
         }
         if (itemModal.unidade_de_medida === "un" && !Number.isInteger(quantidade)) {
@@ -513,7 +521,7 @@ function EditarCompra({ compraId, onSalvo, onFechar }) {
                                         type="number"
                                         min={itemModal.unidade_de_medida === "un" ? "1" : "0.01"}
                                         max={MAX_VALOR_DECIMAL}
-                                        step={itemModal.unidade_de_medida === "un" ? "1" : "0.01"}
+                                        step={itemModal.unidade_de_medida === "un" ? "1" : "any"}
                                         value={itemModal.quantidade}
                                         onChange={alterarItemModal}
                                         required

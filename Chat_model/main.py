@@ -39,6 +39,10 @@ class ItemAlimenticio(BaseModel):
     valor_unitario: float = Field(
         description="Valor unitário do produto."
     )
+    valor_total_item: Optional[float] = Field(
+        default=None,
+        description="Valor total da linha do produto na nota fiscal. Use este valor no lugar de multiplicar quantidade por valor unitário."
+    )
     is_item_novo: bool = Field(
         description="True se NÃO constar na lista de referência fornecida; False caso já exista."
     )
@@ -76,7 +80,8 @@ REGRAS:
 2. Remova marcas, selos e fabricantes (ex: "IOG NAT NESTLE 170G" -> "Iogurte").
 3. Separe a quantidade numérica e a unidade de medida (g, kg, ml, l, un, cx).
 4. Compare o produto padronizado com a lista de referência recebida. Se o produto não constar na lista, marque `is_item_novo = true`.
-5. Estime `validade_estimada` em formato YYYY-MM-DD com base no tipo de produto e em uma estimativa típica de armazenamento após a compra. Use a data da compra recebida como ponto inicial; use uma data futura coerente e conservadora. Retorne null quando não houver como estimar com segurança, como em itens sem embalagem ou classificação insuficiente.
+5. Informe `valor_total_item` com o preço total exibido na linha da nota fiscal. Não calcule esse total multiplicando quantidade por peso. Para unidades em g, kg, L ou mL, o valor da linha fiscal prevalece.
+6. Estime `validade_estimada` em formato YYYY-MM-DD com base no tipo de produto e em uma estimativa típica de armazenamento após a compra. Use a data da compra recebida como ponto inicial; use uma data futura coerente e conservadora. Retorne null quando não houver como estimar com segurança, como em itens sem embalagem ou classificação insuficiente.
 """
 
 SYSTEM_INSTRUCTION_IMAGEM = SYSTEM_INSTRUCTION + """

@@ -30,6 +30,14 @@ function novoItemVazio() {
     };
 }
 
+function arredondarQuantidade(valor, unidade) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return valor;
+    return unidade === "un"
+        ? Math.round(numero)
+        : Math.round((numero + Number.EPSILON) * 100) / 100;
+}
+
 function formatarDataBR(dataIso) {
     const [ano, mes, dia] = dataIso.split("-");
     return `${dia}/${mes}/${ano}`;
@@ -207,14 +215,13 @@ function PanelNovaCompra() {
             return;
         }
 
-        const ateDuasCasas = /^\d+(?:\.\d{1,2})?$/;
-        const quantidade = Number(item.quantidade);
+        const quantidade = arredondarQuantidade(item.quantidade, item.unidade_medida);
         const precoTotal = Number(item.preco_total_item);
-        if (!ateDuasCasas.test(item.quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
-            setItemErrorMsg("A quantidade deve ser maior que zero, ter até duas casas decimais e não ultrapassar 9.999.999,99.");
+        if (!Number.isFinite(quantidade) || quantidade <= 0 || quantidade > MAX_VALOR_DECIMAL) {
+            setItemErrorMsg("A quantidade deve ser maior que zero e não ultrapassar 9.999.999,99.");
             return;
         }
-        if (!ateDuasCasas.test(item.preco_total_item) || precoTotal > MAX_VALOR_DECIMAL) {
+        if (!/^\d+(?:\.\d{1,2})?$/.test(item.preco_total_item) || precoTotal > MAX_VALOR_DECIMAL) {
             setItemErrorMsg("O preço total deve ter até duas casas decimais e não ultrapassar R$ 9.999.999,99.");
             return;
         }
@@ -437,7 +444,7 @@ function PanelNovaCompra() {
                                 type="number"
                                 min="0.01"
                                 max={MAX_VALOR_DECIMAL}
-                                step="0.01"
+                                step={item.unidade_medida === "un" ? "1" : "any"}
                                 value={item.quantidade}
                                 placeholder="Ex: 1,2"
                                 onChange={alterarItem}

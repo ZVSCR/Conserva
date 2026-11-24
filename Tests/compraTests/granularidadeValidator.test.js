@@ -26,7 +26,6 @@ test('mantém três maçãs em um lote e expande duas embalagens variáveis', ()
 });
 
 test.each([
-    [{ quantidade: 1.5, unidade_de_medida: 'un' }, 'quantidade'],
     [{ tipo_medida: 'unitaria' }, 'unidade_de_medida'],
     [{ tipo_medida: 'variavel', unidade_de_medida: 'un' }, 'unidade_de_medida'],
     [{ tipo_medida: 'pacote' }, 'tipo_medida'],
@@ -41,4 +40,16 @@ test('limita o número total de embalagens expandidas', () => {
     const itens = Array.from({ length: 6 }, () => ({ ...itemBase, numero_embalagens: 100 }));
     expect(validateItensPayload({ itens }).errors)
         .toContainEqual(expect.objectContaining({ field: 'itens' }));
+});
+
+test('arredonda quantidade variável para duas casas antes da validação', () => {
+    const item = { ...itemBase, quantidade: 260.126 };
+    expect(validateItem(item, 0)).toEqual([]);
+    expect(item.quantidade).toBe(260.13);
+});
+
+test('arredonda quantidade unitária para inteiro antes da validação', () => {
+    const item = { ...itemBase, quantidade: 1.6, unidade_de_medida: 'un' };
+    expect(validateItem(item, 0)).toEqual([]);
+    expect(item.quantidade).toBe(2);
 });

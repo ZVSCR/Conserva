@@ -9,6 +9,12 @@ function quantidadeRepresentavel(valor) {
         /^\d+(?:\.\d{1,2})?$/.test(String(valor));
 }
 
+function arredondarQuantidade(valor, unidadeDeMedida) {
+    if (typeof valor !== 'number' || !Number.isFinite(valor)) return valor;
+    if (unidadeDeMedida === 'un') return Math.round(valor);
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
+}
+
 function tipoMedida(item) {
     return item.tipo_medida ?? (item.unidade_de_medida === 'un' ? 'unitaria' : 'variavel');
 }
@@ -28,6 +34,7 @@ module.exports = {
     MAX_EMBALAGENS,
     MAX_ITENS_EXPANDIDOS,
     quantidadeRepresentavel,
+    arredondarQuantidade,
     tipoMedida,
     normalizarItens
 };

@@ -9,6 +9,7 @@ const {
     MAX_EMBALAGENS,
     MAX_ITENS_EXPANDIDOS,
     quantidadeRepresentavel,
+    arredondarQuantidade,
     tipoMedida
 } = require('../services/granularidadeService');
 const { valorUnitarioRepresentavel } = require('../services/precoService');
@@ -66,6 +67,10 @@ function validateItem(item, index) {
         });
 
         return errors;
+    }
+
+    if (typeof item.quantidade === 'number' && Number.isFinite(item.quantidade)) {
+        item.quantidade = arredondarQuantidade(item.quantidade, item.unidade_de_medida);
     }
 
     // Agora, campos estão seguros para acesso
