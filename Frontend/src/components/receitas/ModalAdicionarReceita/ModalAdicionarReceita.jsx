@@ -182,186 +182,188 @@ function ModalAdicionarReceita({ onClose, onCreated }) {
     return (
         <ModalFormularioReceita titulo="Nova Receita" enviando={enviando} erro={errorMsg} onClose={onClose}>
             <form className="receita-formulario" onSubmit={handleSubmit}>
-                <section className="receita-formulario-dados" aria-labelledby="dados-nova-receita">
-                    <h3 id="dados-nova-receita">Dados da receita</h3>
-                    <label htmlFor="nome-receita">Nome</label>
-                    <input
-                        id="nome-receita"
-                        name="nome"
-                        type="text"
-                        value={receita.nome}
-                        onChange={atualizarCampo}
-                        maxLength={100}
-                        autoFocus
-                        required
-                    />
+                <div className="receita-formulario-corpo">
+                    <section className="receita-formulario-dados" aria-labelledby="dados-nova-receita">
+                        <h3 id="dados-nova-receita">Dados da receita</h3>
+                        <label htmlFor="nome-receita">Nome</label>
+                        <input
+                            id="nome-receita"
+                            name="nome"
+                            type="text"
+                            value={receita.nome}
+                            onChange={atualizarCampo}
+                            maxLength={100}
+                            data-foco-inicial
+                            required
+                        />
 
-                    <label htmlFor="descricao-receita">Descrição</label>
-                    <textarea
-                        id="descricao-receita"
-                        name="descricao"
-                        value={receita.descricao}
-                        onChange={atualizarCampo}
-                        maxLength={1000}
-                        required
-                    />
+                        <label htmlFor="descricao-receita">Descrição</label>
+                        <textarea
+                            id="descricao-receita"
+                            name="descricao"
+                            value={receita.descricao}
+                            onChange={atualizarCampo}
+                            maxLength={1000}
+                            required
+                        />
 
-                    <label htmlFor="modo-preparo-receita">Modo de preparo</label>
-                    <textarea
-                        id="modo-preparo-receita"
-                        name="modo_preparo"
-                        value={receita.modo_preparo}
-                        onChange={atualizarCampo}
-                        maxLength={10000}
-                        required
-                    />
-                </section>
+                        <label htmlFor="modo-preparo-receita">Modo de preparo</label>
+                        <textarea
+                            id="modo-preparo-receita"
+                            name="modo_preparo"
+                            value={receita.modo_preparo}
+                            onChange={atualizarCampo}
+                            maxLength={10000}
+                            required
+                        />
+                    </section>
 
-                <section className="adicionar-receita-ingredientes" aria-labelledby="titulo-ingredientes-receita">
-                    <h3 id="titulo-ingredientes-receita">Ingredientes</h3>
+                    <section className="adicionar-receita-ingredientes" aria-labelledby="titulo-ingredientes-receita">
+                        <h3 id="titulo-ingredientes-receita">Ingredientes</h3>
 
-                    <label htmlFor="busca-ingrediente-receita">Buscar ingrediente</label>
-                    <input
-                        id="busca-ingrediente-receita"
-                        type="search"
-                        value={buscaIngrediente}
-                        onChange={(event) => setBuscaIngrediente(event.target.value)}
-                        placeholder="Pesquisar ingredientes..."
-                        disabled={carregandoIngredientes || Boolean(erroIngredientes) || enviando}
-                    />
+                        <label htmlFor="busca-ingrediente-receita">Buscar ingrediente</label>
+                        <input
+                            id="busca-ingrediente-receita"
+                            type="search"
+                            value={buscaIngrediente}
+                            onChange={(event) => setBuscaIngrediente(event.target.value)}
+                            placeholder="Pesquisar ingredientes..."
+                            disabled={carregandoIngredientes || Boolean(erroIngredientes) || enviando}
+                        />
 
-                    <label htmlFor="ingrediente-global-receita">Ingrediente</label>
-                    <select
-                        id="ingrediente-global-receita"
-                        value={ingredienteSelecionadoId}
-                        onChange={(event) => setIngredienteSelecionadoId(event.target.value)}
-                        disabled={carregandoIngredientes || Boolean(erroIngredientes) || enviando}
-                    >
-                        <option value="">
-                            {carregandoIngredientes ? "Carregando ingredientes..." : "Selecione um ingrediente"}
-                        </option>
-                        {ingredientesFiltrados.map((ingrediente) => (
-                            <option key={ingrediente.id} value={ingrediente.id}>
-                                {ingrediente.nome}
+                        <label htmlFor="ingrediente-global-receita">Ingrediente</label>
+                        <select
+                            id="ingrediente-global-receita"
+                            value={ingredienteSelecionadoId}
+                            onChange={(event) => setIngredienteSelecionadoId(event.target.value)}
+                            disabled={carregandoIngredientes || Boolean(erroIngredientes) || enviando}
+                        >
+                            <option value="">
+                                {carregandoIngredientes ? "Carregando ingredientes..." : "Selecione um ingrediente"}
                             </option>
-                        ))}
-                    </select>
+                            {ingredientesFiltrados.map((ingrediente) => (
+                                <option key={ingrediente.id} value={ingrediente.id}>
+                                    {ingrediente.nome}
+                                </option>
+                            ))}
+                        </select>
 
-                    {erroIngredientes && <p className="ingrediente-lista-erro" role="alert">{erroIngredientes}</p>}
-                    {!carregandoIngredientes && !erroIngredientes && ingredientesFiltrados.length === 0 && (
-                        <p className="ingrediente-lista-vazia">Nenhum ingrediente encontrado.</p>
-                    )}
+                        {erroIngredientes && <p className="ingrediente-lista-erro" role="alert">{erroIngredientes}</p>}
+                        {!carregandoIngredientes && !erroIngredientes && ingredientesFiltrados.length === 0 && (
+                            <p className="ingrediente-lista-vazia">Nenhum ingrediente encontrado.</p>
+                        )}
 
-                    <div className="ingrediente-medidas">
-                        <div>
-                            <label htmlFor="quantidade-ingrediente-receita">Quantidade</label>
-                            <input
-                                id="quantidade-ingrediente-receita"
-                                type="number"
-                                min="0.01"
-                                max="9999999.99"
-                                step="0.01"
-                                value={quantidade}
-                                onChange={(event) => setQuantidade(event.target.value)}
-                                disabled={enviando}
-                            />
+                        <div className="ingrediente-medidas">
+                            <div>
+                                <label htmlFor="quantidade-ingrediente-receita">Quantidade</label>
+                                <input
+                                    id="quantidade-ingrediente-receita"
+                                    type="number"
+                                    min="0.01"
+                                    max="9999999.99"
+                                    step="0.01"
+                                    value={quantidade}
+                                    onChange={(event) => setQuantidade(event.target.value)}
+                                    disabled={enviando}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="unidade-ingrediente-receita">Unidade de medida</label>
+                                <select
+                                    id="unidade-ingrediente-receita"
+                                    value={unidade}
+                                    onChange={(event) => setUnidade(event.target.value)}
+                                    disabled={enviando}
+                                >
+                                    {UNIDADES_DE_MEDIDA.map((opcao) => <option key={opcao} value={opcao}>{opcao}</option>)}
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label htmlFor="unidade-ingrediente-receita">Unidade de medida</label>
-                            <select
-                                id="unidade-ingrediente-receita"
-                                value={unidade}
-                                onChange={(event) => setUnidade(event.target.value)}
-                                disabled={enviando}
-                            >
-                                {UNIDADES_DE_MEDIDA.map((opcao) => <option key={opcao} value={opcao}>{opcao}</option>)}
-                            </select>
-                        </div>
-                    </div>
 
-                    <button
-                        type="button"
-                        className="btn-adicionar-ingrediente"
-                        onClick={adicionarIngrediente}
-                        disabled={enviando || carregandoIngredientes || Boolean(erroIngredientes)}
-                    >
-                        Adicionar ingrediente
-                    </button>
+                        <button
+                            type="button"
+                            className="btn-adicionar-ingrediente"
+                            onClick={adicionarIngrediente}
+                            disabled={enviando || carregandoIngredientes || Boolean(erroIngredientes)}
+                        >
+                            Adicionar ingrediente
+                        </button>
 
-                    <ul className="lista-ingredientes-receita" aria-label="Ingredientes adicionados">
-                        {ingredientesReceita.map((ingrediente) => (
-                            <li key={ingrediente.id} className="item-ingrediente-receita">
-                                {ingredienteEditandoId === ingrediente.id ? (
-                                    <div className="ingrediente-edicao">
-                                        <span className="item-ingrediente-nome">{ingrediente.nome}</span>
-                                        <div className="ingrediente-medidas">
-                                            <div>
-                                                <label htmlFor={`quantidade-editar-${ingrediente.id}`}>Quantidade</label>
-                                                <input
-                                                    id={`quantidade-editar-${ingrediente.id}`}
-                                                    type="number"
-                                                    min="0.01"
-                                                    max="9999999.99"
-                                                    step="0.01"
-                                                    value={quantidadeEditando}
-                                                    onChange={(event) => setQuantidadeEditando(event.target.value)}
-                                                    disabled={enviando}
-                                                />
+                        <ul className="lista-ingredientes-receita" aria-label="Ingredientes adicionados">
+                            {ingredientesReceita.map((ingrediente) => (
+                                <li key={ingrediente.id} className="item-ingrediente-receita">
+                                    {ingredienteEditandoId === ingrediente.id ? (
+                                        <div className="ingrediente-edicao">
+                                            <span className="item-ingrediente-nome">{ingrediente.nome}</span>
+                                            <div className="ingrediente-medidas">
+                                                <div>
+                                                    <label htmlFor={`quantidade-editar-${ingrediente.id}`}>Quantidade</label>
+                                                    <input
+                                                        id={`quantidade-editar-${ingrediente.id}`}
+                                                        type="number"
+                                                        min="0.01"
+                                                        max="9999999.99"
+                                                        step="0.01"
+                                                        value={quantidadeEditando}
+                                                        onChange={(event) => setQuantidadeEditando(event.target.value)}
+                                                        disabled={enviando}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label htmlFor={`unidade-editar-${ingrediente.id}`}>Unidade</label>
+                                                    <select
+                                                        id={`unidade-editar-${ingrediente.id}`}
+                                                        value={unidadeEditando}
+                                                        onChange={(event) => setUnidadeEditando(event.target.value)}
+                                                        disabled={enviando}
+                                                    >
+                                                        {UNIDADES_DE_MEDIDA.map((opcao) => <option key={opcao} value={opcao}>{opcao}</option>)}
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label htmlFor={`unidade-editar-${ingrediente.id}`}>Unidade</label>
-                                                <select
-                                                    id={`unidade-editar-${ingrediente.id}`}
-                                                    value={unidadeEditando}
-                                                    onChange={(event) => setUnidadeEditando(event.target.value)}
-                                                    disabled={enviando}
-                                                >
-                                                    {UNIDADES_DE_MEDIDA.map((opcao) => <option key={opcao} value={opcao}>{opcao}</option>)}
-                                                </select>
+                                            <div className="ingrediente-edicao-acoes">
+                                                <button type="button" onClick={() => salvarEdicaoIngrediente(ingrediente.id)} disabled={enviando}>Salvar</button>
+                                                <button type="button" onClick={() => setIngredienteEditandoId(null)} disabled={enviando}>Cancelar</button>
                                             </div>
                                         </div>
-                                        <div className="ingrediente-edicao-acoes">
-                                            <button type="button" onClick={() => salvarEdicaoIngrediente(ingrediente.id)} disabled={enviando}>Salvar</button>
-                                            <button type="button" onClick={() => setIngredienteEditandoId(null)} disabled={enviando}>Cancelar</button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <span className="item-ingrediente-nome">
-                                            <strong>{formatarQuantidadeIngrediente(ingrediente.quantidade)} {ingrediente.unidade_de_medida}</strong>{" "}{ingrediente.nome}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            className="menu-ingrediente-botao"
-                                            aria-label={`Opções de ${ingrediente.nome}`}
-                                            aria-expanded={menuIngredienteAbertoId === ingrediente.id}
-                                            aria-controls={menuIngredienteAbertoId === ingrediente.id ? `opcoes-ingrediente-${ingrediente.id}` : undefined}
-                                            onClick={() => setMenuIngredienteAbertoId((id) => id === ingrediente.id ? null : ingrediente.id)}
-                                            disabled={enviando}
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                                <circle cx="5" cy="12" r="2" />
-                                                <circle cx="12" cy="12" r="2" />
-                                                <circle cx="19" cy="12" r="2" />
-                                            </svg>
-                                        </button>
-                                        {menuIngredienteAbertoId === ingrediente.id && (
-                                            <div
-                                                id={`opcoes-ingrediente-${ingrediente.id}`}
-                                                className="menu-ingrediente-opcoes"
-                                                role="group"
-                                                aria-label={`Ações para ${ingrediente.nome}`}
+                                    ) : (
+                                        <>
+                                            <span className="item-ingrediente-nome">
+                                                <strong>{formatarQuantidadeIngrediente(ingrediente.quantidade)} {ingrediente.unidade_de_medida}</strong>{" "}{ingrediente.nome}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="menu-ingrediente-botao"
+                                                aria-label={`Opções de ${ingrediente.nome}`}
+                                                aria-expanded={menuIngredienteAbertoId === ingrediente.id}
+                                                aria-controls={menuIngredienteAbertoId === ingrediente.id ? `opcoes-ingrediente-${ingrediente.id}` : undefined}
+                                                onClick={() => setMenuIngredienteAbertoId((id) => id === ingrediente.id ? null : ingrediente.id)}
+                                                disabled={enviando}
                                             >
-                                                <button type="button" disabled={enviando} onClick={() => iniciarEdicaoIngrediente(ingrediente)}>Modificar</button>
-                                                <button type="button" className="menu-ingrediente-remover" disabled={enviando} onClick={() => removerIngrediente(ingrediente.id)}>Remover</button>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </section>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <circle cx="5" cy="12" r="2" />
+                                                    <circle cx="12" cy="12" r="2" />
+                                                    <circle cx="19" cy="12" r="2" />
+                                                </svg>
+                                            </button>
+                                            {menuIngredienteAbertoId === ingrediente.id && (
+                                                <div
+                                                    id={`opcoes-ingrediente-${ingrediente.id}`}
+                                                    className="menu-ingrediente-opcoes"
+                                                    role="group"
+                                                    aria-label={`Ações para ${ingrediente.nome}`}
+                                                >
+                                                    <button type="button" disabled={enviando} onClick={() => iniciarEdicaoIngrediente(ingrediente)}>Modificar</button>
+                                                    <button type="button" className="menu-ingrediente-remover" disabled={enviando} onClick={() => removerIngrediente(ingrediente.id)}>Remover</button>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                </div>
 
                 <footer className="receita-formulario-acoes">
                     <button
