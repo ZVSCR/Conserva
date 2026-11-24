@@ -83,6 +83,7 @@ function EllipsisMenuReceita({ onClick, onPreparar, onModificar, onExcluir, rotu
                         texto: "Modificar",
                         onClick: onModificar ? () => {
                             popupRef.current.hidePopover();
+                            botaoRef.current?.focus();
                             onModificar();
                         } : undefined,
                     }] : []),

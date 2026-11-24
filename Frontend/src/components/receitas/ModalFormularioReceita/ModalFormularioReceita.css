@@ -1,0 +1,194 @@
+.receita-formulario-dialogo {
+    --receita-espaco: clamp(16px, 5vw, 24px);
+    --receita-texto: #171717;
+    --receita-secundario: #55545a;
+    --receita-campo: #f8f7f8;
+    --receita-borda: #d8d4d8;
+    --receita-verde: #39833f;
+    --receita-verde-hover: #2d6b33;
+    --receita-foco: #256331;
+    --receita-cantos: 10px;
+    box-sizing: border-box;
+    width: min(calc(100% - 32px), 560px);
+    max-height: calc(100dvh - 32px);
+    overflow: hidden;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--receita-texto);
+    color-scheme: light;
+    font: 1rem/1.45 Poppins, system-ui, sans-serif;
+    text-align: left;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 20%);
+}
+
+.receita-formulario-dialogo[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.receita-formulario-dialogo::backdrop {
+    background: rgb(0 0 0 / 45%);
+}
+
+.receita-formulario-dialogo--compacto {
+    width: min(calc(100% - 32px), 460px);
+}
+
+.receita-formulario-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    padding: 12px var(--receita-espaco);
+    border-bottom: 1px solid #eee;
+}
+
+.receita-formulario-cabecalho h2 {
+    margin: 0;
+    color: inherit;
+    font: 600 1.25rem/1.3 Poppins, system-ui, sans-serif;
+    letter-spacing: normal;
+}
+
+.receita-formulario-fechar {
+    display: grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--receita-cantos);
+    background: #f1f0f1;
+    color: var(--receita-texto);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.receita-formulario {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.receita-formulario-corpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--receita-espaco);
+}
+
+.receita-formulario label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.receita-formulario :is(input, textarea, select) {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--receita-borda);
+    border-radius: var(--receita-cantos);
+    background: var(--receita-campo);
+    color: var(--receita-texto);
+    font: inherit;
+    font-size: 0.9375rem;
+}
+
+.receita-formulario textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.receita-formulario :where(button) {
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid var(--receita-borda);
+    border-radius: var(--receita-cantos);
+    background: #f1f0f1;
+    color: var(--receita-texto);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.receita-formulario :where(button):hover:not(:disabled),
+.receita-formulario-fechar:hover:not(:disabled) {
+    background: #e8e7e8;
+}
+
+.receita-formulario .receita-formulario-primario {
+    border-color: transparent;
+    background: var(--receita-verde);
+    color: #fff;
+}
+
+.receita-formulario .receita-formulario-primario:hover:not(:disabled) {
+    background: var(--receita-verde-hover);
+}
+
+.receita-formulario-dialogo :is(button, input, textarea, select):disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.receita-formulario-dialogo :is(button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--receita-foco);
+    outline-offset: 2px;
+}
+
+.receita-formulario-erro {
+    flex: 0 0 auto;
+    max-height: 25dvh;
+    overflow-y: auto;
+    margin: 8px var(--receita-espaco) 0;
+    padding: 10px 12px;
+    border: 1px solid #f4c7c4;
+    border-radius: var(--receita-cantos);
+    background: #fef3f2;
+    color: #a52218;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+}
+
+.receita-formulario-dados {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.receita-formulario h3 {
+    margin: 0 0 2px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.receita-formulario-acoes {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 12px var(--receita-espaco);
+    border-top: 1px solid #eee;
+}
+
+@media (max-width: 360px) {
+    .receita-formulario-dialogo {
+        --receita-espaco: 12px;
+        width: calc(100% - 16px);
+        max-height: calc(100dvh - 16px);
+    }
+}

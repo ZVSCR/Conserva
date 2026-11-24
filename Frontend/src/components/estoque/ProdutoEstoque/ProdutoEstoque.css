@@ -65,3 +65,27 @@
         padding-inline: 10px 4px;
     }
 }
+
+.estoque-produto-vencimento {
+  display: inline-block;
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.estoque-produto-vencimento--vencido {
+  background: #fde8e6;
+  color: #a3271b;
+}
+
+.estoque-produto-vencimento--urgente {
+  background: #ffe9d6;
+  color: #a14a00;
+}
+
+.estoque-produto-vencimento--proximo {
+  background: #fff4cc;
+  color: #7a5b00;
+}

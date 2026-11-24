@@ -321,6 +321,104 @@
   font-size: 14px;
 }
 
+.digitalizar-cupom-resultados {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.digitalizar-cupom-resultados > p,
+.digitalizar-cupom-formulario > p {
+    margin: 0;
+    color: var(--compra-secundario);
+    font-size: 0.875rem;
+}
+
+.digitalizar-cupom-formulario {
+    display: grid;
+    gap: 14px;
+}
+
+.digitalizar-cupom-formulario > label,
+.digitalizar-cupom-itens label {
+    display: grid;
+    gap: 6px;
+    color: var(--compra-texto);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.digitalizar-cupom-formulario input,
+.digitalizar-cupom-itens input,
+.digitalizar-cupom-itens select {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #cfd7cf;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--compra-texto);
+    font: inherit;
+}
+
+.digitalizar-cupom-itens {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.digitalizar-cupom-itens li {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #dfe3df;
+    border-radius: var(--compra-cantos);
+    background: #fff;
+}
+
+.digitalizar-cupom-item-novo {
+    grid-column: 1 / -1;
+    color: var(--compra-verde-texto);
+    font-size: 0.8125rem;
+}
+
+.digitalizar-cupom-total {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--compra-verde-texto);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.digitalizar-cupom-formulario details {
+    padding: 10px 12px;
+    border-radius: var(--compra-cantos);
+    background: #edf6ee;
+    font-size: 0.875rem;
+}
+
+.digitalizar-cupom-formulario details pre {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.digitalizar-cupom .digitalizar-cupom-salvar {
+    min-height: 46px;
+    padding: 10px 16px;
+    background: var(--compra-verde);
+    color: #fff;
+    font-weight: 600;
+}
+
+.digitalizar-cupom-salvar:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
 .scanner-opcoes button:disabled {
   opacity: 0.5;
   cursor: wait;
