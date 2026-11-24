@@ -22,11 +22,19 @@
     text-align: center;
 }
 
+.estoque-controles {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 18px 16px;
+}
+
 .estoque-busca {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 18px 16px;
+    flex: 1;
+    min-width: 0;
     padding-inline: 12px;
     border-radius: 12px;
     background: #ddd;
@@ -64,6 +72,76 @@
     outline: none;
 }
 
+.estoque-filtro-container {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.estoque-filtro-botao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    max-width: 220px;
+    height: 42px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: #ddd;
+    color: #245b32;
+    cursor: pointer;
+}
+
+.estoque-filtro-botao:hover {
+    background: #d2d2d2;
+}
+
+.estoque-filtro-botao:focus-visible {
+    outline: 2px solid #256331;
+    outline-offset: 2px;
+}
+
+.estoque-filtro-botao svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2;
+}
+
+.estoque-filtro-modal {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 8px);
+    right: 0;
+    width: max-content;
+    min-width: 190px;
+    padding: 6px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 16%);
+}
+
+.estoque-filtro-opcao {
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #222;
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.estoque-filtro-opcao:hover {
+    background: #f2f5f2;
+}
+
 .estoque-lista {
     display: grid;
     gap: 8px;
@@ -73,7 +151,7 @@
 }
 
 @media (max-width: 360px) {
-    .estoque-busca {
+    .estoque-controles {
         margin-inline: 12px;
     }
 

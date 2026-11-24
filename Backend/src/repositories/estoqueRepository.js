@@ -125,12 +125,43 @@ async function buscarConsumo(usuarioId) {
 
     return query;
 }
+
+// Itens com pelo menos 75% da vida útil estimada já consumida.
+async function buscarItensComVidaUtilCritica(usuarioId) {
+    return sql`
+        SELECT e.id AS estoque_id,
+               i.id AS item_id,
+               i.nome_item,
+               i.quantidade AS quantidade_original,
+               i.tipo_medida,
+               i.unidade_de_medida,
+               e.quantidade_disponivel,
+               i.validade_estimada,
+               (i.validade_estimada - (now() AT TIME ZONE 'America/Sao_Paulo')::date) AS dias_para_vencer,
+               c.data_compra,
+               (((now() AT TIME ZONE 'America/Sao_Paulo')::date - c.data_compra::date))::numeric
+                   / NULLIF((i.validade_estimada - c.data_compra::date)::numeric, 0) AS percentual_consumido
+        FROM estoque e
+        JOIN item i ON i.id = e.item_id
+        JOIN compra c ON c.id = i.compra_id
+        WHERE e.usuario_id = ${usuarioId}
+          AND i.validade_estimada IS NOT NULL
+          AND i.validade_estimada > (now() AT TIME ZONE 'America/Sao_Paulo')::date
+          AND c.data_compra IS NOT NULL
+          AND i.validade_estimada > c.data_compra::date
+          AND (now() AT TIME ZONE 'America/Sao_Paulo')::date - c.data_compra::date >=
+              (i.validade_estimada - c.data_compra::date) * 0.75
+        ORDER BY percentual_consumido DESC, i.nome_item;
+    `;
+}
+
 module.exports = { 
-    buscarEstoque, 
+    buscarEstoque,
     buscarDetalheEstoque, 
     atualizarQuantidade, 
     buscarValorEstoquePorUsuario, 
     buscarItensEstoquePorUsuario, 
     buscarConsumo,
-    buscarEstoquePorIngrediente, 
+    buscarEstoquePorIngrediente,
+    buscarItensComVidaUtilCritica 
 };

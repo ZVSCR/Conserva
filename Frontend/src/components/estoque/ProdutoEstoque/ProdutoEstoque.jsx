@@ -8,8 +8,7 @@ const DIAS_ALERTA = 3; // mesmo padrão do backend
 
 function rotuloVencimento(dias) {
     if (dias === null || dias === undefined || dias > DIAS_ALERTA) return null;
-    if (dias < 0) return { texto: 'Vencido', nivel: 'vencido' };
-    if (dias === 0) return { texto: 'Vence hoje', nivel: 'urgente' };
+    if (dias <= 0) return { texto: 'Vencido', nivel: 'vencido' };
     if (dias === 1) return { texto: 'Vence amanhã', nivel: 'urgente' };
     return { texto: `Vence em ${dias} dias`, nivel: 'proximo' };
 }
