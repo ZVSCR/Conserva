@@ -3,17 +3,17 @@ const userRouter = express.Router();
 const userController = require('../controllers/userController');
 const requireAuth = require('../middleware/requireAuth');
 
-const mockAuth = (req, res, next) => {
-  req.user = { id: 1 };
-  next();
-};
-
 // Rota de cadastro (POST /api/users)
 userRouter.post('/', userController.registerUser);
 
+// Dados do usuário autenticado
+userRouter.route('/me')
+    .get(requireAuth, userController.getUserData)
+    .patch(requireAuth, userController.updateUserData);
+
 // Rota de preferências (GET e PATCH /api/users/me/preferences)
 userRouter.route('/me/preferences')
-    .get(userController.getUserPreferences)
-    .patch(userController.updateUserPreferences);
+    .get(requireAuth, userController.getUserPreferences)
+    .patch(requireAuth, userController.updateUserPreferences);
 
 module.exports = userRouter;
