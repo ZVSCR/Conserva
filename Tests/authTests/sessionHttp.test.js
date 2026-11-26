@@ -12,7 +12,16 @@ const publicUser = ({ password_hash, ...user }) => user;
 
 beforeAll(async () => { hash = await bcrypt.hash('senha-correta', 4); });
 beforeEach(() => {
-    accounts = [7, 42].map((id) => ({ id, username: `conta${id}`, email: `conta${id}@example.test`, tipo: 'domestico', password_hash: hash }));
+    accounts = [7, 42].map((id) => ({
+        id,
+        username: `conta${id}`,
+        email: `conta${id}@example.test`,
+        tipo: 'domestico',
+        password_hash: hash,
+        notify_push: true,
+        notify_email: true,
+        is_dark_theme: false
+    }));
     sql.mockReset();
     sql.mockImplementation(async (strings, ...values) => {
         const query = strings.join('?');
@@ -24,8 +33,33 @@ beforeEach(() => {
         if (query.includes('LOWER(')) {
             return accounts.filter((user) => user[values[0] ? 'email' : 'username'] === values[1]);
         }
+        if (query.includes('UPDATE users') && query.includes('notify_push')) {
+            const user = accounts.find((account) => account.id === values[3]);
+            [user.notify_push, user.notify_email, user.is_dark_theme] = values.slice(0, 3).map((value, index) =>
+                value === null ? [user.notify_push, user.notify_email, user.is_dark_theme][index] : value
+            );
+            return [{
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                notify_push: user.notify_push,
+                notify_email: user.notify_email,
+                is_dark_theme: user.is_dark_theme
+            }];
+        }
         if (query.includes('FROM users') && query.includes('WHERE id')) {
-            return accounts.filter((user) => user.id === values[0]).map(publicUser);
+            return accounts.filter((user) => user.id === values[0]).map((user) =>
+                query.includes('notify_push')
+                    ? {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email,
+                        notify_push: user.notify_push,
+                        notify_email: user.notify_email,
+                        is_dark_theme: user.is_dark_theme
+                    }
+                    : publicUser(user)
+            );
         }
         return [];
     });
@@ -65,6 +99,30 @@ test('sem cookie, consulta da sessão responde 401 sem consultar o banco', async
     expect(response.status).toBe(401);
     expect(response.headers['cache-control']).toBe('no-store');
     expect(sql).not.toHaveBeenCalled();
+});
+
+test('preferências exigem sessão e usam a identidade autenticada', async () => {
+    const unauthorized = await request(app).get('/api/users/me/preferences');
+    expect(unauthorized.status).toBe(401);
+    expect(sql).not.toHaveBeenCalled();
+
+    const first = request.agent(app);
+    const second = request.agent(app);
+    expect((await login(first, 7)).status).toBe(200);
+    expect((await login(second, 42)).status).toBe(200);
+
+    const before = await first.get('/api/users/me/preferences');
+    expect(before.status).toBe(200);
+    expect(before.body.data).toMatchObject({ notify_push: true, notify_email: true, is_dark_theme: false });
+
+    const updated = await first.patch('/api/users/me/preferences')
+        .send({ usuario_id: 42, is_dark_theme: true });
+    expect(updated.status).toBe(200);
+    expect(updated.body.data.is_dark_theme).toBe(true);
+
+    const other = await second.get('/api/users/me/preferences');
+    expect(other.status).toBe(200);
+    expect(other.body.data.is_dark_theme).toBe(false);
 });
 
 test('senha incorreta não envia cookie de sessão', async () => {
