@@ -13,41 +13,53 @@ async function findPreferencesByUserId(userId) {
 
 // Atualizar preferências no banco
 async function updatePreferences(userId, fieldsToUpdate) {
-    const updates = {};
-
-    // Mapeia o que vem do controller para as colunas reais da tabela
-    if (fieldsToUpdate.push_notifications !== undefined) {
-        updates.notify_push = fieldsToUpdate.push_notifications;
-    }
-
-    if (fieldsToUpdate.email_notifications !== undefined) {
-        updates.notify_email = fieldsToUpdate.email_notifications;
-    }
-
-    if (fieldsToUpdate.dark_theme !== undefined) {
-        updates.is_dark_theme = fieldsToUpdate.dark_theme;
-    }
-
-    // Se nenhum campo válido foi enviado, evita query inválida
-    if (Object.keys(updates).length === 0) {
-        return null;
-    }
-
-    updates.updated_at = new Date();
+    const notifyPush = fieldsToUpdate.notify_push ?? null;
+    const notifyEmail = fieldsToUpdate.notify_email ?? null;
+    const isDarkTheme = fieldsToUpdate.is_dark_theme ?? null;
 
     const result = await sql`
         UPDATE users
         SET
-            username = COALESCE(${username}, username),
-            email = COALESCE(${email}, email),
-            tipo = COALESCE(${tipo}, tipo),
-            password_hash = COALESCE(${passwordHash}, password_hash),
+            notify_push = COALESCE(${notifyPush}, notify_push),
+            notify_email = COALESCE(${notifyEmail}, notify_email),
+            is_dark_theme = COALESCE(${isDarkTheme}, is_dark_theme),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ${userId}
-        RETURNING id, notify_push, notify_email, is_dark_theme, updated_at;
+        RETURNING id, username, email, notify_push, notify_email, is_dark_theme, updated_at;
     `;
 
-    return result[0];
+    return result[0] || null;
+}
+
+async function findUserDataById(userId) {
+    const result = await sql`
+        SELECT id, username, email, tipo
+        FROM users
+        WHERE id = ${userId};
+    `;
+
+    return result[0] || null;
+}
+
+async function updateUserData(userId, { username, email, tipo, passwordHash }) {
+    const nextUsername = username ?? null;
+    const nextEmail = email ?? null;
+    const nextTipo = tipo ?? null;
+    const nextPasswordHash = passwordHash ?? null;
+
+    const result = await sql`
+        UPDATE users
+        SET
+            username = COALESCE(${nextUsername}, username),
+            email = COALESCE(${nextEmail}, email),
+            tipo = COALESCE(${nextTipo}, tipo),
+            password_hash = COALESCE(${nextPasswordHash}, password_hash),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${userId}
+        RETURNING id, username, email, tipo;
+    `;
+
+    return result[0] || null;
 }
 
 // Criar novo usuário na tabela users
@@ -64,5 +76,7 @@ async function createUser({ username, email, password_hash, tipo = 'user' }) {
 module.exports = {
     findPreferencesByUserId,
     updatePreferences,
+    findUserDataById,
+    updateUserData,
     createUser
 };
