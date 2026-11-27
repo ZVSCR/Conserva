@@ -190,7 +190,7 @@ async function prepararReceitaRepo(usuarioId, receitaId, planejar, { simular = f
               AND it.ingrediente_id = ANY($2::int[])
               AND e.quantidade_disponivel > 0
               AND (it.validade_estimada IS NULL
-                OR it.validade_estimada > (now() AT TIME ZONE 'America/Sao_Paulo')::date)
+                OR it.validade_estimada >= (now() AT TIME ZONE 'America/Sao_Paulo')::date)
             ORDER BY 
                 LEAST(it.validade_estimada, (now() AT TIME ZONE 'America/Sao_Paulo')::date + $3::int + 1),
                 e.gasto DESC, 
